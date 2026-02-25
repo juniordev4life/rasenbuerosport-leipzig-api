@@ -29,7 +29,8 @@ export const getGamesController = {
 	handler: async (request, reply) => {
 		try {
 			const limit = request.query.limit || 10;
-			const games = await gamesService.getUserGames(request.user.id, limit);
+			const offset = request.query.offset || 0;
+			const games = await gamesService.getUserGames(request.user.id, limit, offset);
 			return setGeneralResponse(
 				reply,
 				200,
