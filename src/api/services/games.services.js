@@ -9,6 +9,8 @@ import { getSupabaseAdmin } from "../../config/supabase.config.js";
  * @param {object[]} params.players - Array of {id, team, team_name?, rating?}
  * @param {string} [params.played_at] - ISO date string
  * @param {string} params.created_by - User UUID
+ * @param {object[]} [params.score_timeline] - Array of {home, away, period}
+ * @param {string} [params.result_type] - 'regular', 'extra_time', or 'penalty'
  * @returns {Promise<object>}
  */
 export async function createGame({
@@ -18,6 +20,8 @@ export async function createGame({
 	players,
 	played_at,
 	created_by,
+	score_timeline,
+	result_type,
 }) {
 	const supabase = getSupabaseAdmin();
 
@@ -29,6 +33,8 @@ export async function createGame({
 			score_away,
 			played_at: played_at || new Date().toISOString(),
 			created_by,
+			score_timeline: score_timeline || null,
+			result_type: result_type || "regular",
 		})
 		.select()
 		.single();

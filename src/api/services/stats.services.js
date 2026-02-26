@@ -27,6 +27,7 @@ export async function getUserStats(userId) {
 			mode,
 			score_home,
 			score_away,
+			played_at,
 			game_players (
 				player_id,
 				team,
@@ -34,7 +35,8 @@ export async function getUserStats(userId) {
 				profiles:player_id (username, avatar_url)
 			)
 		`)
-		.in("id", gameIds);
+		.in("id", gameIds)
+		.order("played_at", { ascending: false });
 
 	if (error) {
 		const err = new Error(error.message);
@@ -143,8 +145,14 @@ export async function getUserStats(userId) {
 	// Find best teammate (highest win rate together, min 2 games)
 	const bestTeammate = findBestTeammate(teammateRecord);
 
-	// Find favorite team
-	const favoriteTeam = await findFavoriteTeam(supabase, teamCount);
+	// Find favorite team (team_name is now plain text)
+	const favoriteTeam = findFavoriteTeam(teamCount);
+
+	// Calculate current streak (games already sorted by played_at DESC)
+	const currentStreak = calculateStreak(games, userGameMap);
+
+	// Last played timestamp (games are sorted DESC, first is most recent)
+	const lastPlayedAt = games.length > 0 ? games[0].played_at : null;
 
 	return {
 		total_games: totalGames,
@@ -157,6 +165,8 @@ export async function getUserStats(userId) {
 		favorite_opponent: favoriteOpponent,
 		best_teammate: bestTeammate,
 		favorite_team: favoriteTeam,
+		current_streak: currentStreak,
+		last_played_at: lastPlayedAt,
 	};
 }
 
@@ -176,7 +186,61 @@ function getEmptyStats() {
 		favorite_opponent: null,
 		best_teammate: null,
 		favorite_team: null,
+		current_streak: null,
+		last_played_at: null,
 	};
+}
+
+/**
+ * Calculates the current win/loss streak from games sorted by played_at DESC
+ * @param {object[]} games - Games sorted by played_at DESC
+ * @param {object} userGameMap - Map of game_id -> { team, team_name }
+ * @returns {{ type: string, count: number }|null}
+ */
+function calculateStreak(games, userGameMap) {
+	if (!games.length) return null;
+
+	let streakType = null;
+	let streakCount = 0;
+
+	for (const game of games) {
+		const userEntry = userGameMap[game.id];
+		if (!userEntry) continue;
+
+		const userTeam = userEntry.team;
+		const isHomeWin = game.score_home > game.score_away;
+		const isDraw = game.score_home === game.score_away;
+		const isUserWin =
+			(userTeam === "home" && isHomeWin) ||
+			(userTeam === "away" && !isHomeWin && !isDraw);
+
+		let result;
+		if (isDraw) {
+			result = "draw";
+		} else if (isUserWin) {
+			result = "win";
+		} else {
+			result = "loss";
+		}
+
+		// Skip draws at the start — they don't break a streak but don't count
+		if (streakType === null && result === "draw") continue;
+
+		if (streakType === null) {
+			streakType = result;
+			streakCount = 1;
+		} else if (result === streakType) {
+			streakCount++;
+		} else if (result === "draw") {
+			// Draws in the middle don't break the streak
+			continue;
+		} else {
+			break;
+		}
+	}
+
+	if (!streakType || streakCount < 2) return null;
+	return { type: streakType, count: streakCount };
 }
 
 /**
@@ -237,27 +301,20 @@ function findBestTeammate(teammateRecord) {
 }
 
 /**
- * Finds favorite team by looking up team name from ID
- * @param {object} supabase
- * @param {object} teamCount - { teamId: count }
- * @returns {Promise<object|null>}
+ * Finds favorite team from team name counts
+ * @param {object} teamCount - { teamName: count }
+ * @returns {object|null}
  */
-async function findFavoriteTeam(supabase, teamCount) {
+function findFavoriteTeam(teamCount) {
 	const entries = Object.entries(teamCount);
 	if (!entries.length) return null;
 
 	entries.sort((a, b) => b[1] - a[1]);
-	const [teamId, count] = entries[0];
-
-	const { data: team } = await supabase
-		.from("teams")
-		.select("name, short_name")
-		.eq("id", teamId)
-		.single();
+	const [teamName, count] = entries[0];
 
 	return {
-		name: team?.name || "Unknown",
-		short_name: team?.short_name || null,
+		name: teamName,
+		short_name: null,
 		games: count,
 	};
 }
