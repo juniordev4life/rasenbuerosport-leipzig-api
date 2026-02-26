@@ -52,6 +52,39 @@ export const getStatsSchema = {
 								games: { type: "integer" },
 							},
 						},
+						current_streak: {
+							type: ["object", "null"],
+							properties: {
+								type: { type: "string" },
+								count: { type: "integer" },
+							},
+						},
+						last_played_at: { type: ["string", "null"] },
+						career_match_stats: {
+							type: ["object", "null"],
+							properties: {
+								games_with_stats: { type: "integer" },
+								avg_possession: { type: "integer" },
+								avg_pass_accuracy: { type: "integer" },
+								avg_dribbling: { type: "integer" },
+								avg_shot_accuracy: { type: "integer" },
+								avg_xg_per_game: { type: ["number", "null"] },
+								total_xg: { type: "number" },
+								xg_efficiency: { type: ["number", "null"] },
+								avg_duels_won_rate: { type: ["integer", "null"] },
+							},
+						},
+						badges: {
+							type: "array",
+							items: {
+								type: "object",
+								properties: {
+									type: { type: "string" },
+									emoji: { type: "string" },
+									unlocked: { type: "boolean" },
+								},
+							},
+						},
 					},
 				},
 				error: { type: "array" },

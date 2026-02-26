@@ -7,8 +7,8 @@ export const getLeaderboardController = {
 	schema: leaderboardSchema,
 	handler: async (request, reply) => {
 		try {
-			const limit = request.query.limit || 10;
-			const leaderboard = await leaderboardService.getLeaderboard(limit);
+			const { limit = 10, from, to } = request.query;
+			const leaderboard = await leaderboardService.getLeaderboard(limit, from, to);
 			return setGeneralResponse(
 				reply,
 				200,

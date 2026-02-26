@@ -3,12 +3,14 @@ import { getSupabaseAdmin } from "../../config/supabase.config.js";
 /**
  * Calculates leaderboard: 3 points for win, 1 for draw, 0 for loss
  * @param {number} limit
+ * @param {string} [from] - Optional start date (ISO format, e.g. "2026-01-01")
+ * @param {string} [to] - Optional end date (ISO format, e.g. "2026-01-31")
  * @returns {Promise<object[]>}
  */
-export async function getLeaderboard(limit = 10) {
+export async function getLeaderboard(limit = 10, from, to) {
 	const supabase = getSupabaseAdmin();
 
-	const { data: games, error } = await supabase
+	let query = supabase
 		.from("games")
 		.select(`
 			id,
@@ -21,6 +23,15 @@ export async function getLeaderboard(limit = 10) {
 				profiles:player_id (username, avatar_url)
 			)
 		`);
+
+	if (from) {
+		query = query.gte("played_at", from);
+	}
+	if (to) {
+		query = query.lte("played_at", to);
+	}
+
+	const { data: games, error } = await query;
 
 	if (error) {
 		const err = new Error(error.message);

@@ -28,6 +28,7 @@ export async function getUserStats(userId) {
 			score_home,
 			score_away,
 			played_at,
+			match_stats,
 			game_players (
 				player_id,
 				team,
@@ -154,6 +155,15 @@ export async function getUserStats(userId) {
 	// Last played timestamp (games are sorted DESC, first is most recent)
 	const lastPlayedAt = games.length > 0 ? games[0].played_at : null;
 
+	// Career match stats (aggregated from FC26 stats)
+	const careerMatchStats = computeCareerMatchStats(games, userGameMap);
+
+	// Badges
+	const badges = computeBadges(games, userGameMap, {
+		total_games: totalGames,
+		careerMatchStats,
+	});
+
 	return {
 		total_games: totalGames,
 		wins: totalWins,
@@ -167,6 +177,8 @@ export async function getUserStats(userId) {
 		favorite_team: favoriteTeam,
 		current_streak: currentStreak,
 		last_played_at: lastPlayedAt,
+		career_match_stats: careerMatchStats,
+		badges,
 	};
 }
 
@@ -188,7 +200,232 @@ function getEmptyStats() {
 		favorite_team: null,
 		current_streak: null,
 		last_played_at: null,
+		career_match_stats: null,
+		badges: [],
 	};
+}
+
+/**
+ * Computes aggregated career match stats from all games with FC26 data
+ * @param {object[]} games
+ * @param {object} userGameMap
+ * @returns {object|null}
+ */
+function computeCareerMatchStats(games, userGameMap) {
+	let gamesWithStats = 0;
+	let totalPossession = 0;
+	let totalPassAccuracy = 0;
+	let totalDribbling = 0;
+	let totalShotAccuracy = 0;
+	let totalXg = 0;
+	let totalGoals = 0;
+	let totalDuels = 0;
+	let totalDuelsWon = 0;
+	let gamesWithXg = 0;
+
+	for (const game of games) {
+		if (!game.match_stats) continue;
+		const userEntry = userGameMap[game.id];
+		if (!userEntry) continue;
+
+		const side = userEntry.team;
+		const ms = game.match_stats;
+
+		gamesWithStats++;
+
+		if (ms.possession?.[side] != null) totalPossession += ms.possession[side];
+		if (ms.pass_accuracy?.[side] != null) totalPassAccuracy += ms.pass_accuracy[side];
+		if (ms.dribbling?.[side] != null) totalDribbling += ms.dribbling[side];
+		if (ms.shot_accuracy?.[side] != null) totalShotAccuracy += ms.shot_accuracy[side];
+		if (ms.duels?.[side] != null) totalDuels += ms.duels[side];
+		if (ms.duels_won?.[side] != null) totalDuelsWon += ms.duels_won[side];
+		if (ms.xg?.[side] != null) {
+			totalXg += ms.xg[side];
+			gamesWithXg++;
+		}
+
+		totalGoals += side === "home" ? game.score_home : game.score_away;
+	}
+
+	if (gamesWithStats === 0) return null;
+
+	return {
+		games_with_stats: gamesWithStats,
+		avg_possession: Math.round(totalPossession / gamesWithStats),
+		avg_pass_accuracy: Math.round(totalPassAccuracy / gamesWithStats),
+		avg_dribbling: Math.round(totalDribbling / gamesWithStats),
+		avg_shot_accuracy: Math.round(totalShotAccuracy / gamesWithStats),
+		avg_xg_per_game: gamesWithXg > 0 ? +(totalXg / gamesWithXg).toFixed(1) : null,
+		total_xg: +totalXg.toFixed(1),
+		xg_efficiency: totalXg > 0 ? +(totalGoals / totalXg).toFixed(2) : null,
+		avg_duels_won_rate: totalDuels > 0 ? Math.round((totalDuelsWon / totalDuels) * 100) : null,
+	};
+}
+
+/**
+ * Computes all 15 profile badges
+ * @param {object[]} games - All user games (sorted DESC)
+ * @param {object} userGameMap
+ * @param {object} stats - { total_games, careerMatchStats }
+ * @returns {object[]}
+ */
+function computeBadges(games, userGameMap, stats) {
+	const ms = stats.careerMatchStats;
+	const gamesWithStats = ms?.games_with_stats || 0;
+
+	const badges = [];
+
+	// 1. tiki_taka — Avg pass accuracy > 85% (min 3 games)
+	badges.push({
+		type: "tiki_taka",
+		emoji: "\u{1F3AF}",
+		unlocked: gamesWithStats >= 3 && (ms?.avg_pass_accuracy || 0) > 85,
+	});
+
+	// 2. ball_magnet — Avg possession > 55% (min 3 games)
+	badges.push({
+		type: "ball_magnet",
+		emoji: "\u{1F9F2}",
+		unlocked: gamesWithStats >= 3 && (ms?.avg_possession || 0) > 55,
+	});
+
+	// 3. konter_king — Won a game with < 40% possession
+	const hasKonterKing = games.some((game) => {
+		if (!game.match_stats?.possession) return false;
+		const ue = userGameMap[game.id];
+		if (!ue) return false;
+		const side = ue.team;
+		const poss = game.match_stats.possession[side];
+		const isWin =
+			(side === "home" && game.score_home > game.score_away) ||
+			(side === "away" && game.score_away > game.score_home);
+		return isWin && poss < 40;
+	});
+	badges.push({ type: "konter_king", emoji: "\u26A1", unlocked: hasKonterKing });
+
+	// 4. xg_killer — xG efficiency > 1.3 (min 5 games with stats)
+	badges.push({
+		type: "xg_killer",
+		emoji: "\u{1F52B}",
+		unlocked: gamesWithStats >= 5 && (ms?.xg_efficiency || 0) > 1.3,
+	});
+
+	// 5. duell_monster — Avg duel win rate > 60% (min 3 games)
+	badges.push({
+		type: "duell_monster",
+		emoji: "\u{1F4AA}",
+		unlocked: gamesWithStats >= 3 && (ms?.avg_duels_won_rate || 0) > 60,
+	});
+
+	// 6. perfektionist — 100% pass accuracy in any game
+	const hasPerfekt = games.some((game) => {
+		if (!game.match_stats?.pass_accuracy) return false;
+		const side = userGameMap[game.id]?.team;
+		return side && game.match_stats.pass_accuracy[side] === 100;
+	});
+	badges.push({ type: "perfektionist", emoji: "\u{1F48E}", unlocked: hasPerfekt });
+
+	// 7. schuetzenfest — 5+ goals in a single game
+	const hasSchuetzenfest = games.some((game) => {
+		const side = userGameMap[game.id]?.team;
+		if (!side) return false;
+		const goals = side === "home" ? game.score_home : game.score_away;
+		return goals >= 5;
+	});
+	badges.push({ type: "schuetzenfest", emoji: "\u{1F389}", unlocked: hasSchuetzenfest });
+
+	// 8. clean_sheet — Won without conceding
+	const hasCleanSheet = games.some((game) => {
+		const side = userGameMap[game.id]?.team;
+		if (!side) return false;
+		const conceded = side === "home" ? game.score_away : game.score_home;
+		const scored = side === "home" ? game.score_home : game.score_away;
+		return conceded === 0 && scored > 0;
+	});
+	badges.push({ type: "clean_sheet", emoji: "\u{1F6E1}\uFE0F", unlocked: hasCleanSheet });
+
+	// 9. david_vs_goliath — Won with < 30% possession
+	const hasDavid = games.some((game) => {
+		if (!game.match_stats?.possession) return false;
+		const side = userGameMap[game.id]?.team;
+		if (!side) return false;
+		const poss = game.match_stats.possession[side];
+		const isWin =
+			(side === "home" && game.score_home > game.score_away) ||
+			(side === "away" && game.score_away > game.score_home);
+		return isWin && poss < 30;
+	});
+	badges.push({ type: "david_vs_goliath", emoji: "\u{1F3F9}", unlocked: hasDavid });
+
+	// 10. fair_play — 10+ games without yellow card
+	let gamesNoYellow = 0;
+	for (const game of games) {
+		const side = userGameMap[game.id]?.team;
+		if (!side) continue;
+		if (!game.match_stats?.yellow_cards) {
+			gamesNoYellow++;
+			continue;
+		}
+		if (game.match_stats.yellow_cards[side] === 0) gamesNoYellow++;
+	}
+	badges.push({ type: "fair_play", emoji: "\u{1F91D}", unlocked: gamesNoYellow >= 10 });
+
+	// 11. debuetant — First game
+	badges.push({ type: "debuetant", emoji: "\u{1F476}", unlocked: stats.total_games >= 1 });
+
+	// 12. stammspieler — 25+ games
+	badges.push({ type: "stammspieler", emoji: "\u2B50", unlocked: stats.total_games >= 25 });
+
+	// 13. klublegende — 100+ games
+	badges.push({ type: "klublegende", emoji: "\u{1F451}", unlocked: stats.total_games >= 100 });
+
+	// 14. torjaeger_50 — 50+ career goals
+	let totalCareerGoals = 0;
+	for (const game of games) {
+		const side = userGameMap[game.id]?.team;
+		if (!side) continue;
+		totalCareerGoals += side === "home" ? game.score_home : game.score_away;
+	}
+	badges.push({ type: "torjaeger_50", emoji: "\u26BD", unlocked: totalCareerGoals >= 50 });
+
+	// 15. seriensieger — 5+ win streak at any point in history
+	const hasSeriensieger = checkHistoricWinStreak(games, userGameMap, 5);
+	badges.push({ type: "seriensieger", emoji: "\u{1F525}", unlocked: hasSeriensieger });
+
+	return badges;
+}
+
+/**
+ * Checks if the user ever had a win streak of at least minStreak
+ * @param {object[]} games - Sorted by played_at DESC
+ * @param {object} userGameMap
+ * @param {number} minStreak
+ * @returns {boolean}
+ */
+function checkHistoricWinStreak(games, userGameMap, minStreak) {
+	const sorted = [...games].reverse(); // chronological order
+	let streak = 0;
+	let maxStreak = 0;
+
+	for (const game of sorted) {
+		const ue = userGameMap[game.id];
+		if (!ue) continue;
+		const side = ue.team;
+		const isDraw = game.score_home === game.score_away;
+		const isWin =
+			(side === "home" && game.score_home > game.score_away) ||
+			(side === "away" && game.score_away > game.score_home);
+
+		if (isWin) {
+			streak++;
+			if (streak > maxStreak) maxStreak = streak;
+		} else if (!isDraw) {
+			streak = 0;
+		}
+		// draws don't break streak
+	}
+
+	return maxStreak >= minStreak;
 }
 
 /**
