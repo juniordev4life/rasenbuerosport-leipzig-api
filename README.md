@@ -179,11 +179,45 @@ The **leaderboard** and **health check** endpoints are public — all other endp
 | **profiles** | User profiles (username, avatar) |
 | **games** | Match records with scores, timelines, stats |
 | **game_players** | Links players to games with team assignment |
-| **teams** | 500+ real football clubs with logos |
+| **teams** | ~400 real football clubs from 25 European leagues |
 
 Key features: Row-Level Security (RLS), JSONB columns for match stats and score timelines, foreign key relationships.
 
 [Full Database Documentation →](docs/features/DATABASE.md)
+
+---
+
+## Supported Leagues
+
+The app includes ~400 real football clubs from **25 European top leagues** (curated from Transfermarkt):
+
+| # | Country | League | Teams |
+|---|---------|--------|-------|
+| 1 | England | Premier League | 20 |
+| 2 | Spain | La Liga | 20 |
+| 3 | Italy | Serie A | 20 |
+| 4 | Germany | Bundesliga | 18 |
+| 5 | France | Ligue 1 | 18 |
+| 6 | Portugal | Liga Portugal | 18 |
+| 7 | Netherlands | Eredivisie | 18 |
+| 8 | Turkey | Süper Lig | 18 |
+| 9 | Poland | Ekstraklasa | 18 |
+| 10 | Belgium | Jupiler Pro League | 16 |
+| 11 | Russia | Premier Liga | 16 |
+| 12 | Ukraine | Premier Liga | 16 |
+| 13 | Czech Republic | Chance Liga | 16 |
+| 14 | Norway | Eliteserien | 16 |
+| 15 | Serbia | Super Liga | 16 |
+| 16 | Romania | Superliga | 16 |
+| 17 | Sweden | Allsvenskan | 16 |
+| 18 | Bulgaria | efbet Liga | 16 |
+| 19 | Greece | Super League 1 | 14 |
+| 20 | Israel | Ligat ha'Al | 14 |
+| 21 | Denmark | Superliga | 12 |
+| 22 | Scotland | Premiership | 12 |
+| 23 | Austria | Bundesliga | 12 |
+| 24 | Switzerland | Super League | 12 |
+| 25 | Croatia | SuperSport HNL | 10 |
 
 ---
 
