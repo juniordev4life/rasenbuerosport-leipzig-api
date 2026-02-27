@@ -18,8 +18,6 @@ Fastify 5 REST API with Claude AI integration, Supabase authentication, and a co
 
 The RasenBürosport Leipzig API is the backend service (Playmaker) that powers the [RasenBürosport Leipzig App](https://github.com/juniordev4life/rasenbuerosport-leipzig-app). It handles everything from user authentication and game recording to AI-powered match reports, predictions, and a full-featured statistics engine with 15 unlockable badges.
 
-> Built by the **RB Leipzig Data Unit Team**. AI-powered by **Claude (Anthropic)**. Hosted on **Google Cloud Run**.
-
 ---
 
 ## Architecture
@@ -343,8 +341,6 @@ backend/
 
 **RasenBürosport Leipzig API** — Where office kicker meets data engineering.
 
-*Built with passion by the RB Leipzig Data Unit Team*
-
-*Powered by [Claude AI](https://anthropic.com) · Built with [Fastify](https://fastify.dev) · Database by [Supabase](https://supabase.com)*
+*Built with passion and AI*
 
 </div>
