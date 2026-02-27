@@ -5,9 +5,10 @@ import { getSupabaseAdmin } from "../../config/supabase.config.js";
  * @param {number} limit
  * @param {string} [from] - Optional start date (ISO format, e.g. "2026-01-01")
  * @param {string} [to] - Optional end date (ISO format, e.g. "2026-01-31")
+ * @param {string} [mode] - Game mode filter: "all", "1v1", or "2v2" (default: "all")
  * @returns {Promise<object[]>}
  */
-export async function getLeaderboard(limit = 10, from, to) {
+export async function getLeaderboard(limit = 10, from, to, mode = "all") {
 	const supabase = getSupabaseAdmin();
 
 	let query = supabase
@@ -29,6 +30,9 @@ export async function getLeaderboard(limit = 10, from, to) {
 	}
 	if (to) {
 		query = query.lte("played_at", to);
+	}
+	if (mode && mode !== "all") {
+		query = query.eq("mode", mode);
 	}
 
 	const { data: games, error } = await query;
