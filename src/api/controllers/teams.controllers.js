@@ -7,7 +7,7 @@ export const getTeamsController = {
 	schema: getTeamsSchema,
 	handler: async (request, reply) => {
 		try {
-			const data = await getAllTeams();
+			const data = await getAllTeams(request.query);
 			return setGeneralResponse(
 				reply,
 				200,
