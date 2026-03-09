@@ -11,6 +11,11 @@ export const uploadMatchStatsSchema = {
 		required: ["imageUrl"],
 		properties: {
 			imageUrl: { type: "string", format: "uri" },
+			type: {
+				type: "string",
+				enum: ["overview", "passes", "defense"],
+				default: "overview",
+			},
 		},
 	},
 };

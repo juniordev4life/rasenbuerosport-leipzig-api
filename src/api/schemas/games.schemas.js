@@ -34,6 +34,7 @@ export const createGameSchema = {
 							type: "string",
 							enum: ["regular", "extra_time", "penalty"],
 						},
+						scored_by: { type: "string", format: "uuid" },
 					},
 				},
 			},

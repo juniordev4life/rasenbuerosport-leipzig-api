@@ -11,14 +11,15 @@ export const uploadMatchStatsController = {
 	handler: async (request, reply) => {
 		try {
 			const { gameId } = request.params;
-			const { imageUrl } = request.body;
+			const { imageUrl, type = "overview" } = request.body;
 
 			const matchStats =
-				await matchStatsService.extractStatsFromImage(imageUrl);
+				await matchStatsService.extractStatsFromImage(imageUrl, type);
 			const game = await matchStatsService.saveMatchStats(
 				gameId,
 				matchStats,
 				imageUrl,
+				type,
 			);
 
 			return setGeneralResponse(
@@ -29,6 +30,9 @@ export const uploadMatchStatsController = {
 				{
 					match_stats: game.match_stats,
 					stats_image_url: game.stats_image_url,
+					passes_image_url: game.passes_image_url,
+					defense_image_url: game.defense_image_url,
+					type,
 				},
 			);
 		} catch (error) {
