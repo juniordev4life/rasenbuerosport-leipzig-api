@@ -24,7 +24,7 @@
   "author": "RasenBürosport Leipzig IT",
   "license": "UNLICENSED",
   "engines": {
-    "node": ">=26.0.0"
+    "node": ">=24.0.0"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
