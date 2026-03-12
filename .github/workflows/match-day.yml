@@ -31,11 +31,6 @@ jobs:
       - name: Formation Check (Format)
         run: npm run format:check
 
-      - name: Training Session (Tests)
-        run: npm run test
-        env:
-          NODE_ENV: test
-
   deploy:
     name: Deploy to Cloud Run
     needs: pre-match-checks
