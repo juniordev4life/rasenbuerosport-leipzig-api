@@ -63,12 +63,12 @@ function randInt(min, max) {
 }
 
 /** Random float between min and max */
-function randFloat(min, max) {
+function _randFloat(min, max) {
 	return +(min + Math.random() * (max - min)).toFixed(1);
 }
 
 /** Pick two different teams */
-function pickTwoTeams() {
+function _pickTwoTeams() {
 	const a = pick(ALL_TEAMS);
 	let b = pick(ALL_TEAMS);
 	while (b === a) b = pick(ALL_TEAMS);
@@ -76,7 +76,7 @@ function pickTwoTeams() {
 }
 
 /** Pick N unique items */
-function pickUnique(arr, n) {
+function _pickUnique(arr, n) {
 	const copy = [...arr];
 	const result = [];
 	for (let i = 0; i < n && copy.length > 0; i++) {

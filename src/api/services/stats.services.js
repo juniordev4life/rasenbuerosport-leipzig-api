@@ -584,7 +584,6 @@ function calculateStreak(games, userGameMap) {
 			streakCount++;
 		} else if (result === "draw") {
 			// Draws in the middle don't break the streak
-			continue;
 		} else {
 			break;
 		}

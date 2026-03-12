@@ -1,5 +1,5 @@
 import { getPool } from "../../config/database.config.js";
-import { query, queryOne } from "../helpers/database.helpers.js";
+import { query } from "../helpers/database.helpers.js";
 
 /**
  * Creates a new game with players

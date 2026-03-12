@@ -185,7 +185,7 @@ function parseLeagueFile(filePath, leagueId) {
 		/data-src="https:\/\/cdn\.sofifa\.net\/meta\/team\/(\d+)\/60\.png"/g;
 	const logoPositions = [];
 	let logoMatch;
-	while ((logoMatch = logoRegex.exec(clean)) !== null) {
+	while ((logoMatch = logoRegex.exec(clean)) !== null) { // biome-ignore lint/suspicious/noAssignInExpressions: regex exec pattern
 		logoPositions.push({ logoId: logoMatch[1], index: logoMatch.index });
 	}
 
