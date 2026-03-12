@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from "../../config/supabase.config.js";
+import { query, queryOne } from "../helpers/database.helpers.js";
 
 /**
  * Gets head-to-head stats between two players
@@ -7,32 +7,28 @@ import { getSupabaseAdmin } from "../../config/supabase.config.js";
  * @returns {Promise<object>}
  */
 export async function getHeadToHead(userId, opponentId) {
-	const supabase = getSupabaseAdmin();
-
-	// Get opponent profile
-	const { data: opponentProfile } = await supabase
-		.from("profiles")
-		.select("username, avatar_url")
-		.eq("id", opponentId)
-		.single();
+	const opponentProfile = await queryOne(
+		"SELECT username, avatar_url FROM profiles WHERE id = $1",
+		[opponentId],
+	);
 
 	// Find all games where user participated
-	const { data: userGames } = await supabase
-		.from("game_players")
-		.select("game_id, team")
-		.eq("player_id", userId);
+	const userGames = await query(
+		"SELECT game_id, team FROM game_players WHERE player_id = $1",
+		[userId],
+	);
 
-	if (!userGames?.length) {
+	if (!userGames.length) {
 		return getEmptyH2H(opponentProfile);
 	}
 
 	// Find all games where opponent participated
-	const { data: opponentGames } = await supabase
-		.from("game_players")
-		.select("game_id, team")
-		.eq("player_id", opponentId);
+	const opponentGames = await query(
+		"SELECT game_id, team FROM game_players WHERE player_id = $1",
+		[opponentId],
+	);
 
-	if (!opponentGames?.length) {
+	if (!opponentGames.length) {
 		return getEmptyH2H(opponentProfile);
 	}
 
@@ -46,26 +42,25 @@ export async function getHeadToHead(userId, opponentId) {
 		return getEmptyH2H(opponentProfile);
 	}
 
-	// Fetch the actual games
-	const { data: games, error } = await supabase
-		.from("games")
-		.select(`
-			*,
-			game_players (
-				player_id,
-				team,
-				team_name,
-				profiles:player_id (username, avatar_url)
-			)
-		`)
-		.in("id", commonGameIds)
-		.order("played_at", { ascending: false });
-
-	if (error) {
-		const err = new Error(error.message);
-		err.statusCode = 400;
-		throw err;
-	}
+	// Fetch the actual games with players
+	const games = await query(
+		`SELECT g.*,
+			json_agg(
+				json_build_object(
+					'player_id', gp.player_id,
+					'team', gp.team,
+					'team_name', gp.team_name,
+					'profiles', json_build_object('username', p.username, 'avatar_url', p.avatar_url)
+				)
+			) AS game_players
+		FROM games g
+		LEFT JOIN game_players gp ON gp.game_id = g.id
+		LEFT JOIN profiles p ON p.id = gp.player_id
+		WHERE g.id = ANY($1)
+		GROUP BY g.id
+		ORDER BY g.played_at DESC`,
+		[commonGameIds],
+	);
 
 	// Build user team map
 	const userTeamMap = {};

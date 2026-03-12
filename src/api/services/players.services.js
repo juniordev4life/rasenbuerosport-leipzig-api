@@ -1,22 +1,11 @@
-import { getSupabaseAdmin } from "../../config/supabase.config.js";
+import { query } from "../helpers/database.helpers.js";
 
 /**
  * Gets all player profiles
  * @returns {Promise<object[]>}
  */
 export async function getAllPlayers() {
-	const supabase = getSupabaseAdmin();
-
-	const { data, error } = await supabase
-		.from("profiles")
-		.select("id, username, avatar_url")
-		.order("username", { ascending: true });
-
-	if (error) {
-		const err = new Error(error.message);
-		err.statusCode = 400;
-		throw err;
-	}
-
-	return data;
+	return query(
+		"SELECT id, username, avatar_url FROM profiles ORDER BY username ASC",
+	);
 }

@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from "../../config/supabase.config.js";
+import { queryOne } from "../helpers/database.helpers.js";
 import { getAnthropicClient } from "../../config/anthropic.config.js";
 
 const OVERVIEW_EXTRACTION_PROMPT = `You are analyzing a post-match statistics screen from EA Sports FC (FC25/FC26).
@@ -218,38 +218,29 @@ export async function extractStatsFromImage(imageUrl, type = "overview") {
  * Merges new stats into existing match_stats JSONB.
  * @param {string} gameId - Game UUID
  * @param {object} newStats - Extracted stats JSON (partial)
- * @param {string} imageUrl - Supabase Storage URL of the screenshot
+ * @param {string} imageUrl - Cloud Storage URL of the screenshot
  * @param {"overview"|"passes"|"defense"} type - Screenshot type
  * @returns {Promise<object>} Updated game record
  */
 export async function saveMatchStats(gameId, newStats, imageUrl, type = "overview") {
-	const supabase = getSupabaseAdmin();
 	const imageColumn = IMAGE_COLUMNS[type] || IMAGE_COLUMNS.overview;
 
 	// Fetch existing match_stats to merge
-	const { data: existing } = await supabase
-		.from("games")
-		.select("match_stats")
-		.eq("id", gameId)
-		.single();
+	const existing = await queryOne(
+		"SELECT match_stats FROM games WHERE id = $1",
+		[gameId],
+	);
 
 	const mergedStats = { ...(existing?.match_stats || {}), ...newStats };
 
-	const updatePayload = {
-		match_stats: mergedStats,
-		[imageColumn]: imageUrl,
-	};
+	const data = await queryOne(
+		`UPDATE games SET match_stats = $1, ${imageColumn} = $2 WHERE id = $3 RETURNING *`,
+		[JSON.stringify(mergedStats), imageUrl, gameId],
+	);
 
-	const { data, error } = await supabase
-		.from("games")
-		.update(updatePayload)
-		.eq("id", gameId)
-		.select()
-		.single();
-
-	if (error) {
-		const err = new Error(error.message);
-		err.statusCode = 400;
+	if (!data) {
+		const err = new Error("Game not found");
+		err.statusCode = 404;
 		throw err;
 	}
 
@@ -262,23 +253,15 @@ export async function saveMatchStats(gameId, newStats, imageUrl, type = "overvie
  * @returns {Promise<object>} Updated game record
  */
 export async function deleteMatchStats(gameId) {
-	const supabase = getSupabaseAdmin();
+	const data = await queryOne(
+		`UPDATE games SET match_stats = NULL, stats_image_url = NULL, passes_image_url = NULL, defense_image_url = NULL
+		WHERE id = $1 RETURNING *`,
+		[gameId],
+	);
 
-	const { data, error } = await supabase
-		.from("games")
-		.update({
-			match_stats: null,
-			stats_image_url: null,
-			passes_image_url: null,
-			defense_image_url: null,
-		})
-		.eq("id", gameId)
-		.select()
-		.single();
-
-	if (error) {
-		const err = new Error(error.message);
-		err.statusCode = 400;
+	if (!data) {
+		const err = new Error("Game not found");
+		err.statusCode = 404;
 		throw err;
 	}
 

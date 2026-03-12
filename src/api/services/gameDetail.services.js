@@ -1,4 +1,5 @@
-import { getSupabaseAdmin } from "../../config/supabase.config.js";
+import { queryOne } from "../helpers/database.helpers.js";
+import { query } from "../helpers/database.helpers.js";
 
 /**
  * Fetches a single game by ID with all players and profiles
@@ -6,31 +7,19 @@ import { getSupabaseAdmin } from "../../config/supabase.config.js";
  * @returns {Promise<object|null>}
  */
 export async function getGameById(gameId) {
-	const supabase = getSupabaseAdmin();
+	const game = await queryOne("SELECT * FROM games WHERE id = $1", [gameId]);
 
-	const { data: game, error } = await supabase
-		.from("games")
-		.select(`
-			*,
-			game_players (
-				player_id,
-				team,
-				team_name,
-				rating,
-				profiles:player_id (username, avatar_url)
-			)
-		`)
-		.eq("id", gameId)
-		.single();
+	if (!game) return null;
 
-	if (error) {
-		if (error.code === "PGRST116") {
-			return null;
-		}
-		const err = new Error(error.message);
-		err.statusCode = 400;
-		throw err;
-	}
+	const players = await query(
+		`SELECT gp.player_id, gp.team, gp.team_name, gp.rating,
+			json_build_object('username', p.username, 'avatar_url', p.avatar_url) AS profiles
+		FROM game_players gp
+		LEFT JOIN profiles p ON p.id = gp.player_id
+		WHERE gp.game_id = $1`,
+		[gameId],
+	);
 
+	game.game_players = players;
 	return game;
 }

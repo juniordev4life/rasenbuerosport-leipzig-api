@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from "../../config/supabase.config.js";
+import { query, queryOne } from "../helpers/database.helpers.js";
 import { getAnthropicClient } from "../../config/anthropic.config.js";
 import { getUserStats } from "./stats.services.js";
 
@@ -30,32 +30,27 @@ Regeln:
  * @returns {Promise<string>} Generated report text
  */
 export async function generateMatchReport(gameId) {
-	const supabase = getSupabaseAdmin();
-
 	// Fetch game with all data
-	const { data: game, error } = await supabase
-		.from("games")
-		.select(`
-			*,
-			game_players (
-				player_id,
-				team,
-				team_name,
-				profiles:player_id (username, avatar_url)
-			)
-		`)
-		.eq("id", gameId)
-		.single();
+	const game = await queryOne("SELECT * FROM games WHERE id = $1", [gameId]);
 
-	if (error || !game) {
+	if (!game) {
 		const err = new Error("Game not found");
 		err.statusCode = 404;
 		throw err;
 	}
 
+	const players = await query(
+		`SELECT gp.player_id, gp.team, gp.team_name,
+			json_build_object('username', p.username, 'avatar_url', p.avatar_url) AS profiles
+		FROM game_players gp
+		LEFT JOIN profiles p ON p.id = gp.player_id
+		WHERE gp.game_id = $1`,
+		[gameId],
+	);
+
 	// Build player context with career stats
 	const playerContexts = [];
-	for (const gp of game.game_players) {
+	for (const gp of players) {
 		try {
 			const stats = await getUserStats(gp.player_id);
 			playerContexts.push({
@@ -109,16 +104,10 @@ export async function generateMatchReport(gameId) {
 	}
 
 	// Save report to database
-	const { error: updateError } = await supabase
-		.from("games")
-		.update({ match_report: report })
-		.eq("id", gameId);
-
-	if (updateError) {
-		const err = new Error(updateError.message);
-		err.statusCode = 400;
-		throw err;
-	}
+	await queryOne(
+		"UPDATE games SET match_report = $1 WHERE id = $2 RETURNING id",
+		[report, gameId],
+	);
 
 	return report;
 }

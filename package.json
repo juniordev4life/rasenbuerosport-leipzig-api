@@ -24,7 +24,7 @@
   "author": "RasenBürosport Leipzig IT",
   "license": "UNLICENSED",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=26.0.0"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
@@ -32,9 +32,10 @@
     "@fastify/cors": "^11.2.0",
     "@fastify/helmet": "^13.0.2",
     "@fastify/rate-limit": "^10.3.0",
-    "@supabase/supabase-js": "^2.97.0",
     "dotenv": "^17.3.1",
-    "fastify": "^5.7.4"
+    "fastify": "^5.7.4",
+    "firebase-admin": "^13.0.0",
+    "pg": "^8.13.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.4",

@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from "../../config/supabase.config.js";
+import { query } from "../helpers/database.helpers.js";
 
 /**
  * Gets comprehensive stats for a user
@@ -6,45 +6,36 @@ import { getSupabaseAdmin } from "../../config/supabase.config.js";
  * @returns {Promise<object>}
  */
 export async function getUserStats(userId) {
-	const supabase = getSupabaseAdmin();
-
 	// Fetch all games the user participated in
-	const { data: playerGames } = await supabase
-		.from("game_players")
-		.select("game_id, team, team_name")
-		.eq("player_id", userId);
+	const playerGames = await query(
+		"SELECT game_id, team, team_name FROM game_players WHERE player_id = $1",
+		[userId],
+	);
 
-	if (!playerGames?.length) {
+	if (!playerGames.length) {
 		return getEmptyStats();
 	}
 
 	const gameIds = playerGames.map((pg) => pg.game_id);
 
-	const { data: games, error } = await supabase
-		.from("games")
-		.select(`
-			id,
-			mode,
-			score_home,
-			score_away,
-			played_at,
-			match_stats,
-			score_timeline,
-			game_players (
-				player_id,
-				team,
-				team_name,
-				profiles:player_id (username, avatar_url)
-			)
-		`)
-		.in("id", gameIds)
-		.order("played_at", { ascending: false });
-
-	if (error) {
-		const err = new Error(error.message);
-		err.statusCode = 400;
-		throw err;
-	}
+	const games = await query(
+		`SELECT g.id, g.mode, g.score_home, g.score_away, g.played_at, g.match_stats, g.score_timeline,
+			json_agg(
+				json_build_object(
+					'player_id', gp.player_id,
+					'team', gp.team,
+					'team_name', gp.team_name,
+					'profiles', json_build_object('username', p.username, 'avatar_url', p.avatar_url)
+				)
+			) AS game_players
+		FROM games g
+		LEFT JOIN game_players gp ON gp.game_id = g.id
+		LEFT JOIN profiles p ON p.id = gp.player_id
+		WHERE g.id = ANY($1)
+		GROUP BY g.id
+		ORDER BY g.played_at DESC`,
+		[gameIds],
+	);
 
 	// Build user's game map for quick lookups
 	const userGameMap = {};

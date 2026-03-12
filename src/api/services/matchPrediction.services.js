@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from "../../config/supabase.config.js";
+import { query } from "../helpers/database.helpers.js";
 import { getAnthropicClient } from "../../config/anthropic.config.js";
 import { getUserStats } from "./stats.services.js";
 
@@ -25,8 +25,6 @@ Regeln:
  * @returns {Promise<string>} Prediction text
  */
 export async function generatePrediction(players, mode) {
-	const supabase = getSupabaseAdmin();
-
 	// Collect stats for all players
 	const playerContexts = [];
 	for (const p of players) {
@@ -60,13 +58,13 @@ export async function generatePrediction(players, mode) {
 
 	// Fetch player profiles for usernames
 	const playerIds = players.map((p) => p.id);
-	const { data: profiles } = await supabase
-		.from("profiles")
-		.select("id, username")
-		.in("id", playerIds);
+	const profiles = await query(
+		"SELECT id, username FROM profiles WHERE id = ANY($1)",
+		[playerIds],
+	);
 
 	const profileMap = {};
-	for (const prof of profiles || []) {
+	for (const prof of profiles) {
 		profileMap[prof.id] = prof.username;
 	}
 
@@ -81,7 +79,7 @@ export async function generatePrediction(players, mode) {
 
 	for (const hp of homePlayers) {
 		for (const ap of awayPlayers) {
-			const h2h = await getH2HSummary(hp.id, ap.id, supabase);
+			const h2h = await getH2HSummary(hp.id, ap.id);
 			if (h2h) {
 				h2hData.push({
 					player1: profileMap[hp.id] || "Unknown",
@@ -124,21 +122,20 @@ export async function generatePrediction(players, mode) {
  * Gets a simple H2H summary between two players
  * @param {string} userId1
  * @param {string} userId2
- * @param {import('@supabase/supabase-js').SupabaseClient} supabase
  * @returns {Promise<object|null>}
  */
-async function getH2HSummary(userId1, userId2, supabase) {
-	const { data: gp1 } = await supabase
-		.from("game_players")
-		.select("game_id, team")
-		.eq("player_id", userId1);
+async function getH2HSummary(userId1, userId2) {
+	const gp1 = await query(
+		"SELECT game_id, team FROM game_players WHERE player_id = $1",
+		[userId1],
+	);
 
-	const { data: gp2 } = await supabase
-		.from("game_players")
-		.select("game_id, team")
-		.eq("player_id", userId2);
+	const gp2 = await query(
+		"SELECT game_id, team FROM game_players WHERE player_id = $1",
+		[userId2],
+	);
 
-	if (!gp1?.length || !gp2?.length) return null;
+	if (!gp1.length || !gp2.length) return null;
 
 	const gp1Map = {};
 	for (const g of gp1) gp1Map[g.game_id] = g.team;
@@ -155,16 +152,16 @@ async function getH2HSummary(userId1, userId2, supabase) {
 
 	if (!sharedGameIds.length) return null;
 
-	const { data: games } = await supabase
-		.from("games")
-		.select("id, score_home, score_away")
-		.in("id", sharedGameIds);
+	const games = await query(
+		"SELECT id, score_home, score_away FROM games WHERE id = ANY($1)",
+		[sharedGameIds],
+	);
 
 	let p1Wins = 0;
 	let p2Wins = 0;
 	let draws = 0;
 
-	for (const game of games || []) {
+	for (const game of games) {
 		const tm = teamMap[game.id];
 		const isDraw = game.score_home === game.score_away;
 		if (isDraw) {

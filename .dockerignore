@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+tests
+coverage
+migrations
+scripts
+supabase
+*.md
+.node-version
+biome.json
+vitest.config.js

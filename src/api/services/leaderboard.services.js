@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from "../../config/supabase.config.js";
+import { query } from "../helpers/database.helpers.js";
 
 /**
  * Calculates leaderboard: 3 points for win, 1 for draw, 0 for loss
@@ -9,39 +9,41 @@ import { getSupabaseAdmin } from "../../config/supabase.config.js";
  * @returns {Promise<object[]>}
  */
 export async function getLeaderboard(limit = 10, from, to, mode = "all") {
-	const supabase = getSupabaseAdmin();
-
-	let query = supabase
-		.from("games")
-		.select(`
-			id,
-			score_home,
-			score_away,
-			played_at,
-			game_players (
-				player_id,
-				team,
-				profiles:player_id (username, avatar_url)
-			)
-		`);
+	const conditions = [];
+	const params = [];
+	let idx = 1;
 
 	if (from) {
-		query = query.gte("played_at", from);
+		conditions.push(`g.played_at >= $${idx++}`);
+		params.push(from);
 	}
 	if (to) {
-		query = query.lte("played_at", to);
+		conditions.push(`g.played_at <= $${idx++}`);
+		params.push(to);
 	}
 	if (mode && mode !== "all") {
-		query = query.eq("mode", mode);
+		conditions.push(`g.mode = $${idx++}`);
+		params.push(mode);
 	}
 
-	const { data: games, error } = await query;
+	const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
-	if (error) {
-		const err = new Error(error.message);
-		err.statusCode = 400;
-		throw err;
-	}
+	const games = await query(
+		`SELECT g.id, g.score_home, g.score_away, g.played_at,
+			json_agg(
+				json_build_object(
+					'player_id', gp.player_id,
+					'team', gp.team,
+					'profiles', json_build_object('username', p.username, 'avatar_url', p.avatar_url)
+				)
+			) AS game_players
+		FROM games g
+		LEFT JOIN game_players gp ON gp.game_id = g.id
+		LEFT JOIN profiles p ON p.id = gp.player_id
+		${where}
+		GROUP BY g.id`,
+		params,
+	);
 
 	const playerPoints = {};
 	/** @type {Record<string, Array<{played_at: string, result: string, clean_sheet: boolean, goals_scored: number}>>} */

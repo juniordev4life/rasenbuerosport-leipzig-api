@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from "../../config/supabase.config.js";
+import { query } from "../helpers/database.helpers.js";
 
 /**
  * Gets all available teams with optional filtering
@@ -9,32 +9,27 @@ import { getSupabaseAdmin } from "../../config/supabase.config.js";
  * @returns {Promise<object[]>}
  */
 export async function getAllTeams(filters = {}) {
-	const supabase = getSupabaseAdmin();
-
-	let query = supabase
-		.from("teams")
-		.select("id, name, short_name, logo_url, sofifa_id, overall_rating, star_rating, league_name, country_code")
-		.order("name", { ascending: true });
+	const conditions = [];
+	const params = [];
+	let idx = 1;
 
 	if (filters.league) {
-		query = query.eq("league_name", filters.league);
+		conditions.push(`league_name = $${idx++}`);
+		params.push(filters.league);
 	}
 
 	if (filters.country) {
-		query = query.eq("country_code", filters.country);
+		conditions.push(`country_code = $${idx++}`);
+		params.push(filters.country);
 	}
 
 	if (filters.search) {
-		query = query.ilike("name", `%${filters.search}%`);
+		conditions.push(`name ILIKE $${idx++}`);
+		params.push(`%${filters.search}%`);
 	}
 
-	const { data, error } = await query;
+	const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+	const sql = `SELECT id, name, short_name, logo_url, sofifa_id, overall_rating, star_rating, league_name, country_code FROM teams ${where} ORDER BY name ASC`;
 
-	if (error) {
-		const err = new Error(error.message);
-		err.statusCode = 400;
-		throw err;
-	}
-
-	return data;
+	return query(sql, params);
 }
