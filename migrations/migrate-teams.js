@@ -103,7 +103,7 @@ async function main() {
 
 	for (const row of teamsWithLogos) {
 		const logoUrl = row[3];
-		const sofifaId = toValue(row[4]);
+		const _sofifaId = toValue(row[4]);
 		if (!logoUrl || logoUrl === "null") continue;
 
 		// Extract filename from URL (e.g., "85.png")
@@ -141,7 +141,7 @@ async function main() {
 			stdio: "inherit",
 		});
 		console.log("Upload complete!");
-	} catch (err) {
+	} catch (_err) {
 		console.error("Upload failed. Try manually:");
 		console.error(`gcloud storage cp "${LOGO_DIR}/*" gs://${BUCKET}/team-logos/`);
 	}
