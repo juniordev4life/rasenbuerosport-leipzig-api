@@ -15,7 +15,9 @@ export async function setup(server) {
 	await server.register(helmet);
 
 	await server.register(cors, {
-		origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+		origin: process.env.CORS_ORIGIN?.includes(",")
+			? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
+			: process.env.CORS_ORIGIN || "http://localhost:5173",
 		credentials: true,
 	});
 
