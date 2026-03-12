@@ -19,13 +19,7 @@ export const getGameDetailController = {
 				);
 			}
 
-			return setGeneralResponse(
-				reply,
-				200,
-				"Success",
-				"Game retrieved",
-				game,
-			);
+			return setGeneralResponse(reply, 200, "Success", "Game retrieved", game);
 		} catch (error) {
 			return handleErrorResponse(reply, error, request);
 		}

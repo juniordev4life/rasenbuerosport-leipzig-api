@@ -35,19 +35,32 @@ const TEST_USERS = [
 // ── Popular teams per league for variety ─────────────────────────────
 const TEAMS = {
 	bundesliga: [
-		"RB Leipzig", "Bayern München", "Borussia Dortmund", "Bayer Leverkusen",
-		"Eintracht Frankfurt", "VfB Stuttgart", "SC Freiburg", "SV Werder Bremen",
+		"RB Leipzig",
+		"Bayern München",
+		"Borussia Dortmund",
+		"Bayer Leverkusen",
+		"Eintracht Frankfurt",
+		"VfB Stuttgart",
+		"SC Freiburg",
+		"SV Werder Bremen",
 	],
 	premier: [
-		"Liverpool", "Arsenal", "Manchester City", "Chelsea",
-		"Tottenham Hotspur", "Newcastle United",
+		"Liverpool",
+		"Arsenal",
+		"Manchester City",
+		"Chelsea",
+		"Tottenham Hotspur",
+		"Newcastle United",
 	],
 	laliga: ["Barcelona", "Real Madrid", "Atletico Madrid", "Sevilla"],
 	seriea: ["Inter Milan", "AC Milan", "Juventus", "Napoli"],
 };
 
 const ALL_TEAMS = [
-	...TEAMS.bundesliga, ...TEAMS.premier, ...TEAMS.laliga, ...TEAMS.seriea,
+	...TEAMS.bundesliga,
+	...TEAMS.premier,
+	...TEAMS.laliga,
+	...TEAMS.seriea,
 ];
 
 // ── Utility helpers ─────────────────────────────────────────────────
@@ -211,8 +224,14 @@ function generateMatchStats(scoreHome, scoreAway, options = {}) {
 	const shotsAway = Math.max(scoreAway + randInt(1, 4), randInt(3, 7));
 
 	// xG (correlate with goals but with variance)
-	const xgHome = +Math.max(0.1, scoreHome * (0.65 + Math.random() * 0.5)).toFixed(1);
-	const xgAway = +Math.max(0.1, scoreAway * (0.65 + Math.random() * 0.5)).toFixed(1);
+	const xgHome = +Math.max(
+		0.1,
+		scoreHome * (0.65 + Math.random() * 0.5),
+	).toFixed(1);
+	const xgAway = +Math.max(
+		0.1,
+		scoreAway * (0.65 + Math.random() * 0.5),
+	).toFixed(1);
 
 	// Passes
 	const passesHome = randInt(200, 420);
@@ -270,7 +289,17 @@ function generateGames(userIds) {
 	const games = [];
 
 	// Helper: create a 1v1 game
-	const g1v1 = (homeId, awayId, homeTeam, awayTeam, sh, sa, date, rt = "regular", ms = null) => ({
+	const g1v1 = (
+		homeId,
+		awayId,
+		homeTeam,
+		awayTeam,
+		sh,
+		sa,
+		date,
+		rt = "regular",
+		ms = null,
+	) => ({
 		mode: "1v1",
 		score_home: sh,
 		score_away: sa,
@@ -286,7 +315,19 @@ function generateGames(userIds) {
 	});
 
 	// Helper: create a 2v2 game
-	const g2v2 = (h1, h2, a1, a2, homeTeam, awayTeam, sh, sa, date, rt = "regular", ms = null) => ({
+	const g2v2 = (
+		h1,
+		h2,
+		a1,
+		a2,
+		homeTeam,
+		awayTeam,
+		sh,
+		sa,
+		date,
+		rt = "regular",
+		ms = null,
+	) => ({
 		mode: "2v2",
 		score_home: sh,
 		score_away: sa,
@@ -305,240 +346,691 @@ function generateGames(userIds) {
 
 	// ── Block A: Max's 5-game win streak (seriensieger badge) ────
 	// Games 1-5: All Max wins, consecutive
-	games.push(g1v1(MAX, LISA, "RB Leipzig", "Bayern München", 3, 1,
-		dateAt(1, 6, 12),
-		"regular",
-		generateMatchStats(3, 1, { possessionHome: 58, passAccuracyHome: 89, noYellowHome: true, highDuelWinHome: true }),
-	));
-	games.push(g1v1(MAX, TOM, "RB Leipzig", "Borussia Dortmund", 2, 0,
-		dateAt(1, 8, 13),
-		"regular",
-		generateMatchStats(2, 0, { possessionHome: 61, passAccuracyHome: 91, noYellowHome: true, highDuelWinHome: true }),
-	)); // clean_sheet
-	games.push(g1v1(MAX, ANNA, "Liverpool", "Arsenal", 4, 2,
-		dateAt(1, 10, 14),
-		"regular",
-		generateMatchStats(4, 2, { possessionHome: 55, passAccuracyHome: 87, noYellowHome: true, highDuelWinHome: true }),
-	));
-	games.push(g1v1(MAX, LISA, "Barcelona", "Real Madrid", 1, 0,
-		dateAt(1, 12, 12),
-		"regular",
-		generateMatchStats(1, 0, { possessionHome: 62, passAccuracyHome: 93, noYellowHome: true, highDuelWinHome: true }),
-	)); // clean_sheet
-	games.push(g1v1(MAX, TOM, "RB Leipzig", "Bayer Leverkusen", 3, 2,
-		dateAt(1, 14, 15),
-		"regular",
-		generateMatchStats(3, 2, { possessionHome: 56, passAccuracyHome: 88, noYellowHome: true, highDuelWinHome: true }),
-	));
+	games.push(
+		g1v1(
+			MAX,
+			LISA,
+			"RB Leipzig",
+			"Bayern München",
+			3,
+			1,
+			dateAt(1, 6, 12),
+			"regular",
+			generateMatchStats(3, 1, {
+				possessionHome: 58,
+				passAccuracyHome: 89,
+				noYellowHome: true,
+				highDuelWinHome: true,
+			}),
+		),
+	);
+	games.push(
+		g1v1(
+			MAX,
+			TOM,
+			"RB Leipzig",
+			"Borussia Dortmund",
+			2,
+			0,
+			dateAt(1, 8, 13),
+			"regular",
+			generateMatchStats(2, 0, {
+				possessionHome: 61,
+				passAccuracyHome: 91,
+				noYellowHome: true,
+				highDuelWinHome: true,
+			}),
+		),
+	); // clean_sheet
+	games.push(
+		g1v1(
+			MAX,
+			ANNA,
+			"Liverpool",
+			"Arsenal",
+			4,
+			2,
+			dateAt(1, 10, 14),
+			"regular",
+			generateMatchStats(4, 2, {
+				possessionHome: 55,
+				passAccuracyHome: 87,
+				noYellowHome: true,
+				highDuelWinHome: true,
+			}),
+		),
+	);
+	games.push(
+		g1v1(
+			MAX,
+			LISA,
+			"Barcelona",
+			"Real Madrid",
+			1,
+			0,
+			dateAt(1, 12, 12),
+			"regular",
+			generateMatchStats(1, 0, {
+				possessionHome: 62,
+				passAccuracyHome: 93,
+				noYellowHome: true,
+				highDuelWinHome: true,
+			}),
+		),
+	); // clean_sheet
+	games.push(
+		g1v1(
+			MAX,
+			TOM,
+			"RB Leipzig",
+			"Bayer Leverkusen",
+			3,
+			2,
+			dateAt(1, 14, 15),
+			"regular",
+			generateMatchStats(3, 2, {
+				possessionHome: 56,
+				passAccuracyHome: 88,
+				noYellowHome: true,
+				highDuelWinHome: true,
+			}),
+		),
+	);
 
 	// ── Game 6: Max loss (breaks streak) ────────────────────────
-	games.push(g1v1(MAX, LISA, "Chelsea", "Manchester City", 1, 3,
-		dateAt(1, 16, 12),
-		"regular",
-		generateMatchStats(1, 3, { possessionHome: 42, passAccuracyHome: 78, noYellowHome: true }),
-	));
+	games.push(
+		g1v1(
+			MAX,
+			LISA,
+			"Chelsea",
+			"Manchester City",
+			1,
+			3,
+			dateAt(1, 16, 12),
+			"regular",
+			generateMatchStats(1, 3, {
+				possessionHome: 42,
+				passAccuracyHome: 78,
+				noYellowHome: true,
+			}),
+		),
+	);
 
 	// ── Game 7: Max SCHÜTZENFEST — 6:1 win ──────────────────────
-	games.push(g1v1(MAX, ANNA, "RB Leipzig", "SC Freiburg", 6, 1,
-		dateAt(1, 18, 13),
-		"regular",
-		generateMatchStats(6, 1, { possessionHome: 65, passAccuracyHome: 90, noYellowHome: true, highDuelWinHome: true }),
-	));
+	games.push(
+		g1v1(
+			MAX,
+			ANNA,
+			"RB Leipzig",
+			"SC Freiburg",
+			6,
+			1,
+			dateAt(1, 18, 13),
+			"regular",
+			generateMatchStats(6, 1, {
+				possessionHome: 65,
+				passAccuracyHome: 90,
+				noYellowHome: true,
+				highDuelWinHome: true,
+			}),
+		),
+	);
 
 	// ── Game 8: Max PERFEKTIONIST — 100% pass accuracy ──────────
-	games.push(g1v1(MAX, TOM, "Inter Milan", "AC Milan", 2, 1,
-		dateAt(1, 20, 14),
-		"regular",
-		generateMatchStats(2, 1, { possessionHome: 59, passAccuracyHome: 100, noYellowHome: true, highDuelWinHome: true }),
-	));
+	games.push(
+		g1v1(
+			MAX,
+			TOM,
+			"Inter Milan",
+			"AC Milan",
+			2,
+			1,
+			dateAt(1, 20, 14),
+			"regular",
+			generateMatchStats(2, 1, {
+				possessionHome: 59,
+				passAccuracyHome: 100,
+				noYellowHome: true,
+				highDuelWinHome: true,
+			}),
+		),
+	);
 
 	// ── Game 9: Max win (no stats) ──────────────────────────────
-	games.push(g1v1(MAX, ANNA, "Bayern München", "VfB Stuttgart", 3, 1,
-		dateAt(1, 22, 12),
-		"regular",
-		null,
-	));
+	games.push(
+		g1v1(
+			MAX,
+			ANNA,
+			"Bayern München",
+			"VfB Stuttgart",
+			3,
+			1,
+			dateAt(1, 22, 12),
+			"regular",
+			null,
+		),
+	);
 
 	// ── Game 10: Max KONTER-KING — win with 35% possession ──────
-	games.push(g1v1(MAX, LISA, "Atletico Madrid", "Barcelona", 2, 1,
-		dateAt(1, 24, 15),
-		"regular",
-		generateMatchStats(2, 1, { possessionHome: 35, passAccuracyHome: 82, noYellowHome: true }),
-	));
+	games.push(
+		g1v1(
+			MAX,
+			LISA,
+			"Atletico Madrid",
+			"Barcelona",
+			2,
+			1,
+			dateAt(1, 24, 15),
+			"regular",
+			generateMatchStats(2, 1, {
+				possessionHome: 35,
+				passAccuracyHome: 82,
+				noYellowHome: true,
+			}),
+		),
+	);
 
 	// ── Game 11: Max DAVID VS GOLIATH — win with 25% possession ─
-	games.push(g1v1(MAX, TOM, "Sevilla", "Real Madrid", 1, 0,
-		dateAt(1, 26, 13),
-		"regular",
-		generateMatchStats(1, 0, { possessionHome: 25, passAccuracyHome: 80, noYellowHome: true }),
-	));
+	games.push(
+		g1v1(
+			MAX,
+			TOM,
+			"Sevilla",
+			"Real Madrid",
+			1,
+			0,
+			dateAt(1, 26, 13),
+			"regular",
+			generateMatchStats(1, 0, {
+				possessionHome: 25,
+				passAccuracyHome: 80,
+				noYellowHome: true,
+			}),
+		),
+	);
 
 	// ── Game 12: Max loss ───────────────────────────────────────
-	games.push(g1v1(MAX, LISA, "Arsenal", "Liverpool", 0, 2,
-		dateAt(1, 28, 12),
-		"regular",
-		generateMatchStats(0, 2, { possessionHome: 48, passAccuracyHome: 85, noYellowHome: true }),
-	));
+	games.push(
+		g1v1(
+			MAX,
+			LISA,
+			"Arsenal",
+			"Liverpool",
+			0,
+			2,
+			dateAt(1, 28, 12),
+			"regular",
+			generateMatchStats(0, 2, {
+				possessionHome: 48,
+				passAccuracyHome: 85,
+				noYellowHome: true,
+			}),
+		),
+	);
 
 	// ── Game 13: Max extra time win ─────────────────────────────
-	games.push(g1v1(MAX, ANNA, "RB Leipzig", "Eintracht Frankfurt", 3, 2,
-		dateAt(1, 30, 14),
-		"extra_time",
-		generateMatchStats(3, 2, { possessionHome: 57, passAccuracyHome: 88, noYellowHome: true, highDuelWinHome: true }),
-	));
+	games.push(
+		g1v1(
+			MAX,
+			ANNA,
+			"RB Leipzig",
+			"Eintracht Frankfurt",
+			3,
+			2,
+			dateAt(1, 30, 14),
+			"extra_time",
+			generateMatchStats(3, 2, {
+				possessionHome: 57,
+				passAccuracyHome: 88,
+				noYellowHome: true,
+				highDuelWinHome: true,
+			}),
+		),
+	);
 
 	// ── Game 14-15: Max 2v2 wins ────────────────────────────────
-	games.push(g2v2(MAX, ANNA, LISA, TOM, "RB Leipzig", "Bayern München", 4, 1,
-		dateAt(2, 1, 12),
-		"regular",
-		generateMatchStats(4, 1, { possessionHome: 60, passAccuracyHome: 89, noYellowHome: true, highDuelWinHome: true }),
-	));
-	games.push(g2v2(MAX, TOM, LISA, ANNA, "Manchester City", "Chelsea", 3, 2,
-		dateAt(2, 3, 13),
-		"regular",
-		generateMatchStats(3, 2, { possessionHome: 55, passAccuracyHome: 86, noYellowHome: true }),
-	));
+	games.push(
+		g2v2(
+			MAX,
+			ANNA,
+			LISA,
+			TOM,
+			"RB Leipzig",
+			"Bayern München",
+			4,
+			1,
+			dateAt(2, 1, 12),
+			"regular",
+			generateMatchStats(4, 1, {
+				possessionHome: 60,
+				passAccuracyHome: 89,
+				noYellowHome: true,
+				highDuelWinHome: true,
+			}),
+		),
+	);
+	games.push(
+		g2v2(
+			MAX,
+			TOM,
+			LISA,
+			ANNA,
+			"Manchester City",
+			"Chelsea",
+			3,
+			2,
+			dateAt(2, 3, 13),
+			"regular",
+			generateMatchStats(3, 2, {
+				possessionHome: 55,
+				passAccuracyHome: 86,
+				noYellowHome: true,
+			}),
+		),
+	);
 
 	// ── Game 16: Max penalty win ────────────────────────────────
-	games.push(g1v1(MAX, LISA, "Juventus", "Napoli", 4, 3,
-		dateAt(2, 5, 14),
-		"penalty",
-		generateMatchStats(4, 3, { possessionHome: 52, passAccuracyHome: 84, noYellowHome: true }),
-	));
+	games.push(
+		g1v1(
+			MAX,
+			LISA,
+			"Juventus",
+			"Napoli",
+			4,
+			3,
+			dateAt(2, 5, 14),
+			"penalty",
+			generateMatchStats(4, 3, {
+				possessionHome: 52,
+				passAccuracyHome: 84,
+				noYellowHome: true,
+			}),
+		),
+	);
 
 	// ── Game 17: Max draw ───────────────────────────────────────
-	games.push(g1v1(MAX, TOM, "Borussia Dortmund", "Bayer Leverkusen", 2, 2,
-		dateAt(2, 6, 12),
-		"regular",
-		null,
-	));
+	games.push(
+		g1v1(
+			MAX,
+			TOM,
+			"Borussia Dortmund",
+			"Bayer Leverkusen",
+			2,
+			2,
+			dateAt(2, 6, 12),
+			"regular",
+			null,
+		),
+	);
 
 	// ── Game 18-19: Max wins (no stats, for game count) ─────────
-	games.push(g1v1(MAX, ANNA, "RB Leipzig", "SV Werder Bremen", 2, 0,
-		dateAt(2, 7, 15),
-		"regular",
-		null,
-	)); // clean_sheet
-	games.push(g1v1(MAX, LISA, "Liverpool", "Tottenham Hotspur", 3, 1,
-		dateAt(2, 8, 12),
-		"regular",
-		generateMatchStats(3, 1, { possessionHome: 58, passAccuracyHome: 90, noYellowHome: true, highDuelWinHome: true }),
-	));
+	games.push(
+		g1v1(
+			MAX,
+			ANNA,
+			"RB Leipzig",
+			"SV Werder Bremen",
+			2,
+			0,
+			dateAt(2, 7, 15),
+			"regular",
+			null,
+		),
+	); // clean_sheet
+	games.push(
+		g1v1(
+			MAX,
+			LISA,
+			"Liverpool",
+			"Tottenham Hotspur",
+			3,
+			1,
+			dateAt(2, 8, 12),
+			"regular",
+			generateMatchStats(3, 1, {
+				possessionHome: 58,
+				passAccuracyHome: 90,
+				noYellowHome: true,
+				highDuelWinHome: true,
+			}),
+		),
+	);
 
 	// ── Game 20: Max loss ───────────────────────────────────────
-	games.push(g1v1(MAX, TOM, "Chelsea", "Arsenal", 1, 4,
-		dateAt(2, 9, 13),
-		"regular",
-		generateMatchStats(1, 4, { possessionHome: 40, passAccuracyHome: 76, noYellowHome: true }),
-	));
+	games.push(
+		g1v1(
+			MAX,
+			TOM,
+			"Chelsea",
+			"Arsenal",
+			1,
+			4,
+			dateAt(2, 9, 13),
+			"regular",
+			generateMatchStats(1, 4, {
+				possessionHome: 40,
+				passAccuracyHome: 76,
+				noYellowHome: true,
+			}),
+		),
+	);
 
 	// ── Game 21-23: Max wins ────────────────────────────────────
-	games.push(g1v1(MAX, ANNA, "Barcelona", "Atletico Madrid", 3, 0,
-		dateAt(2, 10, 14),
-		"regular",
-		generateMatchStats(3, 0, { possessionHome: 63, passAccuracyHome: 91, noYellowHome: true, highDuelWinHome: true }),
-	)); // clean_sheet
-	games.push(g2v2(MAX, LISA, TOM, ANNA, "RB Leipzig", "Borussia Dortmund", 5, 2,
-		dateAt(2, 12, 12),
-		"regular",
-		generateMatchStats(5, 2, { possessionHome: 58, passAccuracyHome: 87, noYellowHome: true, highDuelWinHome: true }),
-	));
-	games.push(g1v1(MAX, TOM, "Real Madrid", "Sevilla", 2, 1,
-		dateAt(2, 13, 15),
-		"regular",
-		generateMatchStats(2, 1, { possessionHome: 56, passAccuracyHome: 89, noYellowHome: true, highDuelWinHome: true }),
-	));
+	games.push(
+		g1v1(
+			MAX,
+			ANNA,
+			"Barcelona",
+			"Atletico Madrid",
+			3,
+			0,
+			dateAt(2, 10, 14),
+			"regular",
+			generateMatchStats(3, 0, {
+				possessionHome: 63,
+				passAccuracyHome: 91,
+				noYellowHome: true,
+				highDuelWinHome: true,
+			}),
+		),
+	); // clean_sheet
+	games.push(
+		g2v2(
+			MAX,
+			LISA,
+			TOM,
+			ANNA,
+			"RB Leipzig",
+			"Borussia Dortmund",
+			5,
+			2,
+			dateAt(2, 12, 12),
+			"regular",
+			generateMatchStats(5, 2, {
+				possessionHome: 58,
+				passAccuracyHome: 87,
+				noYellowHome: true,
+				highDuelWinHome: true,
+			}),
+		),
+	);
+	games.push(
+		g1v1(
+			MAX,
+			TOM,
+			"Real Madrid",
+			"Sevilla",
+			2,
+			1,
+			dateAt(2, 13, 15),
+			"regular",
+			generateMatchStats(2, 1, {
+				possessionHome: 56,
+				passAccuracyHome: 89,
+				noYellowHome: true,
+				highDuelWinHome: true,
+			}),
+		),
+	);
 
 	// ── Game 24: Max loss ───────────────────────────────────────
-	games.push(g1v1(MAX, LISA, "Eintracht Frankfurt", "RB Leipzig", 2, 3,
-		dateAt(2, 14, 12),
-		"regular",
-		generateMatchStats(2, 3, { possessionHome: 45, passAccuracyHome: 82, noYellowHome: true }),
-	));
+	games.push(
+		g1v1(
+			MAX,
+			LISA,
+			"Eintracht Frankfurt",
+			"RB Leipzig",
+			2,
+			3,
+			dateAt(2, 14, 12),
+			"regular",
+			generateMatchStats(2, 3, {
+				possessionHome: 45,
+				passAccuracyHome: 82,
+				noYellowHome: true,
+			}),
+		),
+	);
 
 	// ── Game 25-28: Max wins (reaching 28 total + recent hot streak) ─
-	games.push(g1v1(MAX, ANNA, "RB Leipzig", "VfB Stuttgart", 4, 1,
-		dateAt(2, 16, 13),
-		"regular",
-		generateMatchStats(4, 1, { possessionHome: 60, passAccuracyHome: 92, noYellowHome: true, highDuelWinHome: true }),
-	));
-	games.push(g2v2(MAX, TOM, ANNA, LISA, "Bayern München", "Borussia Dortmund", 3, 1,
-		dateAt(2, 18, 14),
-		"regular",
-		generateMatchStats(3, 1, { possessionHome: 57, passAccuracyHome: 88, noYellowHome: true, highDuelWinHome: true }),
-	));
-	games.push(g1v1(MAX, LISA, "RB Leipzig", "Bayer Leverkusen", 3, 0,
-		dateAt(2, 22, 12),
-		"regular",
-		generateMatchStats(3, 0, { possessionHome: 62, passAccuracyHome: 93, noYellowHome: true, highDuelWinHome: true }),
-	)); // clean_sheet
-	games.push(g1v1(MAX, TOM, "RB Leipzig", "Bayern München", 2, 1,
-		dateAt(2, 25, 13),
-		"regular",
-		generateMatchStats(2, 1, { possessionHome: 54, passAccuracyHome: 90, noYellowHome: true, highDuelWinHome: true }),
-	));
+	games.push(
+		g1v1(
+			MAX,
+			ANNA,
+			"RB Leipzig",
+			"VfB Stuttgart",
+			4,
+			1,
+			dateAt(2, 16, 13),
+			"regular",
+			generateMatchStats(4, 1, {
+				possessionHome: 60,
+				passAccuracyHome: 92,
+				noYellowHome: true,
+				highDuelWinHome: true,
+			}),
+		),
+	);
+	games.push(
+		g2v2(
+			MAX,
+			TOM,
+			ANNA,
+			LISA,
+			"Bayern München",
+			"Borussia Dortmund",
+			3,
+			1,
+			dateAt(2, 18, 14),
+			"regular",
+			generateMatchStats(3, 1, {
+				possessionHome: 57,
+				passAccuracyHome: 88,
+				noYellowHome: true,
+				highDuelWinHome: true,
+			}),
+		),
+	);
+	games.push(
+		g1v1(
+			MAX,
+			LISA,
+			"RB Leipzig",
+			"Bayer Leverkusen",
+			3,
+			0,
+			dateAt(2, 22, 12),
+			"regular",
+			generateMatchStats(3, 0, {
+				possessionHome: 62,
+				passAccuracyHome: 93,
+				noYellowHome: true,
+				highDuelWinHome: true,
+			}),
+		),
+	); // clean_sheet
+	games.push(
+		g1v1(
+			MAX,
+			TOM,
+			"RB Leipzig",
+			"Bayern München",
+			2,
+			1,
+			dateAt(2, 25, 13),
+			"regular",
+			generateMatchStats(2, 1, {
+				possessionHome: 54,
+				passAccuracyHome: 90,
+				noYellowHome: true,
+				highDuelWinHome: true,
+			}),
+		),
+	);
 
 	// ── Block B: Games without Max (other players) ──────────────
-	games.push(g1v1(LISA, TOM, "Barcelona", "Liverpool", 2, 3,
-		dateAt(1, 7, 14),
-		"regular",
-		generateMatchStats(2, 3, {}),
-	));
-	games.push(g1v1(TOM, ANNA, "Bayern München", "RB Leipzig", 4, 0,
-		dateAt(1, 11, 12),
-		"regular",
-		generateMatchStats(4, 0, {}),
-	));
-	games.push(g1v1(LISA, ANNA, "Chelsea", "Tottenham Hotspur", 1, 1,
-		dateAt(1, 15, 15),
-		"regular",
-		null,
-	));
-	games.push(g1v1(ANNA, TOM, "Real Madrid", "Barcelona", 3, 2,
-		dateAt(1, 19, 12),
-		"extra_time",
-		generateMatchStats(3, 2, {}),
-	));
-	games.push(g2v2(LISA, ANNA, TOM, MAX, "AC Milan", "Inter Milan", 2, 2,
-		dateAt(1, 23, 14),
-		"regular",
-		null,
-	)); // draw with Max on away
-	games.push(g1v1(TOM, LISA, "Manchester City", "Arsenal", 0, 1,
-		dateAt(1, 27, 13),
-		"regular",
-		generateMatchStats(0, 1, {}),
-	));
-	games.push(g1v1(ANNA, LISA, "Napoli", "Juventus", 2, 4,
-		dateAt(2, 2, 12),
-		"regular",
-		generateMatchStats(2, 4, {}),
-	));
-	games.push(g2v2(TOM, ANNA, LISA, MAX, "Bayer Leverkusen", "RB Leipzig", 1, 3,
-		dateAt(2, 4, 15),
-		"regular",
-		generateMatchStats(1, 3, {}),
-	)); // Max on away team, wins
-	games.push(g1v1(LISA, TOM, "VfB Stuttgart", "SC Freiburg", 3, 3,
-		dateAt(2, 11, 12),
-		"regular",
-		generateMatchStats(3, 3, {}),
-	));
-	games.push(g1v1(TOM, ANNA, "SV Werder Bremen", "Eintracht Frankfurt", 2, 1,
-		dateAt(2, 15, 14),
-		"regular",
-		null,
-	));
-	games.push(g2v2(LISA, TOM, ANNA, MAX, "Newcastle United", "Liverpool", 0, 2,
-		dateAt(2, 20, 13),
-		"regular",
-		generateMatchStats(0, 2, { noYellowAway: true }),
-	)); // Max on away, wins
-	games.push(g1v1(ANNA, LISA, "Atletico Madrid", "Sevilla", 1, 0,
-		dateAt(2, 24, 12),
-		"regular",
-		generateMatchStats(1, 0, {}),
-	));
+	games.push(
+		g1v1(
+			LISA,
+			TOM,
+			"Barcelona",
+			"Liverpool",
+			2,
+			3,
+			dateAt(1, 7, 14),
+			"regular",
+			generateMatchStats(2, 3, {}),
+		),
+	);
+	games.push(
+		g1v1(
+			TOM,
+			ANNA,
+			"Bayern München",
+			"RB Leipzig",
+			4,
+			0,
+			dateAt(1, 11, 12),
+			"regular",
+			generateMatchStats(4, 0, {}),
+		),
+	);
+	games.push(
+		g1v1(
+			LISA,
+			ANNA,
+			"Chelsea",
+			"Tottenham Hotspur",
+			1,
+			1,
+			dateAt(1, 15, 15),
+			"regular",
+			null,
+		),
+	);
+	games.push(
+		g1v1(
+			ANNA,
+			TOM,
+			"Real Madrid",
+			"Barcelona",
+			3,
+			2,
+			dateAt(1, 19, 12),
+			"extra_time",
+			generateMatchStats(3, 2, {}),
+		),
+	);
+	games.push(
+		g2v2(
+			LISA,
+			ANNA,
+			TOM,
+			MAX,
+			"AC Milan",
+			"Inter Milan",
+			2,
+			2,
+			dateAt(1, 23, 14),
+			"regular",
+			null,
+		),
+	); // draw with Max on away
+	games.push(
+		g1v1(
+			TOM,
+			LISA,
+			"Manchester City",
+			"Arsenal",
+			0,
+			1,
+			dateAt(1, 27, 13),
+			"regular",
+			generateMatchStats(0, 1, {}),
+		),
+	);
+	games.push(
+		g1v1(
+			ANNA,
+			LISA,
+			"Napoli",
+			"Juventus",
+			2,
+			4,
+			dateAt(2, 2, 12),
+			"regular",
+			generateMatchStats(2, 4, {}),
+		),
+	);
+	games.push(
+		g2v2(
+			TOM,
+			ANNA,
+			LISA,
+			MAX,
+			"Bayer Leverkusen",
+			"RB Leipzig",
+			1,
+			3,
+			dateAt(2, 4, 15),
+			"regular",
+			generateMatchStats(1, 3, {}),
+		),
+	); // Max on away team, wins
+	games.push(
+		g1v1(
+			LISA,
+			TOM,
+			"VfB Stuttgart",
+			"SC Freiburg",
+			3,
+			3,
+			dateAt(2, 11, 12),
+			"regular",
+			generateMatchStats(3, 3, {}),
+		),
+	);
+	games.push(
+		g1v1(
+			TOM,
+			ANNA,
+			"SV Werder Bremen",
+			"Eintracht Frankfurt",
+			2,
+			1,
+			dateAt(2, 15, 14),
+			"regular",
+			null,
+		),
+	);
+	games.push(
+		g2v2(
+			LISA,
+			TOM,
+			ANNA,
+			MAX,
+			"Newcastle United",
+			"Liverpool",
+			0,
+			2,
+			dateAt(2, 20, 13),
+			"regular",
+			generateMatchStats(0, 2, { noYellowAway: true }),
+		),
+	); // Max on away, wins
+	games.push(
+		g1v1(
+			ANNA,
+			LISA,
+			"Atletico Madrid",
+			"Sevilla",
+			1,
+			0,
+			dateAt(2, 24, 12),
+			"regular",
+			generateMatchStats(1, 0, {}),
+		),
+	);
 
 	// Sort all by date
 	games.sort((a, b) => new Date(a.played_at) - new Date(b.played_at));
@@ -571,14 +1063,18 @@ async function seed() {
 		}
 
 		const anonClient = freshClient(SUPABASE_ANON_KEY);
-		const { data: signUpData, error: signUpError } = await anonClient.auth.signUp({
-			email: u.email,
-			password: u.password,
-			options: { data: { username: u.username } },
-		});
+		const { data: signUpData, error: signUpError } =
+			await anonClient.auth.signUp({
+				email: u.email,
+				password: u.password,
+				options: { data: { username: u.username } },
+			});
 
 		if (signUpError) {
-			console.error(`  ❌ Failed to create "${u.username}":`, signUpError.message);
+			console.error(
+				`  ❌ Failed to create "${u.username}":`,
+				signUpError.message,
+			);
 			continue;
 		}
 
@@ -674,8 +1170,14 @@ async function seed() {
 		created++;
 		const rt = g.result_type !== "regular" ? ` (${g.result_type})` : "";
 		const stats = g.match_stats ? " 📊" : "";
-		const home = g.players.filter((p) => p.team === "home").map((p) => p.team_name).join(" & ");
-		const away = g.players.filter((p) => p.team === "away").map((p) => p.team_name).join(" & ");
+		const home = g.players
+			.filter((p) => p.team === "home")
+			.map((p) => p.team_name)
+			.join(" & ");
+		const away = g.players
+			.filter((p) => p.team === "away")
+			.map((p) => p.team_name)
+			.join(" & ");
 		console.log(
 			`  ⚽ ${g.mode} | ${home} ${g.score_home}:${g.score_away} ${away}${rt}${stats} | ${new Date(g.played_at).toLocaleDateString("de-DE")}`,
 		);

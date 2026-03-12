@@ -61,7 +61,8 @@ export async function generateMatchReport(gameId) {
 					total_games: stats.total_games,
 					win_rate: stats.win_rate,
 					avg_possession: stats.career_match_stats?.avg_possession || null,
-					avg_pass_accuracy: stats.career_match_stats?.avg_pass_accuracy || null,
+					avg_pass_accuracy:
+						stats.career_match_stats?.avg_pass_accuracy || null,
 					xg_efficiency: stats.career_match_stats?.xg_efficiency || null,
 					current_streak: stats.current_streak,
 				},

@@ -8,13 +8,7 @@ export const getTeamsController = {
 	handler: async (request, reply) => {
 		try {
 			const data = await getAllTeams(request.query);
-			return setGeneralResponse(
-				reply,
-				200,
-				"Success",
-				"Teams retrieved",
-				data,
-			);
+			return setGeneralResponse(reply, 200, "Success", "Teams retrieved", data);
 		} catch (error) {
 			return handleErrorResponse(reply, error, request);
 		}

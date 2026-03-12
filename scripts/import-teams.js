@@ -66,7 +66,9 @@ async function importTeams() {
 		}
 	}
 
-	console.log(`Importing ${rows.length} teams from ${leagues.length} leagues\n`);
+	console.log(
+		`Importing ${rows.length} teams from ${leagues.length} leagues\n`,
+	);
 
 	const supabase = freshClient();
 
@@ -85,14 +87,19 @@ async function importTeams() {
 			.select("id, name");
 
 		if (error) {
-			console.error(`Batch ${Math.floor(i / BATCH_SIZE) + 1} error:`, error.message);
+			console.error(
+				`Batch ${Math.floor(i / BATCH_SIZE) + 1} error:`,
+				error.message,
+			);
 			errors += batch.length;
 			continue;
 		}
 
 		const count = data?.length || 0;
 		inserted += count;
-		console.log(`  Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${count} teams upserted`);
+		console.log(
+			`  Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${count} teams upserted`,
+		);
 	}
 
 	console.log(`\nDone! ${inserted} teams upserted, ${errors} errors`);

@@ -29,7 +29,9 @@ export async function createGame({
 	try {
 		await client.query("BEGIN");
 
-		const { rows: [game] } = await client.query(
+		const {
+			rows: [game],
+		} = await client.query(
 			`INSERT INTO games (mode, score_home, score_away, played_at, created_by, score_timeline, result_type)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)
 			RETURNING *`,
@@ -48,7 +50,13 @@ export async function createGame({
 			await client.query(
 				`INSERT INTO game_players (game_id, player_id, team, team_name, rating)
 				VALUES ($1, $2, $3, $4, $5)`,
-				[game.id, player.id, player.team, player.team_name || null, player.rating || null],
+				[
+					game.id,
+					player.id,
+					player.team,
+					player.team_name || null,
+					player.rating || null,
+				],
 			);
 		}
 

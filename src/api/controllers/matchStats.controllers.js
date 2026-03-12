@@ -13,8 +13,10 @@ export const uploadMatchStatsController = {
 			const { gameId } = request.params;
 			const { imageUrl, type = "overview" } = request.body;
 
-			const matchStats =
-				await matchStatsService.extractStatsFromImage(imageUrl, type);
+			const matchStats = await matchStatsService.extractStatsFromImage(
+				imageUrl,
+				type,
+			);
 			const game = await matchStatsService.saveMatchStats(
 				gameId,
 				matchStats,

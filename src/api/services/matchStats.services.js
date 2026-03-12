@@ -222,7 +222,12 @@ export async function extractStatsFromImage(imageUrl, type = "overview") {
  * @param {"overview"|"passes"|"defense"} type - Screenshot type
  * @returns {Promise<object>} Updated game record
  */
-export async function saveMatchStats(gameId, newStats, imageUrl, type = "overview") {
+export async function saveMatchStats(
+	gameId,
+	newStats,
+	imageUrl,
+	type = "overview",
+) {
 	const imageColumn = IMAGE_COLUMNS[type] || IMAGE_COLUMNS.overview;
 
 	// Fetch existing match_stats to merge

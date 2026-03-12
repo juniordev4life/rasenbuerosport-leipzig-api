@@ -41,7 +41,8 @@ export async function generatePrediction(players, mode) {
 					losses: stats.losses,
 					win_rate: stats.win_rate,
 					avg_possession: stats.career_match_stats?.avg_possession || null,
-					avg_pass_accuracy: stats.career_match_stats?.avg_pass_accuracy || null,
+					avg_pass_accuracy:
+						stats.career_match_stats?.avg_pass_accuracy || null,
 					xg_efficiency: stats.career_match_stats?.xg_efficiency || null,
 					current_streak: stats.current_streak,
 					favorite_team: stats.favorite_team?.name || null,
@@ -168,7 +169,10 @@ async function getH2HSummary(userId1, userId2) {
 			draws++;
 		} else {
 			const homeWins = game.score_home > game.score_away;
-			if ((tm.p1Team === "home" && homeWins) || (tm.p1Team === "away" && !homeWins)) {
+			if (
+				(tm.p1Team === "home" && homeWins) ||
+				(tm.p1Team === "away" && !homeWins)
+			) {
 				p1Wins++;
 			} else {
 				p2Wins++;
@@ -176,5 +180,10 @@ async function getH2HSummary(userId1, userId2) {
 		}
 	}
 
-	return { total: sharedGameIds.length, p1_wins: p1Wins, p2_wins: p2Wins, draws };
+	return {
+		total: sharedGameIds.length,
+		p1_wins: p1Wins,
+		p2_wins: p2Wins,
+		draws,
+	};
 }

@@ -30,7 +30,11 @@ export const getGamesController = {
 		try {
 			const limit = request.query.limit || 10;
 			const offset = request.query.offset || 0;
-			const games = await gamesService.getUserGames(request.user.id, limit, offset);
+			const games = await gamesService.getUserGames(
+				request.user.id,
+				limit,
+				offset,
+			);
 			return setGeneralResponse(
 				reply,
 				200,

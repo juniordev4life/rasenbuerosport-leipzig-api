@@ -10,13 +10,9 @@ export const getPredictionController = {
 			const { players, mode } = request.body;
 			const prediction = await generatePrediction(players, mode);
 
-			return setGeneralResponse(
-				reply,
-				200,
-				"Success",
-				"Prediction generated",
-				{ prediction },
-			);
+			return setGeneralResponse(reply, 200, "Success", "Prediction generated", {
+				prediction,
+			});
 		} catch (error) {
 			return handleErrorResponse(reply, error, request);
 		}

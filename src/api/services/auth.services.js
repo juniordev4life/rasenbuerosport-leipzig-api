@@ -8,10 +8,9 @@ import { queryOne } from "../helpers/database.helpers.js";
  * @returns {Promise<object>}
  */
 export async function getUserProfile(userId, email, displayName) {
-	let profile = await queryOne(
-		"SELECT * FROM profiles WHERE id = $1",
-		[userId],
-	);
+	let profile = await queryOne("SELECT * FROM profiles WHERE id = $1", [
+		userId,
+	]);
 
 	if (!profile) {
 		const username = displayName || email?.split("@")[0] || "User";

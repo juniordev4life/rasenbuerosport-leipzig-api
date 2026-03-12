@@ -80,21 +80,17 @@ async function downloadImage(url) {
  * @returns {Promise<string|null>} Public URL or null
  */
 async function uploadToStorage(path, data) {
-	const { error } = await supabase.storage
-		.from(BUCKET)
-		.upload(path, data, {
-			contentType: "image/png",
-			upsert: true,
-		});
+	const { error } = await supabase.storage.from(BUCKET).upload(path, data, {
+		contentType: "image/png",
+		upsert: true,
+	});
 
 	if (error) {
 		console.error(`  Upload error for ${path}:`, error.message);
 		return null;
 	}
 
-	const { data: urlData } = supabase.storage
-		.from(BUCKET)
-		.getPublicUrl(path);
+	const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
 
 	return urlData?.publicUrl || null;
 }
@@ -154,7 +150,9 @@ async function main() {
 		);
 
 		const progress = Math.min(i + BATCH_SIZE, entries.length);
-		console.log(`  Progress: ${progress}/${entries.length} (${downloaded} ok, ${failed} failed)`);
+		console.log(
+			`  Progress: ${progress}/${entries.length} (${downloaded} ok, ${failed} failed)`,
+		);
 
 		// Small delay between batches
 		if (i + BATCH_SIZE < entries.length) {

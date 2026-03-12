@@ -6,7 +6,9 @@ import pg from "pg";
 
 const { Pool } = pg;
 
-const DATABASE_URL = process.env.DATABASE_URL || "postgresql://postgres:PASSWORT@127.0.0.1:5432/rasenbuerosport";
+const DATABASE_URL =
+	process.env.DATABASE_URL ||
+	"postgresql://postgres:PASSWORT@127.0.0.1:5432/rasenbuerosport";
 const BUCKET = "rasenbuerosport-leipzig-9d54f.firebasestorage.app";
 const LOGO_DIR = join(homedir(), "team-logos-temp");
 
@@ -87,7 +89,17 @@ async function main() {
 			`INSERT INTO teams (id, name, short_name, logo_url, sofifa_id, overall_rating, star_rating, league_name, country_code)
 			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 			 ON CONFLICT (id) DO NOTHING`,
-			[id, name, shortName, logoUrl, sofifaId ? Number(sofifaId) : null, overallRating ? Number(overallRating) : null, starRating ? Number(starRating) : null, leagueName, countryCode],
+			[
+				id,
+				name,
+				shortName,
+				logoUrl,
+				sofifaId ? Number(sofifaId) : null,
+				overallRating ? Number(overallRating) : null,
+				starRating ? Number(starRating) : null,
+				leagueName,
+				countryCode,
+			],
 		);
 		inserted++;
 	}
@@ -143,7 +155,9 @@ async function main() {
 		console.log("Upload complete!");
 	} catch (_err) {
 		console.error("Upload failed. Try manually:");
-		console.error(`gcloud storage cp "${LOGO_DIR}/*" gs://${BUCKET}/team-logos/`);
+		console.error(
+			`gcloud storage cp "${LOGO_DIR}/*" gs://${BUCKET}/team-logos/`,
+		);
 	}
 
 	// 7. Update logo URLs in database
@@ -164,7 +178,10 @@ async function main() {
 
 		if (uploadedFiles.includes(filename)) {
 			const newUrl = `${publicBase}${filename}?alt=media`;
-			await pool.query("UPDATE teams SET logo_url = $1 WHERE id = $2", [newUrl, id]);
+			await pool.query("UPDATE teams SET logo_url = $1 WHERE id = $2", [
+				newUrl,
+				id,
+			]);
 			updated++;
 		}
 	}

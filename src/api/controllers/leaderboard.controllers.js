@@ -8,7 +8,12 @@ export const getLeaderboardController = {
 	handler: async (request, reply) => {
 		try {
 			const { limit = 10, from, to, mode = "all" } = request.query;
-			const leaderboard = await leaderboardService.getLeaderboard(limit, from, to, mode);
+			const leaderboard = await leaderboardService.getLeaderboard(
+				limit,
+				from,
+				to,
+				mode,
+			);
 			return setGeneralResponse(
 				reply,
 				200,

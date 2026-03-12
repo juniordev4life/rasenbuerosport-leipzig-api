@@ -75,7 +75,10 @@ export async function getLeaderboard(limit = 10, from, to, mode = "all") {
 			playerPoints[id].games += 1;
 
 			// Track most recent game
-			if (!playerPoints[id].last_played_at || game.played_at > playerPoints[id].last_played_at) {
+			if (
+				!playerPoints[id].last_played_at ||
+				game.played_at > playerPoints[id].last_played_at
+			) {
 				playerPoints[id].last_played_at = game.played_at;
 			}
 
@@ -88,19 +91,35 @@ export async function getLeaderboard(limit = 10, from, to, mode = "all") {
 			const cleanSheet = isWinner && conceded === 0;
 
 			// Goals scored by player's team
-			const goalsScored = gp.team === "home" ? game.score_home : game.score_away;
+			const goalsScored =
+				gp.team === "home" ? game.score_home : game.score_away;
 
 			if (isDraw) {
 				playerPoints[id].points += 1;
 				playerPoints[id].draws += 1;
-				playerResults[id].push({ played_at: game.played_at, result: "draw", clean_sheet: false, goals_scored: goalsScored });
+				playerResults[id].push({
+					played_at: game.played_at,
+					result: "draw",
+					clean_sheet: false,
+					goals_scored: goalsScored,
+				});
 			} else if (isWinner) {
 				playerPoints[id].points += 3;
 				playerPoints[id].wins += 1;
-				playerResults[id].push({ played_at: game.played_at, result: "win", clean_sheet: cleanSheet, goals_scored: goalsScored });
+				playerResults[id].push({
+					played_at: game.played_at,
+					result: "win",
+					clean_sheet: cleanSheet,
+					goals_scored: goalsScored,
+				});
 			} else {
 				playerPoints[id].losses += 1;
-				playerResults[id].push({ played_at: game.played_at, result: "loss", clean_sheet: false, goals_scored: goalsScored });
+				playerResults[id].push({
+					played_at: game.played_at,
+					result: "loss",
+					clean_sheet: false,
+					goals_scored: goalsScored,
+				});
 			}
 		}
 	}
