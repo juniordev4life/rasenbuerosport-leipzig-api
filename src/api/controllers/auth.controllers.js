@@ -1,5 +1,5 @@
-import { setGeneralResponse } from "../helpers/response.helpers.js";
 import { handleErrorResponse } from "../helpers/error.helpers.js";
+import { setGeneralResponse } from "../helpers/response.helpers.js";
 import * as authService from "../services/auth.services.js";
 
 export const meController = {

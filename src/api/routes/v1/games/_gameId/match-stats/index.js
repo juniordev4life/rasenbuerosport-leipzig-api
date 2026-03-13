@@ -1,6 +1,6 @@
 import {
-	uploadMatchStatsController,
 	deleteMatchStatsController,
+	uploadMatchStatsController,
 } from "../../../../../controllers/matchStats.controllers.js";
 import { requireAuth } from "../../../../../middlewares/auth.middlewares.js";
 

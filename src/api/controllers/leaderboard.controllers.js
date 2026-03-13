@@ -1,5 +1,5 @@
-import { setGeneralResponse } from "../helpers/response.helpers.js";
 import { handleErrorResponse } from "../helpers/error.helpers.js";
+import { setGeneralResponse } from "../helpers/response.helpers.js";
 import { leaderboardSchema } from "../schemas/leaderboard.schemas.js";
 import * as leaderboardService from "../services/leaderboard.services.js";
 

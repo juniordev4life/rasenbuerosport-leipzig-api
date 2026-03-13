@@ -1,7 +1,7 @@
-import { getAllPlayers } from "../services/players.services.js";
-import { setGeneralResponse } from "../helpers/response.helpers.js";
 import { handleErrorResponse } from "../helpers/error.helpers.js";
+import { setGeneralResponse } from "../helpers/response.helpers.js";
 import { getPlayersSchema } from "../schemas/players.schemas.js";
+import { getAllPlayers } from "../services/players.services.js";
 
 export const getPlayersController = {
 	schema: getPlayersSchema,

@@ -1,5 +1,5 @@
-import { setGeneralResponse } from "../helpers/response.helpers.js";
 import { handleErrorResponse } from "../helpers/error.helpers.js";
+import { setGeneralResponse } from "../helpers/response.helpers.js";
 import { getRecentGamesSchema } from "../schemas/activityFeed.schemas.js";
 import { getRecentGames } from "../services/activityFeed.services.js";
 

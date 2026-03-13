@@ -1,9 +1,9 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import autoload from "@fastify/autoload";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

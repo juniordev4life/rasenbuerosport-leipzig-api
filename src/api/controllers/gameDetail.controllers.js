@@ -1,5 +1,5 @@
-import { setGeneralResponse } from "../helpers/response.helpers.js";
 import { handleErrorResponse } from "../helpers/error.helpers.js";
+import { setGeneralResponse } from "../helpers/response.helpers.js";
 import { getGameDetailSchema } from "../schemas/gameDetail.schemas.js";
 import { getGameById } from "../services/gameDetail.services.js";
 

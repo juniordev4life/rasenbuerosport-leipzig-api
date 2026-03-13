@@ -1,5 +1,4 @@
-import { queryOne } from "../helpers/database.helpers.js";
-import { query } from "../helpers/database.helpers.js";
+import { query, queryOne } from "../helpers/database.helpers.js";
 
 /**
  * Fetches a single game by ID with all players and profiles

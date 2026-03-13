@@ -1,5 +1,5 @@
-import { query, queryOne } from "../helpers/database.helpers.js";
 import { getAnthropicClient } from "../../config/anthropic.config.js";
+import { query, queryOne } from "../helpers/database.helpers.js";
 import { getUserStats } from "./stats.services.js";
 
 const MATCH_REPORT_PROMPT = `Du bist ein unterhaltsamer, knapper Sportreporter für Büro-Kicker-Spiele (gespielt in EA Sports FC / FC26).

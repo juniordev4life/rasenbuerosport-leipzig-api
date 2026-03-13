@@ -1,5 +1,6 @@
 import { getPool } from "../../config/database.config.js";
 import { query } from "../helpers/database.helpers.js";
+import { processGameElo } from "./elo.services.js";
 
 /**
  * Creates a new game with players
@@ -61,6 +62,20 @@ export async function createGame({
 		}
 
 		await client.query("COMMIT");
+
+		// Process Elo changes after successful game creation
+		try {
+			await processGameElo({
+				gameId: game.id,
+				scoreHome: score_home,
+				scoreAway: score_away,
+				players,
+			});
+		} catch (eloError) {
+			// Log but don't fail the game creation
+			console.error("Failed to process Elo for game:", game.id, eloError);
+		}
+
 		return game;
 	} catch (error) {
 		await client.query("ROLLBACK");

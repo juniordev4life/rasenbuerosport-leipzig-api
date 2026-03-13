@@ -1,4 +1,5 @@
 import { query } from "../helpers/database.helpers.js";
+import { getPlayerEloSummary, getPlayerFormCurve } from "./elo.services.js";
 
 /**
  * Gets comprehensive stats for a user
@@ -164,6 +165,10 @@ export async function getUserStats(userId) {
 	// Determine goal tier based on individual goals
 	const goalTier = getGoalTier(goalStats.total);
 
+	// Elo rating data
+	const eloSummary = await getPlayerEloSummary(userId);
+	const formCurve = await getPlayerFormCurve(userId, 10);
+
 	return {
 		total_games: totalGames,
 		wins: totalWins,
@@ -181,6 +186,10 @@ export async function getUserStats(userId) {
 		badges,
 		goal_tier: goalTier,
 		total_individual_goals: goalStats.total,
+		current_elo: eloSummary.current_elo,
+		peak_elo: eloSummary.peak_elo,
+		elo_change_last_game: eloSummary.elo_change_last_game,
+		form_curve: formCurve,
 	};
 }
 
@@ -206,6 +215,10 @@ function getEmptyStats() {
 		badges: [],
 		goal_tier: null,
 		total_individual_goals: 0,
+		current_elo: 1200,
+		peak_elo: 1200,
+		elo_change_last_game: null,
+		form_curve: [],
 	};
 }
 

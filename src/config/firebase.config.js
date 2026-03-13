@@ -1,4 +1,4 @@
-import { initializeApp, getApps } from "firebase-admin/app";
+import { getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 
 let firebaseAuth = null;

@@ -1,5 +1,5 @@
-import { setGeneralResponse } from "../helpers/response.helpers.js";
 import { handleErrorResponse } from "../helpers/error.helpers.js";
+import { setGeneralResponse } from "../helpers/response.helpers.js";
 import { predictionSchema } from "../schemas/matchPrediction.schemas.js";
 import { generatePrediction } from "../services/matchPrediction.services.js";
 

@@ -1,7 +1,7 @@
-import { getUserStats } from "../services/stats.services.js";
-import { setGeneralResponse } from "../helpers/response.helpers.js";
 import { handleErrorResponse } from "../helpers/error.helpers.js";
+import { setGeneralResponse } from "../helpers/response.helpers.js";
 import { getStatsSchema } from "../schemas/stats.schemas.js";
+import { getUserStats } from "../services/stats.services.js";
 
 export const getMyStatsController = {
 	schema: getStatsSchema,
