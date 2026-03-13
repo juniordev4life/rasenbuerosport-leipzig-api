@@ -5,10 +5,7 @@ import * as authService from "../services/auth.services.js";
 export const meController = {
 	handler: async (request, reply) => {
 		try {
-			const profile = await authService.getUserProfile(
-				request.user.id,
-				request.user.email,
-			);
+			const profile = await authService.getUserProfile(request.user.id);
 			return setGeneralResponse(
 				reply,
 				200,

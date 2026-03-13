@@ -1,23 +1,20 @@
 import { queryOne } from "../helpers/database.helpers.js";
 
 /**
- * Gets the current user's profile, creating one if it doesn't exist
+ * Gets the current user's profile
  * @param {string} userId - Firebase Auth UID
- * @param {string} [email] - User email (for auto-create)
- * @param {string} [displayName] - Google display name (for auto-create)
  * @returns {Promise<object>}
+ * @throws {Error} 403 if profile does not exist (user not authorized)
  */
-export async function getUserProfile(userId, email, displayName) {
-	let profile = await queryOne("SELECT * FROM profiles WHERE id = $1", [
+export async function getUserProfile(userId) {
+	const profile = await queryOne("SELECT * FROM profiles WHERE id = $1", [
 		userId,
 	]);
 
 	if (!profile) {
-		const username = displayName || email?.split("@")[0] || "User";
-		profile = await queryOne(
-			"INSERT INTO profiles (id, username) VALUES ($1, $2) RETURNING *",
-			[userId, username],
-		);
+		const error = new Error("User not authorized");
+		error.statusCode = 403;
+		throw error;
 	}
 
 	return profile;
@@ -30,8 +27,19 @@ export async function getUserProfile(userId, email, displayName) {
  * @param {string} [updates.username]
  * @param {string} [updates.avatar_url]
  * @returns {Promise<object>}
+ * @throws {Error} 403 if profile does not exist (user not authorized)
  */
 export async function updateUserProfile(userId, { username, avatar_url }) {
+	const existing = await queryOne("SELECT id FROM profiles WHERE id = $1", [
+		userId,
+	]);
+
+	if (!existing) {
+		const error = new Error("User not authorized");
+		error.statusCode = 403;
+		throw error;
+	}
+
 	const fields = [];
 	const params = [];
 	let idx = 1;
