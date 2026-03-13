@@ -24,7 +24,8 @@ const { Pool } = pg;
 
 const DATABASE_URL = process.env.DATABASE_URL;
 const BUCKET_NAME =
-	process.env.STORAGE_BUCKET || "rasenbuerosport-leipzig-9d54f.firebasestorage.app";
+	process.env.STORAGE_BUCKET ||
+	"rasenbuerosport-leipzig-9d54f.firebasestorage.app";
 const LOGO_PREFIX = "team-logos";
 
 if (!DATABASE_URL) {

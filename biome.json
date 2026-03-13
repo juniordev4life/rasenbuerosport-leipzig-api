@@ -16,5 +16,14 @@
 	"formatter": {
 		"enabled": true,
 		"indentStyle": "tab"
+	},
+	"files": {
+		"includes": [
+			"src/**",
+			"scripts/**",
+			"*.json",
+			"*.js",
+			"!scripts/scraped-teams.json"
+		]
 	}
 }
