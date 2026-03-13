@@ -31,5 +31,9 @@ export async function getAllTeams(filters = {}) {
 	const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 	const sql = `SELECT id, name, short_name, logo_url, sofifa_id, overall_rating, star_rating, league_name, country_code FROM teams ${where} ORDER BY name ASC`;
 
-	return query(sql, params);
+	const rows = await query(sql, params);
+	return rows.map((row) => ({
+		...row,
+		star_rating: row.star_rating !== null ? Number(row.star_rating) : null,
+	}));
 }
