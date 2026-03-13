@@ -78,14 +78,17 @@ const COUNTRY_CODE_MAP = {
  * @returns {string}
  */
 function decodeRtf(text) {
+	// Remove \uc0 prefix (unicode char count = 0, no replacement char follows)
+	let decoded = text.replace(/\\uc0\s?/g, "");
+
 	// Replace \'XX hex escapes (ISO 8859-1 / Windows-1252)
-	let decoded = text.replace(/\\'([0-9a-fA-F]{2})/g, (_, hex) => {
+	decoded = decoded.replace(/\\'([0-9a-fA-F]{2})/g, (_, hex) => {
 		const code = parseInt(hex, 16);
 		return String.fromCharCode(code);
 	});
 
-	// Replace \uNNNN unicode escapes followed by replacement char
-	decoded = decoded.replace(/\\u(\d+)\s?\?/g, (_, code) =>
+	// Replace \uNNNN unicode escapes — with optional replacement char (? or space)
+	decoded = decoded.replace(/\\u(\d+)\s?\??/g, (_, code) =>
 		String.fromCodePoint(parseInt(code, 10)),
 	);
 

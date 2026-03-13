@@ -12,7 +12,7 @@ export const createGameSchema = {
 					type: "object",
 					required: ["id", "team"],
 					properties: {
-						id: { type: "string", format: "uuid" },
+						id: { type: "string", minLength: 1 },
 						team: { type: "string", enum: ["home", "away"] },
 						team_name: { type: "string", minLength: 1 },
 						rating: { type: "integer", minimum: 1, maximum: 5 },
@@ -34,7 +34,7 @@ export const createGameSchema = {
 							type: "string",
 							enum: ["regular", "extra_time", "penalty"],
 						},
-						scored_by: { type: "string", format: "uuid" },
+						scored_by: { type: "string", minLength: 1 },
 					},
 				},
 			},

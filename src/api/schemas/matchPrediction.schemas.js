@@ -12,7 +12,7 @@ export const predictionSchema = {
 					type: "object",
 					required: ["id", "team"],
 					properties: {
-						id: { type: "string", format: "uuid" },
+						id: { type: "string", minLength: 1 },
 						team: { type: "string", enum: ["home", "away"] },
 						team_name: { type: "string" },
 					},

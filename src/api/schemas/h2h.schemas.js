@@ -3,7 +3,7 @@ export const getH2HSchema = {
 		type: "object",
 		required: ["playerId"],
 		properties: {
-			playerId: { type: "string", format: "uuid" },
+			playerId: { type: "string", minLength: 1 },
 		},
 	},
 };
