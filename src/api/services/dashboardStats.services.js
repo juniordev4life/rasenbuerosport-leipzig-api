@@ -71,7 +71,11 @@ export function computeRollingWinRate(eloHistory) {
 		}
 
 		if (winRate10 !== null) {
-			results.push({ game_number: gameNumber, win_rate_10: winRate10, win_rate_20: winRate20 });
+			results.push({
+				game_number: gameNumber,
+				win_rate_10: winRate10,
+				win_rate_20: winRate20,
+			});
 		}
 	}
 	return results;
@@ -205,7 +209,8 @@ export async function getTeamStats(playerId, from, to) {
 		sql += ` AND g.played_at <= $${params.length}`;
 	}
 
-	sql += " GROUP BY gp.team_name HAVING COUNT(*) >= 3 ORDER BY COUNT(*) DESC LIMIT 15";
+	sql +=
+		" GROUP BY gp.team_name HAVING COUNT(*) >= 3 ORDER BY COUNT(*) DESC LIMIT 15";
 	const rows = await query(sql, params);
 
 	return rows.map((r) => ({

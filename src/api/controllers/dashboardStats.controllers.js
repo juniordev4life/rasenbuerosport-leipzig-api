@@ -47,14 +47,20 @@ export const getDashboardStatsController = {
 
 			const rollingWinRate = computeRollingWinRate(eloHistory);
 
-			return setGeneralResponse(reply, 200, "Success", "Dashboard stats retrieved", {
-				elo_history: eloHistory,
-				rolling_win_rate: rollingWinRate,
-				xg_vs_goals: xgVsGoals,
-				games_per_month: gamesPerMonth,
-				games_per_weekday: gamesPerWeekday,
-				team_stats: teamStats,
-			});
+			return setGeneralResponse(
+				reply,
+				200,
+				"Success",
+				"Dashboard stats retrieved",
+				{
+					elo_history: eloHistory,
+					rolling_win_rate: rollingWinRate,
+					xg_vs_goals: xgVsGoals,
+					games_per_month: gamesPerMonth,
+					games_per_weekday: gamesPerWeekday,
+					team_stats: teamStats,
+				},
+			);
 		} catch (error) {
 			return handleErrorResponse(reply, error, request);
 		}
@@ -85,11 +91,17 @@ export const getCommunityStatsController = {
 					getGoalsDistribution(from, to),
 				]);
 
-			return setGeneralResponse(reply, 200, "Success", "Community stats retrieved", {
-				elo_distribution: eloDistribution,
-				common_scores: commonScores,
-				goals_distribution: goalsDistribution,
-			});
+			return setGeneralResponse(
+				reply,
+				200,
+				"Success",
+				"Community stats retrieved",
+				{
+					elo_distribution: eloDistribution,
+					common_scores: commonScores,
+					goals_distribution: goalsDistribution,
+				},
+			);
 		} catch (error) {
 			return handleErrorResponse(reply, error, request);
 		}
