@@ -1,3 +1,4 @@
+import { getSeasonDateRange } from "../../utils/season.utils.js";
 import { handleErrorResponse } from "../helpers/error.helpers.js";
 import { setGeneralResponse } from "../helpers/response.helpers.js";
 import { getStatsSchema } from "../schemas/stats.schemas.js";
@@ -7,7 +8,15 @@ export const getMyStatsController = {
 	schema: getStatsSchema,
 	handler: async (request, reply) => {
 		try {
-			const data = await getUserStats(request.user.id);
+			let { from, to, season } = request.query;
+
+			if (season) {
+				const range = getSeasonDateRange(season);
+				from = range.from;
+				to = range.to;
+			}
+
+			const data = await getUserStats(request.user.id, from, to);
 			return setGeneralResponse(
 				reply,
 				200,

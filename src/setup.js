@@ -18,6 +18,7 @@ export async function setup(server) {
 		origin: process.env.CORS_ORIGIN?.includes(",")
 			? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
 			: process.env.CORS_ORIGIN || "http://localhost:5173",
+		methods: ["GET", "HEAD", "PUT", "POST", "DELETE", "PATCH"],
 		credentials: true,
 	});
 

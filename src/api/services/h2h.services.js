@@ -72,6 +72,16 @@ export async function getHeadToHead(userId, opponentId) {
 	let opponentWins = 0;
 	let draws = 0;
 
+	/** @type {Array<{result: string, played_at: string}>} */
+	const trend = [];
+	const modeBilanz = {
+		"1v1": { games: 0, wins: 0, draws: 0, losses: 0 },
+		"2v2": { games: 0, wins: 0, draws: 0, losses: 0 },
+	};
+	let userGoals = 0;
+	let opponentGoals = 0;
+	let gamesWithGoalData = 0;
+
 	for (const game of games) {
 		const userTeam = userTeamMap[game.id];
 		if (!userTeam) continue;
@@ -89,7 +99,46 @@ export async function getHeadToHead(userId, opponentId) {
 		} else {
 			opponentWins++;
 		}
+
+		// Trend (games are DESC, reversed later)
+		const result = isDraw ? "D" : isUserWin ? "W" : "L";
+		trend.push({ result, played_at: game.played_at });
+
+		// Mode breakdown
+		const mode = game.mode || "1v1";
+		if (modeBilanz[mode]) {
+			modeBilanz[mode].games++;
+			if (isDraw) modeBilanz[mode].draws++;
+			else if (isUserWin) modeBilanz[mode].wins++;
+			else modeBilanz[mode].losses++;
+		}
+
+		// Goal stats from score_timeline
+		if (Array.isArray(game.score_timeline) && game.score_timeline.length > 0) {
+			const hasScoredBy = game.score_timeline.some((e) => e.scored_by);
+			if (hasScoredBy) {
+				gamesWithGoalData++;
+				for (const entry of game.score_timeline) {
+					if (entry.scored_by === userId) userGoals++;
+					else if (entry.scored_by === opponentId) opponentGoals++;
+				}
+			}
+		}
 	}
+
+	const streak = calculateH2HStreak(trend);
+	trend.reverse();
+
+	const goalStats =
+		gamesWithGoalData > 0
+			? {
+					user_goals: userGoals,
+					opponent_goals: opponentGoals,
+					user_avg: +(userGoals / gamesWithGoalData).toFixed(1),
+					opponent_avg: +(opponentGoals / gamesWithGoalData).toFixed(1),
+					games_with_data: gamesWithGoalData,
+				}
+			: null;
 
 	return {
 		opponent: {
@@ -101,6 +150,10 @@ export async function getHeadToHead(userId, opponentId) {
 		opponent_wins: opponentWins,
 		draws,
 		recent_games: games.slice(0, 5),
+		trend,
+		streak,
+		mode_bilanz: modeBilanz,
+		goal_stats: goalStats,
 	};
 }
 
@@ -120,5 +173,42 @@ function getEmptyH2H(opponentProfile) {
 		opponent_wins: 0,
 		draws: 0,
 		recent_games: [],
+		trend: [],
+		streak: null,
+		mode_bilanz: {
+			"1v1": { games: 0, wins: 0, draws: 0, losses: 0 },
+			"2v2": { games: 0, wins: 0, draws: 0, losses: 0 },
+		},
+		goal_stats: null,
 	};
+}
+
+/**
+ * Calculates the current streak from H2H results (most recent first)
+ * @param {Array<{result: string}>} results - DESC ordered results
+ * @returns {{ type: string, count: number }|null}
+ */
+function calculateH2HStreak(results) {
+	if (!results.length) return null;
+
+	let streakType = null;
+	let streakCount = 0;
+
+	for (const { result } of results) {
+		const type = result === "W" ? "win" : result === "L" ? "loss" : "draw";
+
+		if (streakType === null && type === "draw") continue;
+		if (streakType === null) {
+			streakType = type;
+			streakCount = 1;
+		} else if (type === streakType) {
+			streakCount++;
+		} else if (type === "draw") {
+			// Draws don't break a win/loss streak
+		} else {
+			break;
+		}
+	}
+
+	return streakType ? { type: streakType, count: streakCount } : null;
 }

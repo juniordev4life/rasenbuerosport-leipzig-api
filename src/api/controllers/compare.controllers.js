@@ -1,14 +1,14 @@
 import { getSeasonDateRange } from "../../utils/season.utils.js";
 import { handleErrorResponse } from "../helpers/error.helpers.js";
 import { setGeneralResponse } from "../helpers/response.helpers.js";
-import { leaderboardSchema } from "../schemas/leaderboard.schemas.js";
-import * as leaderboardService from "../services/leaderboard.services.js";
+import { getCompareSchema } from "../schemas/compare.schemas.js";
+import { getPlayerComparison } from "../services/compare.services.js";
 
-export const getLeaderboardController = {
-	schema: leaderboardSchema,
+export const getCompareController = {
+	schema: getCompareSchema,
 	handler: async (request, reply) => {
 		try {
-			let { limit = 10, from, to, mode = "all", season } = request.query;
+			let { from, to, season } = request.query;
 
 			if (season) {
 				const range = getSeasonDateRange(season);
@@ -16,18 +16,18 @@ export const getLeaderboardController = {
 				to = range.to;
 			}
 
-			const leaderboard = await leaderboardService.getLeaderboard(
-				limit,
+			const data = await getPlayerComparison(
+				request.params.player1Id,
+				request.params.player2Id,
 				from,
 				to,
-				mode,
 			);
 			return setGeneralResponse(
 				reply,
 				200,
 				"Success",
-				"Leaderboard retrieved",
-				leaderboard,
+				"Player comparison retrieved",
+				data,
 			);
 		} catch (error) {
 			return handleErrorResponse(reply, error, request);

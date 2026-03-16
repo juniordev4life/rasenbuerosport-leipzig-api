@@ -6,6 +6,7 @@ export const leaderboardSchema = {
 			from: { type: "string", format: "date" },
 			to: { type: "string", format: "date" },
 			mode: { type: "string", enum: ["all", "1v1", "2v2"], default: "all" },
+			season: { type: "string", pattern: "^\\d{4}-Q[1-4]$" },
 		},
 	},
 };

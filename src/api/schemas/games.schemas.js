@@ -53,6 +53,9 @@ export const getGamesSchema = {
 		properties: {
 			limit: { type: "integer", minimum: 1, maximum: 200, default: 10 },
 			offset: { type: "integer", minimum: 0, default: 0 },
+			season: { type: "string", pattern: "^\\d{4}-Q[1-4]$" },
+			from: { type: "string", format: "date" },
+			to: { type: "string", format: "date" },
 		},
 	},
 };

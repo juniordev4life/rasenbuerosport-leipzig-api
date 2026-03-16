@@ -94,7 +94,22 @@ export async function createGame({
  * @param {number} offset
  * @returns {Promise<object[]>}
  */
-export async function getUserGames(userId, limit = 10, offset = 0) {
+export async function getUserGames(userId, limit = 10, offset = 0, from, to) {
+	const conditions = ["gp2.player_id = $1"];
+	const params = [userId];
+	let idx = 2;
+
+	if (from) {
+		conditions.push(`g.played_at >= $${idx++}`);
+		params.push(from);
+	}
+	if (to) {
+		conditions.push(`g.played_at <= $${idx++}`);
+		params.push(to);
+	}
+
+	params.push(limit, offset);
+
 	const games = await query(
 		`SELECT g.*,
 			json_agg(
@@ -107,13 +122,13 @@ export async function getUserGames(userId, limit = 10, offset = 0) {
 				)
 			) AS game_players
 		FROM games g
-		INNER JOIN game_players gp2 ON gp2.game_id = g.id AND gp2.player_id = $1
+		INNER JOIN game_players gp2 ON gp2.game_id = g.id AND ${conditions.join(" AND ")}
 		LEFT JOIN game_players gp ON gp.game_id = g.id
 		LEFT JOIN profiles p ON p.id = gp.player_id
 		GROUP BY g.id
 		ORDER BY g.played_at DESC
-		LIMIT $2 OFFSET $3`,
-		[userId, limit, offset],
+		LIMIT $${idx++} OFFSET $${idx}`,
+		params,
 	);
 
 	return games;

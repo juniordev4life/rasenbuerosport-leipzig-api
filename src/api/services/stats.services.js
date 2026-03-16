@@ -2,15 +2,33 @@ import { query } from "../helpers/database.helpers.js";
 import { getPlayerEloSummary, getPlayerFormCurve } from "./elo.services.js";
 
 /**
- * Gets comprehensive stats for a user
+ * Gets comprehensive stats for a user, optionally filtered by date range
  * @param {string} userId
+ * @param {string} [from] - ISO date string for start boundary
+ * @param {string} [to] - ISO date string for end boundary
  * @returns {Promise<object>}
  */
-export async function getUserStats(userId) {
-	// Fetch all games the user participated in
+export async function getUserStats(userId, from, to) {
+	// Build date-filtered query for games the user participated in
+	const conditions = ["gp.player_id = $1"];
+	const params = [userId];
+	let idx = 2;
+
+	if (from) {
+		conditions.push(`g.played_at >= $${idx++}`);
+		params.push(from);
+	}
+	if (to) {
+		conditions.push(`g.played_at <= $${idx++}`);
+		params.push(to);
+	}
+
 	const playerGames = await query(
-		"SELECT game_id, team, team_name FROM game_players WHERE player_id = $1",
-		[userId],
+		`SELECT gp.game_id, gp.team, gp.team_name
+		 FROM game_players gp
+		 JOIN games g ON g.id = gp.game_id
+		 WHERE ${conditions.join(" AND ")}`,
+		params,
 	);
 
 	if (!playerGames.length) {
@@ -137,8 +155,9 @@ export async function getUserStats(userId) {
 	// Find favorite opponent (most games against)
 	const favoriteOpponent = findTopEntry(opponentCount, "games");
 
-	// Find best teammate (highest win rate together, min 2 games)
-	const bestTeammate = findBestTeammate(teammateRecord);
+	// Find top teammates (highest win rate together, min 2 games)
+	const topTeammates = findTopTeammates(teammateRecord, 3);
+	const bestTeammate = topTeammates.length > 0 ? topTeammates[0] : null;
 
 	// Find favorite team (team_name is now plain text)
 	const favoriteTeam = findFavoriteTeam(teamCount);
@@ -156,10 +175,14 @@ export async function getUserStats(userId) {
 	const goalStats = countIndividualGoals(games, userGameMap, userId);
 
 	// Badges
-	const badges = computeBadges(games, userGameMap, {
+	const maxWinStreak = getMaxWinStreak(games, userGameMap);
+	const badges = computeBadges(games, userGameMap, userId, {
 		total_games: totalGames,
 		careerMatchStats,
 		goalStats,
+		wins1v1,
+		wins2v2,
+		maxWinStreak,
 	});
 
 	// Determine goal tier based on individual goals
@@ -179,6 +202,7 @@ export async function getUserStats(userId) {
 		bilanz_2v2: { wins: wins2v2, losses: losses2v2 },
 		favorite_opponent: favoriteOpponent,
 		best_teammate: bestTeammate,
+		top_teammates: topTeammates,
 		favorite_team: favoriteTeam,
 		current_streak: currentStreak,
 		last_played_at: lastPlayedAt,
@@ -208,6 +232,7 @@ function getEmptyStats() {
 		bilanz_2v2: { wins: 0, losses: 0 },
 		favorite_opponent: null,
 		best_teammate: null,
+		top_teammates: [],
 		favorite_team: null,
 		current_streak: null,
 		last_played_at: null,
@@ -348,86 +373,154 @@ function computeCareerMatchStats(games, userGameMap) {
 }
 
 /**
- * Computes all profile badges with categories
+ * Creates a badge object with progress data
+ * @param {object} params
+ * @returns {object}
+ */
+function makeBadge({
+	type,
+	emoji,
+	category,
+	current,
+	target,
+	unlocked_at = null,
+	next_tier = null,
+}) {
+	return {
+		type,
+		emoji,
+		unlocked: current >= target,
+		category,
+		progress: { current, target },
+		unlocked_at,
+		next_tier,
+	};
+}
+
+/** @type {Array<{type: string, emoji: string, threshold: number}>} */
+const GOAL_BADGE_TIERS = [
+	{ type: "torjaeger_bronze", emoji: "\u{1F949}", threshold: 20 },
+	{ type: "torjaeger_silber", emoji: "\u{1F948}", threshold: 50 },
+	{ type: "torjaeger_gold", emoji: "\u{1F947}", threshold: 100 },
+	{ type: "torjaeger_platin", emoji: "\u{1F4A0}", threshold: 250 },
+	{ type: "torjaeger_diamant", emoji: "\u{1F48E}", threshold: 500 },
+];
+
+/**
+ * Computes all profile badges with categories, progress, and unlock dates
  * @param {object[]} games - All user games (sorted DESC)
  * @param {object} userGameMap
- * @param {object} stats - { total_games, careerMatchStats, goalStats }
+ * @param {string} userId
+ * @param {object} stats - { total_games, careerMatchStats, goalStats, wins1v1, wins2v2, maxWinStreak }
  * @returns {object[]}
  */
-function computeBadges(games, userGameMap, stats) {
+function computeBadges(games, userGameMap, userId, stats) {
 	const ms = stats.careerMatchStats;
 	const gamesWithStats = ms?.games_with_stats || 0;
 	const gs = stats.goalStats;
+	const chronoGames = [...games].reverse();
 
 	const badges = [];
 
 	// === GOAL BADGES (category: "goals") ===
 
-	// Tiered career goal badges
-	badges.push({
-		type: "torjaeger_bronze",
-		emoji: "\u{1F949}",
-		unlocked: gs.total >= 20,
-		category: "goals",
-	});
-	badges.push({
-		type: "torjaeger_silber",
-		emoji: "\u{1F948}",
-		unlocked: gs.total >= 50,
-		category: "goals",
-	});
-	badges.push({
-		type: "torjaeger_gold",
-		emoji: "\u{1F947}",
-		unlocked: gs.total >= 100,
-		category: "goals",
-	});
-	badges.push({
-		type: "torjaeger_platin",
-		emoji: "\u{1F4A0}",
-		unlocked: gs.total >= 250,
-		category: "goals",
-	});
-	badges.push({
-		type: "torjaeger_diamant",
-		emoji: "\u{1F48E}",
-		unlocked: gs.total >= 500,
-		category: "goals",
-	});
+	for (let i = 0; i < GOAL_BADGE_TIERS.length; i++) {
+		const tier = GOAL_BADGE_TIERS[i];
+		const nextTier = GOAL_BADGE_TIERS[i + 1] || null;
+		badges.push(
+			makeBadge({
+				type: tier.type,
+				emoji: tier.emoji,
+				category: "goals",
+				current: gs.total,
+				target: tier.threshold,
+				unlocked_at:
+					gs.total >= tier.threshold
+						? findDateWhenGoalReached(
+								chronoGames,
+								userGameMap,
+								userId,
+								tier.threshold,
+							)
+						: null,
+				next_tier: nextTier
+					? { type: nextTier.type, target: nextTier.threshold }
+					: null,
+			}),
+		);
+	}
 
-	// Per-game goal badges
-	badges.push({
-		type: "doppelpacker",
-		emoji: "\u270C\uFE0F",
-		unlocked: gs.maxInOneGame >= 2,
-		category: "goals",
-	});
-	badges.push({
-		type: "hattrick_held",
-		emoji: "\u{1FA96}",
-		unlocked: gs.maxInOneGame >= 3,
-		category: "goals",
-	});
+	badges.push(
+		makeBadge({
+			type: "doppelpacker",
+			emoji: "\u270C\uFE0F",
+			category: "goals",
+			current: gs.maxInOneGame >= 2 ? 1 : 0,
+			target: 1,
+			unlocked_at:
+				gs.maxInOneGame >= 2
+					? findFirstGameMatching(chronoGames, userGameMap, (game, ue) => {
+							return countGameGoals(game, ue, userId) >= 2;
+						})
+					: null,
+		}),
+	);
+
+	badges.push(
+		makeBadge({
+			type: "hattrick_held",
+			emoji: "\u{1FA96}",
+			category: "goals",
+			current: gs.maxInOneGame >= 3 ? 1 : 0,
+			target: 1,
+			unlocked_at:
+				gs.maxInOneGame >= 3
+					? findFirstGameMatching(chronoGames, userGameMap, (game, ue) => {
+							return countGameGoals(game, ue, userId) >= 3;
+						})
+					: null,
+		}),
+	);
+
+	// NEW: tormaschine — 4+ individual goals in one game
+	badges.push(
+		makeBadge({
+			type: "tormaschine",
+			emoji: "\u{1F4A5}",
+			category: "goals",
+			current: gs.maxInOneGame >= 4 ? 1 : 0,
+			target: 1,
+			unlocked_at:
+				gs.maxInOneGame >= 4
+					? findFirstGameMatching(chronoGames, userGameMap, (game, ue) => {
+							return countGameGoals(game, ue, userId) >= 4;
+						})
+					: null,
+		}),
+	);
 
 	// === MATCH STATS BADGES (category: "match_stats") ===
 
-	// tiki_taka — Avg pass accuracy > 85% (min 3 games)
-	badges.push({
-		type: "tiki_taka",
-		emoji: "\u{1F3AF}",
-		unlocked: gamesWithStats >= 3 && (ms?.avg_pass_accuracy || 0) > 85,
-		category: "match_stats",
-	});
+	badges.push(
+		makeBadge({
+			type: "tiki_taka",
+			emoji: "\u{1F3AF}",
+			category: "match_stats",
+			current: gamesWithStats >= 3 ? ms?.avg_pass_accuracy || 0 : 0,
+			target: 85,
+		}),
+	);
 
-	// ball_magnet — Avg possession > 55% (min 3 games)
-	badges.push({
-		type: "ball_magnet",
-		emoji: "\u{1F9F2}",
-		unlocked: gamesWithStats >= 3 && (ms?.avg_possession || 0) > 55,
-		category: "match_stats",
-	});
+	badges.push(
+		makeBadge({
+			type: "ball_magnet",
+			emoji: "\u{1F9F2}",
+			category: "match_stats",
+			current: gamesWithStats >= 3 ? ms?.avg_possession || 0 : 0,
+			target: 55,
+		}),
+	);
 
-	// konter_king — Won a game with < 40% possession
 	const hasKonterKing = games.some((game) => {
 		if (!game.match_stats?.possession) return false;
 		const ue = userGameMap[game.id];
@@ -439,57 +532,88 @@ function computeBadges(games, userGameMap, stats) {
 			(side === "away" && game.score_away > game.score_home);
 		return isWin && poss < 40;
 	});
-	badges.push({
-		type: "konter_king",
-		emoji: "\u26A1",
-		unlocked: hasKonterKing,
-		category: "match_stats",
-	});
+	badges.push(
+		makeBadge({
+			type: "konter_king",
+			emoji: "\u26A1",
+			category: "match_stats",
+			current: hasKonterKing ? 1 : 0,
+			target: 1,
+			unlocked_at: hasKonterKing
+				? findFirstGameMatching(chronoGames, userGameMap, (game, ue) => {
+						if (!game.match_stats?.possession) return false;
+						const poss = game.match_stats.possession[ue.team];
+						const isWin =
+							(ue.team === "home" && game.score_home > game.score_away) ||
+							(ue.team === "away" && game.score_away > game.score_home);
+						return isWin && poss < 40;
+					})
+				: null,
+		}),
+	);
 
-	// xg_killer — xG efficiency > 1.3 (min 5 games with stats)
-	badges.push({
-		type: "xg_killer",
-		emoji: "\u{1F52B}",
-		unlocked: gamesWithStats >= 5 && (ms?.xg_efficiency || 0) > 1.3,
-		category: "match_stats",
-	});
+	badges.push(
+		makeBadge({
+			type: "xg_killer",
+			emoji: "\u{1F52B}",
+			category: "match_stats",
+			current: gamesWithStats >= 5 ? ms?.xg_efficiency || 0 : 0,
+			target: 1.3,
+		}),
+	);
 
-	// duell_monster — Avg duel win rate > 60% (min 3 games)
-	badges.push({
-		type: "duell_monster",
-		emoji: "\u{1F4AA}",
-		unlocked: gamesWithStats >= 3 && (ms?.avg_duels_won_rate || 0) > 60,
-		category: "match_stats",
-	});
+	badges.push(
+		makeBadge({
+			type: "duell_monster",
+			emoji: "\u{1F4AA}",
+			category: "match_stats",
+			current: gamesWithStats >= 3 ? ms?.avg_duels_won_rate || 0 : 0,
+			target: 60,
+		}),
+	);
 
-	// perfektionist — 100% pass accuracy in any game
 	const hasPerfekt = games.some((game) => {
 		if (!game.match_stats?.pass_accuracy) return false;
 		const side = userGameMap[game.id]?.team;
 		return side && game.match_stats.pass_accuracy[side] === 100;
 	});
-	badges.push({
-		type: "perfektionist",
-		emoji: "\u{1F48E}",
-		unlocked: hasPerfekt,
-		category: "match_stats",
-	});
+	badges.push(
+		makeBadge({
+			type: "perfektionist",
+			emoji: "\u{1F48E}",
+			category: "match_stats",
+			current: hasPerfekt ? 1 : 0,
+			target: 1,
+			unlocked_at: hasPerfekt
+				? findFirstGameMatching(chronoGames, userGameMap, (game, ue) => {
+						return game.match_stats?.pass_accuracy?.[ue.team] === 100;
+					})
+				: null,
+		}),
+	);
 
-	// schuetzenfest — 5+ team goals in a single game
 	const hasSchuetzenfest = games.some((game) => {
 		const side = userGameMap[game.id]?.team;
 		if (!side) return false;
-		const goals = side === "home" ? game.score_home : game.score_away;
-		return goals >= 5;
+		return (side === "home" ? game.score_home : game.score_away) >= 5;
 	});
-	badges.push({
-		type: "schuetzenfest",
-		emoji: "\u{1F389}",
-		unlocked: hasSchuetzenfest,
-		category: "match_stats",
-	});
+	badges.push(
+		makeBadge({
+			type: "schuetzenfest",
+			emoji: "\u{1F389}",
+			category: "match_stats",
+			current: hasSchuetzenfest ? 1 : 0,
+			target: 1,
+			unlocked_at: hasSchuetzenfest
+				? findFirstGameMatching(chronoGames, userGameMap, (game, ue) => {
+						return (
+							(ue.team === "home" ? game.score_home : game.score_away) >= 5
+						);
+					})
+				: null,
+		}),
+	);
 
-	// clean_sheet — Won without conceding
 	const hasCleanSheet = games.some((game) => {
 		const side = userGameMap[game.id]?.team;
 		if (!side) return false;
@@ -497,14 +621,25 @@ function computeBadges(games, userGameMap, stats) {
 		const scored = side === "home" ? game.score_home : game.score_away;
 		return conceded === 0 && scored > 0;
 	});
-	badges.push({
-		type: "clean_sheet",
-		emoji: "\u{1F6E1}\uFE0F",
-		unlocked: hasCleanSheet,
-		category: "match_stats",
-	});
+	badges.push(
+		makeBadge({
+			type: "clean_sheet",
+			emoji: "\u{1F6E1}\uFE0F",
+			category: "match_stats",
+			current: hasCleanSheet ? 1 : 0,
+			target: 1,
+			unlocked_at: hasCleanSheet
+				? findFirstGameMatching(chronoGames, userGameMap, (game, ue) => {
+						const conceded =
+							ue.team === "home" ? game.score_away : game.score_home;
+						const scored =
+							ue.team === "home" ? game.score_home : game.score_away;
+						return conceded === 0 && scored > 0;
+					})
+				: null,
+		}),
+	);
 
-	// david_vs_goliath — Won with < 30% possession
 	const hasDavid = games.some((game) => {
 		if (!game.match_stats?.possession) return false;
 		const side = userGameMap[game.id]?.team;
@@ -515,16 +650,70 @@ function computeBadges(games, userGameMap, stats) {
 			(side === "away" && game.score_away > game.score_home);
 		return isWin && poss < 30;
 	});
-	badges.push({
-		type: "david_vs_goliath",
-		emoji: "\u{1F3F9}",
-		unlocked: hasDavid,
-		category: "match_stats",
+	badges.push(
+		makeBadge({
+			type: "david_vs_goliath",
+			emoji: "\u{1F3F9}",
+			category: "match_stats",
+			current: hasDavid ? 1 : 0,
+			target: 1,
+			unlocked_at: hasDavid
+				? findFirstGameMatching(chronoGames, userGameMap, (game, ue) => {
+						if (!game.match_stats?.possession) return false;
+						const poss = game.match_stats.possession[ue.team];
+						const isWin =
+							(ue.team === "home" && game.score_home > game.score_away) ||
+							(ue.team === "away" && game.score_away > game.score_home);
+						return isWin && poss < 30;
+					})
+				: null,
+		}),
+	);
+
+	// NEW: comeback_king — Win after trailing by 2+ goals
+	const hasComeback = games.some((game) => {
+		const ue = userGameMap[game.id];
+		if (!ue) return false;
+		return checkComeback(game, ue);
 	});
+	badges.push(
+		makeBadge({
+			type: "comeback_king",
+			emoji: "\u{1F504}",
+			category: "match_stats",
+			current: hasComeback ? 1 : 0,
+			target: 1,
+			unlocked_at: hasComeback
+				? findFirstGameMatching(chronoGames, userGameMap, (game, ue) =>
+						checkComeback(game, ue),
+					)
+				: null,
+		}),
+	);
+
+	// NEW: fruehstarter — Scored the opening goal in a game
+	const hasFruehstarter = games.some((game) => {
+		const ue = userGameMap[game.id];
+		if (!ue) return false;
+		return checkFruehstarter(game, ue, userId);
+	});
+	badges.push(
+		makeBadge({
+			type: "fruehstarter",
+			emoji: "\u{1F305}",
+			category: "match_stats",
+			current: hasFruehstarter ? 1 : 0,
+			target: 1,
+			unlocked_at: hasFruehstarter
+				? findFirstGameMatching(chronoGames, userGameMap, (game, ue) =>
+						checkFruehstarter(game, ue, userId),
+					)
+				: null,
+		}),
+	);
 
 	// === GENERAL BADGES (category: "general") ===
 
-	// fair_play — 10+ games without yellow card
 	let gamesNoYellow = 0;
 	for (const game of games) {
 		const side = userGameMap[game.id]?.team;
@@ -535,58 +724,180 @@ function computeBadges(games, userGameMap, stats) {
 		}
 		if (game.match_stats.yellow_cards[side] === 0) gamesNoYellow++;
 	}
-	badges.push({
-		type: "fair_play",
-		emoji: "\u{1F91D}",
-		unlocked: gamesNoYellow >= 10,
-		category: "general",
-	});
+	badges.push(
+		makeBadge({
+			type: "fair_play",
+			emoji: "\u{1F91D}",
+			category: "general",
+			current: gamesNoYellow,
+			target: 10,
+		}),
+	);
 
-	// debuetant — First game
-	badges.push({
-		type: "debuetant",
-		emoji: "\u{1F476}",
-		unlocked: stats.total_games >= 1,
-		category: "general",
-	});
+	badges.push(
+		makeBadge({
+			type: "debuetant",
+			emoji: "\u{1F476}",
+			category: "general",
+			current: stats.total_games,
+			target: 1,
+			unlocked_at:
+				stats.total_games >= 1 ? findNthGameDate(chronoGames, 1) : null,
+		}),
+	);
 
-	// stammspieler — 25+ games
-	badges.push({
-		type: "stammspieler",
-		emoji: "\u2B50",
-		unlocked: stats.total_games >= 25,
-		category: "general",
-	});
+	badges.push(
+		makeBadge({
+			type: "stammspieler",
+			emoji: "\u2B50",
+			category: "general",
+			current: stats.total_games,
+			target: 25,
+			unlocked_at:
+				stats.total_games >= 25 ? findNthGameDate(chronoGames, 25) : null,
+		}),
+	);
 
-	// klublegende — 100+ games
-	badges.push({
-		type: "klublegende",
-		emoji: "\u{1F451}",
-		unlocked: stats.total_games >= 100,
-		category: "general",
-	});
+	// NEW: marathon_spieler — 50+ games
+	badges.push(
+		makeBadge({
+			type: "marathon_spieler",
+			emoji: "\u{1F3C3}",
+			category: "general",
+			current: stats.total_games,
+			target: 50,
+			unlocked_at:
+				stats.total_games >= 50 ? findNthGameDate(chronoGames, 50) : null,
+		}),
+	);
 
-	// seriensieger — 5+ win streak at any point in history
-	const hasSeriensieger = checkHistoricWinStreak(games, userGameMap, 5);
-	badges.push({
-		type: "seriensieger",
-		emoji: "\u{1F525}",
-		unlocked: hasSeriensieger,
-		category: "general",
-	});
+	badges.push(
+		makeBadge({
+			type: "klublegende",
+			emoji: "\u{1F451}",
+			category: "general",
+			current: stats.total_games,
+			target: 100,
+			unlocked_at:
+				stats.total_games >= 100 ? findNthGameDate(chronoGames, 100) : null,
+		}),
+	);
+
+	badges.push(
+		makeBadge({
+			type: "seriensieger",
+			emoji: "\u{1F525}",
+			category: "general",
+			current: stats.maxWinStreak,
+			target: 5,
+		}),
+	);
+
+	// NEW: unbesiegbar — 10-game win streak
+	badges.push(
+		makeBadge({
+			type: "unbesiegbar",
+			emoji: "\u{1F9BE}",
+			category: "general",
+			current: stats.maxWinStreak,
+			target: 10,
+		}),
+	);
+
+	// NEW: solo_warrior — 10 wins in 1v1
+	badges.push(
+		makeBadge({
+			type: "solo_warrior",
+			emoji: "\u{1F93A}",
+			category: "general",
+			current: stats.wins1v1,
+			target: 10,
+		}),
+	);
+
+	// NEW: team_player — 10 wins in 2v2
+	badges.push(
+		makeBadge({
+			type: "team_player",
+			emoji: "\u{1F91D}\u200D",
+			category: "general",
+			current: stats.wins2v2,
+			target: 10,
+		}),
+	);
 
 	return badges;
 }
 
 /**
- * Checks if the user ever had a win streak of at least minStreak
- * @param {object[]} games - Sorted by played_at DESC
- * @param {object} userGameMap
- * @param {number} minStreak
+ * Counts individual goals for a player in a single game
+ * @param {object} game
+ * @param {object} userEntry - { team }
+ * @param {string} userId
+ * @returns {number}
+ */
+function countGameGoals(game, userEntry, userId) {
+	const timeline = game.score_timeline;
+	if (Array.isArray(timeline) && timeline.length > 0) {
+		const hasScoredBy = timeline.some((e) => e.scored_by);
+		if (hasScoredBy)
+			return timeline.filter((e) => e.scored_by === userId).length;
+		if (game.mode === "1v1")
+			return userEntry.team === "home" ? game.score_home : game.score_away;
+	} else if (game.mode === "1v1") {
+		return userEntry.team === "home" ? game.score_home : game.score_away;
+	}
+	return 0;
+}
+
+/**
+ * Checks if a game was a comeback win (trailing by 2+ goals then winning)
+ * @param {object} game
+ * @param {object} userEntry - { team }
  * @returns {boolean}
  */
-function checkHistoricWinStreak(games, userGameMap, minStreak) {
-	const sorted = [...games].reverse(); // chronological order
+function checkComeback(game, userEntry) {
+	const timeline = game.score_timeline;
+	if (!Array.isArray(timeline) || timeline.length < 3) return false;
+	const side = userEntry.team;
+	const isWin =
+		(side === "home" && game.score_home > game.score_away) ||
+		(side === "away" && game.score_away > game.score_home);
+	if (!isWin) return false;
+	let userScore = 0;
+	let oppScore = 0;
+	for (const entry of timeline) {
+		if (entry.team === side) userScore++;
+		else oppScore++;
+		if (oppScore - userScore >= 2) return true;
+	}
+	return false;
+}
+
+/**
+ * Checks if the user scored the opening goal in a game
+ * @param {object} game
+ * @param {object} userEntry - { team }
+ * @param {string} userId
+ * @returns {boolean}
+ */
+function checkFruehstarter(game, userEntry, userId) {
+	const timeline = game.score_timeline;
+	if (!Array.isArray(timeline) || timeline.length === 0) return false;
+	const firstGoal = timeline[0];
+	if (firstGoal.scored_by) return firstGoal.scored_by === userId;
+	if (game.mode === "1v1") return firstGoal.team === userEntry.team;
+	return false;
+}
+
+/**
+ * Gets the maximum win streak length from game history
+ * @param {object[]} games - Sorted by played_at DESC
+ * @param {object} userGameMap
+ * @returns {number}
+ */
+function getMaxWinStreak(games, userGameMap) {
+	const sorted = [...games].reverse();
 	let streak = 0;
 	let maxStreak = 0;
 
@@ -605,10 +916,54 @@ function checkHistoricWinStreak(games, userGameMap, minStreak) {
 		} else if (!isDraw) {
 			streak = 0;
 		}
-		// draws don't break streak
 	}
 
-	return maxStreak >= minStreak;
+	return maxStreak;
+}
+
+/**
+ * Finds the approximate date when a cumulative goal threshold was first reached
+ * @param {object[]} chronoGames - Games in chronological order
+ * @param {object} userGameMap
+ * @param {string} userId
+ * @param {number} threshold
+ * @returns {string|null}
+ */
+function findDateWhenGoalReached(chronoGames, userGameMap, userId, threshold) {
+	let cumulative = 0;
+	for (const game of chronoGames) {
+		const ue = userGameMap[game.id];
+		if (!ue) continue;
+		cumulative += countGameGoals(game, ue, userId);
+		if (cumulative >= threshold) return game.played_at;
+	}
+	return null;
+}
+
+/**
+ * Finds the date of the first game matching a predicate
+ * @param {object[]} chronoGames - Games in chronological order
+ * @param {object} userGameMap
+ * @param {Function} predicate - (game, userEntry) => boolean
+ * @returns {string|null}
+ */
+function findFirstGameMatching(chronoGames, userGameMap, predicate) {
+	for (const game of chronoGames) {
+		const ue = userGameMap[game.id];
+		if (!ue) continue;
+		if (predicate(game, ue)) return game.played_at;
+	}
+	return null;
+}
+
+/**
+ * Gets the played_at date of the nth game (chronological)
+ * @param {object[]} chronoGames - Games in chronological order
+ * @param {number} n - 1-indexed
+ * @returns {string|null}
+ */
+function findNthGameDate(chronoGames, n) {
+	return chronoGames.length >= n ? chronoGames[n - 1].played_at : null;
 }
 
 /**
@@ -680,11 +1035,12 @@ function findTopEntry(entries, key) {
 }
 
 /**
- * Finds the best teammate by win rate (min 2 games together)
+ * Finds the top teammates by win rate (min 2 games together)
  * @param {object} teammateRecord
- * @returns {object|null}
+ * @param {number} count - Number of top teammates to return
+ * @returns {Array<object>}
  */
-function findBestTeammate(teammateRecord) {
+function findTopTeammates(teammateRecord, count = 3) {
 	const eligible = Object.entries(teammateRecord).filter(
 		([, data]) => data.games >= 2,
 	);
@@ -694,27 +1050,34 @@ function findBestTeammate(teammateRecord) {
 		const all = Object.entries(teammateRecord).sort(
 			(a, b) => b[1].games - a[1].games,
 		);
-		if (!all.length) return null;
-		const [, data] = all[0];
-		return {
-			username: data.username,
-			avatar_url: data.avatar_url,
-			games: data.games,
-		};
+		if (!all.length) return [];
+		const [id, data] = all[0];
+		return [
+			{
+				player_id: id,
+				username: data.username,
+				avatar_url: data.avatar_url,
+				games: data.games,
+				wins: data.wins,
+				win_rate:
+					data.games > 0 ? Math.round((data.wins / data.games) * 100) : 0,
+			},
+		];
 	}
 
 	eligible.sort((a, b) => {
-		const rateA = b[1].wins / b[1].games;
-		const rateB = a[1].wins / a[1].games;
-		return rateA - rateB;
+		const diff = b[1].wins / b[1].games - a[1].wins / a[1].games;
+		return diff !== 0 ? diff : b[1].games - a[1].games;
 	});
 
-	const [, data] = eligible[0];
-	return {
+	return eligible.slice(0, count).map(([id, data]) => ({
+		player_id: id,
 		username: data.username,
 		avatar_url: data.avatar_url,
 		games: data.games,
-	};
+		wins: data.wins,
+		win_rate: Math.round((data.wins / data.games) * 100),
+	}));
 }
 
 /**

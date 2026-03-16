@@ -1,4 +1,12 @@
 export const getStatsSchema = {
+	querystring: {
+		type: "object",
+		properties: {
+			season: { type: "string", pattern: "^\\d{4}-Q[1-4]$" },
+			from: { type: "string", format: "date" },
+			to: { type: "string", format: "date" },
+		},
+	},
 	response: {
 		200: {
 			type: "object",
@@ -44,6 +52,20 @@ export const getStatsSchema = {
 								games: { type: "integer" },
 							},
 						},
+						top_teammates: {
+							type: "array",
+							items: {
+								type: "object",
+								properties: {
+									player_id: { type: "string" },
+									username: { type: "string" },
+									avatar_url: { type: ["string", "null"] },
+									games: { type: "integer" },
+									wins: { type: "integer" },
+									win_rate: { type: "integer" },
+								},
+							},
+						},
 						favorite_team: {
 							type: ["object", "null"],
 							properties: {
@@ -83,6 +105,21 @@ export const getStatsSchema = {
 									emoji: { type: "string" },
 									unlocked: { type: "boolean" },
 									category: { type: "string" },
+									progress: {
+										type: "object",
+										properties: {
+											current: { type: "number" },
+											target: { type: "number" },
+										},
+									},
+									unlocked_at: { type: ["string", "null"] },
+									next_tier: {
+										type: ["object", "null"],
+										properties: {
+											type: { type: "string" },
+											target: { type: "number" },
+										},
+									},
 								},
 							},
 						},

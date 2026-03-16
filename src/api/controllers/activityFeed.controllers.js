@@ -1,3 +1,4 @@
+import { getSeasonDateRange } from "../../utils/season.utils.js";
 import { handleErrorResponse } from "../helpers/error.helpers.js";
 import { setGeneralResponse } from "../helpers/response.helpers.js";
 import { getRecentGamesSchema } from "../schemas/activityFeed.schemas.js";
@@ -7,8 +8,15 @@ export const getRecentGamesController = {
 	schema: getRecentGamesSchema,
 	handler: async (request, reply) => {
 		try {
-			const limit = request.query.limit || 10;
-			const games = await getRecentGames(limit);
+			let { limit = 10, from, to, season } = request.query;
+
+			if (season) {
+				const range = getSeasonDateRange(season);
+				from = range.from;
+				to = range.to;
+			}
+
+			const games = await getRecentGames(limit, from, to);
 			return setGeneralResponse(
 				reply,
 				200,

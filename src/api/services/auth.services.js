@@ -21,46 +21,21 @@ export async function getUserProfile(userId) {
 }
 
 /**
- * Updates a user's profile
+ * Updates a user's profile (creates it if it does not exist)
  * @param {string} userId - Firebase Auth UID
  * @param {object} updates
  * @param {string} [updates.username]
  * @param {string} [updates.avatar_url]
  * @returns {Promise<object>}
- * @throws {Error} 403 if profile does not exist (user not authorized)
  */
 export async function updateUserProfile(userId, { username, avatar_url }) {
-	const existing = await queryOne("SELECT id FROM profiles WHERE id = $1", [
-		userId,
-	]);
-
-	if (!existing) {
-		const error = new Error("User not authorized");
-		error.statusCode = 403;
-		throw error;
-	}
-
-	const fields = [];
-	const params = [];
-	let idx = 1;
-
-	if (username !== undefined) {
-		fields.push(`username = $${idx++}`);
-		params.push(username.trim());
-	}
-
-	if (avatar_url !== undefined) {
-		fields.push(`avatar_url = $${idx++}`);
-		params.push(avatar_url);
-	}
-
-	if (!fields.length) {
-		return queryOne("SELECT * FROM profiles WHERE id = $1", [userId]);
-	}
-
-	params.push(userId);
 	return queryOne(
-		`UPDATE profiles SET ${fields.join(", ")} WHERE id = $${idx} RETURNING *`,
-		params,
+		`INSERT INTO profiles (id, username, avatar_url)
+		 VALUES ($1, $2, $3)
+		 ON CONFLICT (id) DO UPDATE SET
+		   username = COALESCE($2, profiles.username),
+		   avatar_url = COALESCE($3, profiles.avatar_url)
+		 RETURNING *`,
+		[userId, username?.trim() ?? null, avatar_url ?? null],
 	);
 }

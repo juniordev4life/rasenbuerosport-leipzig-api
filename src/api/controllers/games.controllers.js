@@ -1,3 +1,4 @@
+import { getSeasonDateRange } from "../../utils/season.utils.js";
 import { handleErrorResponse } from "../helpers/error.helpers.js";
 import { setGeneralResponse } from "../helpers/response.helpers.js";
 import { createGameSchema, getGamesSchema } from "../schemas/games.schemas.js";
@@ -28,12 +29,20 @@ export const getGamesController = {
 	schema: getGamesSchema,
 	handler: async (request, reply) => {
 		try {
-			const limit = request.query.limit || 10;
-			const offset = request.query.offset || 0;
+			let { limit = 10, offset = 0, from, to, season } = request.query;
+
+			if (season) {
+				const range = getSeasonDateRange(season);
+				from = range.from;
+				to = range.to;
+			}
+
 			const games = await gamesService.getUserGames(
 				request.user.id,
 				limit,
 				offset,
+				from,
+				to,
 			);
 			return setGeneralResponse(
 				reply,
