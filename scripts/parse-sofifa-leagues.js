@@ -145,6 +145,9 @@ function countStars(teamBlock) {
 function stripRtf(rtf) {
 	let text = rtf.replace(/\r?\n/g, "");
 
+	// Decode RTF unicode escapes early so team names are clean
+	text = decodeRtf(text);
+
 	// Remove RTF field wrappers for HYPERLINKs:
 	// {\field{\*\fldinst{HYPERLINK "URL"}}{\fldrslt \cf3 \ul \ulc3 \strokec3 DISPLAY}} → URL
 	// But we need to keep the href="URL" structure, so replace the whole field with just the URL
