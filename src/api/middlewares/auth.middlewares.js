@@ -46,10 +46,9 @@ export async function requireAuth(request, reply) {
  * @param {import('fastify').FastifyReply} reply
  */
 export async function requireAdmin(request, reply) {
-	const profile = await queryOne(
-		"SELECT role FROM profiles WHERE id = $1",
-		[request.user.id],
-	);
+	const profile = await queryOne("SELECT role FROM profiles WHERE id = $1", [
+		request.user.id,
+	]);
 
 	if (!profile || profile.role !== ROLES.ADMIN) {
 		return reply.status(403).send({

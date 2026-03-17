@@ -99,10 +99,9 @@ export async function deleteGame(gameId) {
 	try {
 		await client.query("BEGIN");
 
-		const { rowCount } = await client.query(
-			"DELETE FROM games WHERE id = $1",
-			[gameId],
-		);
+		const { rowCount } = await client.query("DELETE FROM games WHERE id = $1", [
+			gameId,
+		]);
 
 		if (rowCount === 0) {
 			const error = new Error("Game not found");
