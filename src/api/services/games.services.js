@@ -1,6 +1,6 @@
 import { getPool } from "../../config/database.config.js";
 import { query } from "../helpers/database.helpers.js";
-import { processGameElo } from "./elo.services.js";
+import { processGameElo, recalculateAllElo } from "./elo.services.js";
 
 /**
  * Creates a new game with players
@@ -85,6 +85,41 @@ export async function createGame({
 	} finally {
 		client.release();
 	}
+}
+
+/**
+ * Deletes a game and recalculates all Elo ratings.
+ * Related game_players and elo_history are cascade-deleted by the DB.
+ * @param {string} gameId - The game UUID
+ * @returns {Promise<void>}
+ */
+export async function deleteGame(gameId) {
+	const client = await getPool().connect();
+
+	try {
+		await client.query("BEGIN");
+
+		const { rowCount } = await client.query(
+			"DELETE FROM games WHERE id = $1",
+			[gameId],
+		);
+
+		if (rowCount === 0) {
+			const error = new Error("Game not found");
+			error.statusCode = 404;
+			throw error;
+		}
+
+		await client.query("COMMIT");
+	} catch (error) {
+		await client.query("ROLLBACK");
+		throw error;
+	} finally {
+		client.release();
+	}
+
+	// Recalculate all Elo after deletion to keep ratings consistent
+	await recalculateAllElo();
 }
 
 /**

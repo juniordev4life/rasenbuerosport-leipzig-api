@@ -1,5 +1,11 @@
-import { getGameDetailController } from "../../../../controllers/gameDetail.controllers.js";
-import { requireAuth } from "../../../../middlewares/auth.middlewares.js";
+import {
+	getGameDetailController,
+	deleteGameController,
+} from "../../../../controllers/gameDetail.controllers.js";
+import {
+	requireAuth,
+	requireAdmin,
+} from "../../../../middlewares/auth.middlewares.js";
 
 /** @param {import('fastify').FastifyInstance} fastify */
 export default async function (fastify) {
@@ -8,5 +14,11 @@ export default async function (fastify) {
 	fastify.get("/", {
 		schema: getGameDetailController.schema,
 		handler: getGameDetailController.handler,
+	});
+
+	fastify.delete("/", {
+		schema: deleteGameController.schema,
+		preHandler: [requireAdmin],
+		handler: deleteGameController.handler,
 	});
 }

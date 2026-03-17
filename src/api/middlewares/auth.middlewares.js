@@ -1,4 +1,6 @@
 import { getFirebaseAuth } from "../../config/firebase.config.js";
+import { queryOne } from "../helpers/database.helpers.js";
+import { ROLES } from "../../constants/roles.constants.js";
 
 /**
  * Fastify preHandler that verifies a Firebase ID token and attaches the user to the request
@@ -33,6 +35,29 @@ export async function requireAuth(request, reply) {
 			message: "Invalid or expired token",
 			data: null,
 			error: [error.message || "Token verification failed"],
+		});
+	}
+}
+
+/**
+ * Fastify preHandler that checks if the authenticated user has admin role.
+ * Must be used AFTER requireAuth.
+ * @param {import('fastify').FastifyRequest} request
+ * @param {import('fastify').FastifyReply} reply
+ */
+export async function requireAdmin(request, reply) {
+	const profile = await queryOne(
+		"SELECT role FROM profiles WHERE id = $1",
+		[request.user.id],
+	);
+
+	if (!profile || profile.role !== ROLES.ADMIN) {
+		return reply.status(403).send({
+			code: 403,
+			title: "Forbidden",
+			message: "Admin access required",
+			data: null,
+			error: ["Insufficient permissions"],
 		});
 	}
 }

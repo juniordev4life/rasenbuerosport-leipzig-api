@@ -281,6 +281,10 @@ CORS_ORIGIN=http://localhost:5173
 npm install
 ```
 
+```bash
+cloud-sql-proxy --quota-project rasenbuerosport-leipzig-9d54f rasenbuerosport-leipzig-9d54f:europe-west3:rasenbuerosport-db
+```
+
 ### Development
 
 ```bash
