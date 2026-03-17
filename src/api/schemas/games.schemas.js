@@ -18,7 +18,7 @@ export const createGameSchema = {
 						rating: { type: "integer", minimum: 1, maximum: 5 },
 					},
 				},
-				minItems: 2,
+				minItems: 1,
 				maxItems: 4,
 			},
 			played_at: { type: "string", format: "date-time" },
