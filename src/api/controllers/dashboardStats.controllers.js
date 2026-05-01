@@ -35,14 +35,19 @@ export const getDashboardStatsController = {
 
 			const playerId = request.user.id;
 
-			const [resultHistory, xgVsGoals, gamesPerMonth, gamesPerWeekday, teamStats] =
-				await Promise.all([
-					getFullResultHistory(playerId, from, to),
-					getXgVsGoals(playerId, from, to),
-					getGamesPerMonth(playerId, from, to),
-					getGamesPerWeekday(playerId, from, to),
-					getTeamStats(playerId, from, to),
-				]);
+			const [
+				resultHistory,
+				xgVsGoals,
+				gamesPerMonth,
+				gamesPerWeekday,
+				teamStats,
+			] = await Promise.all([
+				getFullResultHistory(playerId, from, to),
+				getXgVsGoals(playerId, from, to),
+				getGamesPerMonth(playerId, from, to),
+				getGamesPerWeekday(playerId, from, to),
+				getTeamStats(playerId, from, to),
+			]);
 
 			const rollingWinRate = computeRollingWinRate(resultHistory);
 
