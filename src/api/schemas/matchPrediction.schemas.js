@@ -3,7 +3,7 @@ export const predictionSchema = {
 		type: "object",
 		required: ["players", "mode"],
 		properties: {
-			mode: { type: "string", enum: ["1v1", "2v2"] },
+			mode: { type: "string", enum: ["1v1", "2v2", "2v1", "1v2"] },
 			players: {
 				type: "array",
 				minItems: 2,
