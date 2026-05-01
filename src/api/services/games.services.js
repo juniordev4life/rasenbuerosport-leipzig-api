@@ -1,6 +1,5 @@
 import { getPool } from "../../config/database.config.js";
 import { query } from "../helpers/database.helpers.js";
-import { processGameElo, recalculateAllElo } from "./elo.services.js";
 
 /**
  * Creates a new game with players
@@ -63,19 +62,6 @@ export async function createGame({
 
 		await client.query("COMMIT");
 
-		// Process Elo changes after successful game creation
-		try {
-			await processGameElo({
-				gameId: game.id,
-				scoreHome: score_home,
-				scoreAway: score_away,
-				players,
-			});
-		} catch (eloError) {
-			// Log but don't fail the game creation
-			console.error("Failed to process Elo for game:", game.id, eloError);
-		}
-
 		return game;
 	} catch (error) {
 		await client.query("ROLLBACK");
@@ -88,8 +74,8 @@ export async function createGame({
 }
 
 /**
- * Deletes a game and recalculates all Elo ratings.
- * Related game_players and elo_history are cascade-deleted by the DB.
+ * Deletes a game.
+ * Related game_players are cascade-deleted by the DB.
  * @param {string} gameId - The game UUID
  * @returns {Promise<void>}
  */
@@ -116,9 +102,6 @@ export async function deleteGame(gameId) {
 	} finally {
 		client.release();
 	}
-
-	// Recalculate all Elo after deletion to keep ratings consistent
-	await recalculateAllElo();
 }
 
 /**

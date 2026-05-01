@@ -1,20 +1,19 @@
 import { query, queryOne } from "../helpers/database.helpers.js";
 
 /**
- * Gets the full Elo history for a player (oldest first)
+ * Gets the full game result history for a player (oldest first).
+ * Returns one row per game with the player's W/D/L result.
  * @param {string} playerId
  * @param {string} [from]
  * @param {string} [to]
- * @returns {Promise<Array<{elo_after: number, elo_change: number, result: string, played_at: string}>>}
+ * @returns {Promise<Array<{result: string, played_at: string}>>}
  */
-export async function getFullEloHistory(playerId, from, to) {
+export async function getFullResultHistory(playerId, from, to) {
 	let sql = `
-		SELECT eh.elo_after, eh.elo_change, g.played_at,
-			g.score_home, g.score_away, gp.team
-		FROM elo_history eh
-		JOIN games g ON g.id = eh.game_id
-		JOIN game_players gp ON gp.game_id = eh.game_id AND gp.player_id = eh.player_id
-		WHERE eh.player_id = $1`;
+		SELECT g.played_at, g.score_home, g.score_away, gp.team
+		FROM game_players gp
+		JOIN games g ON g.id = gp.game_id
+		WHERE gp.player_id = $1`;
 	const params = [playerId];
 
 	if (from) {
@@ -38,8 +37,6 @@ export async function getFullEloHistory(playerId, from, to) {
 			: row.score_away > row.score_home;
 
 		return {
-			elo_after: row.elo_after,
-			elo_change: row.elo_change,
 			result: isDraw ? "D" : isWin ? "W" : "L",
 			played_at: row.played_at,
 		};
@@ -47,25 +44,25 @@ export async function getFullEloHistory(playerId, from, to) {
 }
 
 /**
- * Computes rolling win rate from Elo history entries
- * @param {Array<{result: string}>} eloHistory - Sorted ASC
+ * Computes rolling win rate from result history entries
+ * @param {Array<{result: string}>} history - Sorted ASC
  * @returns {Array<{game_number: number, win_rate_10: number|null, win_rate_20: number|null}>}
  */
-export function computeRollingWinRate(eloHistory) {
+export function computeRollingWinRate(history) {
 	const results = [];
-	for (let i = 0; i < eloHistory.length; i++) {
+	for (let i = 0; i < history.length; i++) {
 		const gameNumber = i + 1;
 		let winRate10 = null;
 		let winRate20 = null;
 
 		if (gameNumber >= 10) {
-			const window10 = eloHistory.slice(i - 9, i + 1);
+			const window10 = history.slice(i - 9, i + 1);
 			const wins10 = window10.filter((g) => g.result === "W").length;
 			winRate10 = Math.round((wins10 / 10) * 100);
 		}
 
 		if (gameNumber >= 20) {
-			const window20 = eloHistory.slice(i - 19, i + 1);
+			const window20 = history.slice(i - 19, i + 1);
 			const wins20 = window20.filter((g) => g.result === "W").length;
 			winRate20 = Math.round((wins20 / 20) * 100);
 		}
@@ -219,19 +216,6 @@ export async function getTeamStats(playerId, from, to) {
 		wins: r.wins,
 		win_rate: r.games > 0 ? Math.round((r.wins / r.games) * 100) : 0,
 	}));
-}
-
-/**
- * Gets Elo distribution for all players
- * @returns {Promise<Array<{username: string, avatar_url: string|null, elo: number}>>}
- */
-export async function getEloDistribution() {
-	return query(
-		`SELECT p.username, p.avatar_url, pr.elo
-		 FROM player_ratings pr
-		 JOIN profiles p ON p.id = pr.player_id
-		 ORDER BY pr.elo DESC`,
-	);
 }
 
 /**

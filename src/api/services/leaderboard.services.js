@@ -131,22 +131,6 @@ export async function getLeaderboard(limit = 10, from, to, mode = "all") {
 		playerPoints[id].badges = calculateBadges(results);
 	}
 
-	// Load Elo ratings for all players
-	const playerIds = Object.keys(playerPoints);
-	if (playerIds.length > 0) {
-		const eloRows = await query(
-			"SELECT player_id, elo FROM player_ratings WHERE player_id = ANY($1)",
-			[playerIds],
-		);
-		const eloMap = {};
-		for (const row of eloRows) {
-			eloMap[row.player_id] = row.elo;
-		}
-		for (const id of playerIds) {
-			playerPoints[id].elo = eloMap[id] || 1200;
-		}
-	}
-
 	return Object.values(playerPoints)
 		.sort((a, b) => b.points - a.points)
 		.slice(0, limit);

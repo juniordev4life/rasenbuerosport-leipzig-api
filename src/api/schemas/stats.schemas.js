@@ -123,23 +123,6 @@ export const getStatsSchema = {
 								},
 							},
 						},
-						current_elo: { type: "integer" },
-						peak_elo: { type: "integer" },
-						elo_change_last_game: { type: ["integer", "null"] },
-						form_curve: {
-							type: "array",
-							items: {
-								type: "object",
-								properties: {
-									game_id: { type: "string" },
-									result: { type: "string" },
-									elo_before: { type: "integer" },
-									elo_after: { type: "integer" },
-									elo_change: { type: "integer" },
-									created_at: { type: "string" },
-								},
-							},
-						},
 						goal_tier: { type: ["string", "null"] },
 						total_individual_goals: { type: "integer" },
 					},

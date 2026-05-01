@@ -8,8 +8,7 @@ import {
 import {
 	computeRollingWinRate,
 	getCommonScores,
-	getEloDistribution,
-	getFullEloHistory,
+	getFullResultHistory,
 	getGamesPerMonth,
 	getGamesPerWeekday,
 	getGoalsDistribution,
@@ -36,16 +35,16 @@ export const getDashboardStatsController = {
 
 			const playerId = request.user.id;
 
-			const [eloHistory, xgVsGoals, gamesPerMonth, gamesPerWeekday, teamStats] =
+			const [resultHistory, xgVsGoals, gamesPerMonth, gamesPerWeekday, teamStats] =
 				await Promise.all([
-					getFullEloHistory(playerId, from, to),
+					getFullResultHistory(playerId, from, to),
 					getXgVsGoals(playerId, from, to),
 					getGamesPerMonth(playerId, from, to),
 					getGamesPerWeekday(playerId, from, to),
 					getTeamStats(playerId, from, to),
 				]);
 
-			const rollingWinRate = computeRollingWinRate(eloHistory);
+			const rollingWinRate = computeRollingWinRate(resultHistory);
 
 			return setGeneralResponse(
 				reply,
@@ -53,7 +52,6 @@ export const getDashboardStatsController = {
 				"Success",
 				"Dashboard stats retrieved",
 				{
-					elo_history: eloHistory,
 					rolling_win_rate: rollingWinRate,
 					xg_vs_goals: xgVsGoals,
 					games_per_month: gamesPerMonth,
@@ -84,12 +82,10 @@ export const getCommunityStatsController = {
 				to = range.to;
 			}
 
-			const [eloDistribution, commonScores, goalsDistribution] =
-				await Promise.all([
-					getEloDistribution(),
-					getCommonScores(from, to),
-					getGoalsDistribution(from, to),
-				]);
+			const [commonScores, goalsDistribution] = await Promise.all([
+				getCommonScores(from, to),
+				getGoalsDistribution(from, to),
+			]);
 
 			return setGeneralResponse(
 				reply,
@@ -97,7 +93,6 @@ export const getCommunityStatsController = {
 				"Success",
 				"Community stats retrieved",
 				{
-					elo_distribution: eloDistribution,
 					common_scores: commonScores,
 					goals_distribution: goalsDistribution,
 				},
