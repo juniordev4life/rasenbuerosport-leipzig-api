@@ -60,7 +60,7 @@ export async function computeWrapped(weekStart, weekEnd) {
 		`SELECT p.id, p.username, p.avatar_url, COUNT(*)::int AS goals
 		FROM games g
 		CROSS JOIN LATERAL jsonb_array_elements(g.score_timeline) AS entry
-		JOIN profiles p ON p.id = (entry->>'scored_by')::uuid
+		JOIN profiles p ON p.id = entry->>'scored_by'
 		WHERE g.played_at >= $1::date AND g.played_at < ($2::date + INTERVAL '1 day')
 			AND g.score_timeline IS NOT NULL
 			AND entry->>'scored_by' IS NOT NULL
