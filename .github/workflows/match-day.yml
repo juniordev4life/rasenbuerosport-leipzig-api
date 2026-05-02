@@ -74,6 +74,6 @@ jobs:
             --min-instances 0 \
             --max-instances 3 \
             --set-env-vars "NODE_ENV=production" \
-            --set-secrets "DATABASE_URL=DATABASE_URL:latest,ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest,CORS_ORIGIN=CORS_ORIGIN:latest" \
+            --set-secrets "DATABASE_URL=DATABASE_URL:latest,ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest,CORS_ORIGIN=CORS_ORIGIN:latest,WRAPPED_TRIGGER_SECRET=WRAPPED_TRIGGER_SECRET:latest" \
             --add-cloudsql-instances "${{ secrets.CLOUD_SQL_CONNECTION_NAME }}" \
             --quiet
