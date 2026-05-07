@@ -1,5 +1,5 @@
 import { query } from "../helpers/database.helpers.js";
-import { filterGoals } from "../helpers/timeline.helpers.js";
+import { filterGoals, isPenaltyMissed } from "../helpers/timeline.helpers.js";
 
 /**
  * Gets comprehensive stats for a user, optionally filtered by date range
@@ -306,6 +306,47 @@ function countIndividualGoals(games, userGameMap, userId) {
  * @example
  *   const { total } = countAssists(games, userGameMap, "user-1"); // → e.g. 12
  */
+/**
+ * Count missed-penalty events involving a user, viewed from the role of either
+ * the shooter or the keeper. Phase 4 stores `keeper_id` only when known —
+ * entries without a keeper still count toward the shooter total.
+ *
+ * Exported for unit testing; reused by upcoming Phase 5 keeper / Pechvogel
+ * badges.
+ *
+ * @param {object[]} games
+ * @param {Record<string, { team: string }>} userGameMap
+ * @param {string} userId
+ * @param {"shooter"|"keeper"} role
+ * @returns {{ total: number, maxInOneGame: number }}
+ *
+ * @example
+ *   const { total } = countMissedPenalties(games, ugm, "u1", "shooter");
+ *   const { total: saved } = countMissedPenalties(games, ugm, "u1", "keeper");
+ */
+export function countMissedPenalties(games, userGameMap, userId, role) {
+	const fieldName = role === "keeper" ? "keeper_id" : "shooter_id";
+	let total = 0;
+	let maxInOneGame = 0;
+
+	for (const game of games) {
+		const userEntry = userGameMap[game.id];
+		if (!userEntry) continue;
+
+		const timeline = game.score_timeline;
+		if (!Array.isArray(timeline) || timeline.length === 0) continue;
+
+		const gameCount = timeline.filter(
+			(e) => isPenaltyMissed(e) && e[fieldName] === userId,
+		).length;
+
+		total += gameCount;
+		if (gameCount > maxInOneGame) maxInOneGame = gameCount;
+	}
+
+	return { total, maxInOneGame };
+}
+
 export function countAssists(games, userGameMap, userId) {
 	let total = 0;
 	let maxInOneGame = 0;
