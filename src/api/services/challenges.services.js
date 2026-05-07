@@ -60,10 +60,15 @@ export async function getActiveChallengesForPlayer(playerId) {
 		progress: computeProgress(c, stats),
 	}));
 
+	const rewardPointsThisWeek = challenges
+		.filter((c) => c.progress.completed)
+		.reduce((sum, c) => sum + c.reward_points, 0);
+
 	return {
 		week_start: weekStart,
 		week_end: weekEnd,
 		ms_remaining: Math.max(0, msUntilWeekEndBerlin(now)),
+		reward_points_this_week: rewardPointsThisWeek,
 		challenges,
 	};
 }
@@ -133,24 +138,21 @@ export async function getChallengeHistory(playerId, limit = 12) {
 }
 
 /**
- * Cumulative bonus-points leaderboard across every completed weekly
- * challenge to date. Excludes the current (in-progress) week to avoid
- * showing speculative points.
+ * Cumulative bonus-points leaderboard across every weekly challenge
+ * completed so far — including any already-completed challenges in the
+ * current (in-progress) week. Earned points are visible immediately rather
+ * than only after the week wraps.
  *
  * @param {number} [limit=20]
  * @returns {Promise<Array<{ player: object, total_points: number, weeks_completed: number }>>}
  */
 export async function getChallengeLeaderboard(limit = 20) {
-	const { weekStart: currentStart } = getWeekRangeBerlin();
-
 	const weekRows = await query(
 		`SELECT cw.week_start, cw.week_end,
 			cd.metric, cd.target_value, cd.reward_points
 		FROM challenge_weeks cw
 		JOIN challenge_definitions cd ON cd.id = cw.definition_id
-		WHERE cw.week_start < $1::date
 		ORDER BY cw.week_start DESC`,
-		[currentStart],
 	);
 	if (weekRows.length === 0) return [];
 
