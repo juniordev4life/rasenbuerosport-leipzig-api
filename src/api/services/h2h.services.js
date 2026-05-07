@@ -1,4 +1,5 @@
 import { query, queryOne } from "../helpers/database.helpers.js";
+import { filterGoals } from "../helpers/timeline.helpers.js";
 
 /**
  * Gets head-to-head stats between two players
@@ -113,12 +114,13 @@ export async function getHeadToHead(userId, opponentId) {
 			else modeBilanz[mode].losses++;
 		}
 
-		// Goal stats from score_timeline
-		if (Array.isArray(game.score_timeline) && game.score_timeline.length > 0) {
-			const hasScoredBy = game.score_timeline.some((e) => e.scored_by);
+		// Goal stats from score_timeline (skip non-goal events)
+		const goalEvents = filterGoals(game.score_timeline);
+		if (goalEvents.length > 0) {
+			const hasScoredBy = goalEvents.some((e) => e.scored_by);
 			if (hasScoredBy) {
 				gamesWithGoalData++;
-				for (const entry of game.score_timeline) {
+				for (const entry of goalEvents) {
 					if (entry.scored_by === userId) userGoals++;
 					else if (entry.scored_by === opponentId) opponentGoals++;
 				}

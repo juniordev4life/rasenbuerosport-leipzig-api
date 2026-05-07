@@ -1,3 +1,66 @@
+/**
+ * `score_timeline` entries are polymorphic. Each entry is either:
+ *  - a goal (default for legacy entries that omit `event_type`),
+ *  - a red card (Phase 3),
+ *  - a missed penalty (Phase 4 — schema branch staged here so the API stays
+ *    forward-compatible with the picker UI that lands shortly after).
+ *
+ * `oneOf` enforces the discriminator: each branch sets `additionalProperties:
+ * false` so cross-shaped payloads (e.g. a `red_card` carrying `home`/`away`)
+ * fail explicitly rather than silently matching multiple branches.
+ */
+const goalEntrySchema = {
+	type: "object",
+	required: ["home", "away", "period"],
+	additionalProperties: false,
+	properties: {
+		event_type: { type: "string", enum: ["goal"] },
+		home: { type: "integer", minimum: 0 },
+		away: { type: "integer", minimum: 0 },
+		period: {
+			type: "string",
+			enum: ["regular", "extra_time", "penalty"],
+		},
+		scored_by: { type: "string", minLength: 1 },
+		assist_by: { type: "string", minLength: 1 },
+		goal_type: {
+			type: "string",
+			enum: ["play", "corner", "freekick", "penalty"],
+		},
+		minute: { type: "integer", minimum: 1, maximum: 120 },
+		stoppage: { type: "integer", minimum: 0, maximum: 5 },
+	},
+};
+
+const redCardEntrySchema = {
+	type: "object",
+	required: ["event_type", "player_id", "team", "period"],
+	additionalProperties: false,
+	properties: {
+		event_type: { type: "string", const: "red_card" },
+		player_id: { type: "string", minLength: 1 },
+		team: { type: "string", enum: ["home", "away"] },
+		period: { type: "string", enum: ["regular", "extra_time"] },
+		minute: { type: "integer", minimum: 1, maximum: 120 },
+		stoppage: { type: "integer", minimum: 0, maximum: 5 },
+	},
+};
+
+const penaltyMissedEntrySchema = {
+	type: "object",
+	required: ["event_type", "shooter_id", "team", "period"],
+	additionalProperties: false,
+	properties: {
+		event_type: { type: "string", const: "penalty_missed" },
+		shooter_id: { type: "string", minLength: 1 },
+		keeper_id: { type: "string", minLength: 1 },
+		team: { type: "string", enum: ["home", "away"] },
+		period: { type: "string", enum: ["regular", "extra_time"] },
+		minute: { type: "integer", minimum: 1, maximum: 120 },
+		stoppage: { type: "integer", minimum: 0, maximum: 5 },
+	},
+};
+
 export const createGameSchema = {
 	body: {
 		type: "object",
@@ -25,24 +88,11 @@ export const createGameSchema = {
 			score_timeline: {
 				type: "array",
 				items: {
-					type: "object",
-					required: ["home", "away", "period"],
-					properties: {
-						home: { type: "integer", minimum: 0 },
-						away: { type: "integer", minimum: 0 },
-						period: {
-							type: "string",
-							enum: ["regular", "extra_time", "penalty"],
-						},
-						scored_by: { type: "string", minLength: 1 },
-						assist_by: { type: "string", minLength: 1 },
-						goal_type: {
-							type: "string",
-							enum: ["play", "corner", "freekick", "penalty"],
-						},
-						minute: { type: "integer", minimum: 1, maximum: 120 },
-						stoppage: { type: "integer", minimum: 0, maximum: 5 },
-					},
+					oneOf: [
+						goalEntrySchema,
+						redCardEntrySchema,
+						penaltyMissedEntrySchema,
+					],
 				},
 			},
 			result_type: {

@@ -20,6 +20,10 @@ Regeln:
 - Erwähne den Spielverlauf wenn dramatisch (Aufholjagden, Last-Minute-Tore)
 - Bei Verlängerung: "Das Spiel ging in die Verlängerung..."
 - Bei Elfmeterschießen: besonders dramatisch schreiben
+- Hinweis zu \`score_timeline\`: jeder Eintrag hat ein optionales \`event_type\`
+  ("goal" wenn fehlend, "red_card" oder "penalty_missed"). Rote Karten und
+  verschossene Elfmeter sind dramaturgisch erwähnenswert (Wendepunkt,
+  Schock-Moment, Glück gehabt) — aber zähle sie NICHT als Tore.
 - Kein Markdown, nur Fließtext
 - Maximal 5 Sätze
 - Gib NUR den Spielbericht zurück, keine Einleitung oder Erklärung`;
