@@ -35,6 +35,7 @@ export const createGameSchema = {
 							enum: ["regular", "extra_time", "penalty"],
 						},
 						scored_by: { type: "string", minLength: 1 },
+						assist_by: { type: "string", minLength: 1 },
 						goal_type: {
 							type: "string",
 							enum: ["play", "corner", "freekick", "penalty"],

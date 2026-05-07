@@ -173,12 +173,16 @@ export async function getUserStats(userId, from, to) {
 	// Individual goal stats (from scored_by in score_timeline)
 	const goalStats = countIndividualGoals(games, userGameMap, userId);
 
+	// Individual assist stats (from assist_by in score_timeline)
+	const assistStats = countAssists(games, userGameMap, userId);
+
 	// Badges
 	const maxWinStreak = getMaxWinStreak(games, userGameMap);
 	const badges = computeBadges(games, userGameMap, userId, {
 		total_games: totalGames,
 		careerMatchStats,
 		goalStats,
+		assistStats,
 		wins1v1,
 		wins2v2,
 		maxWinStreak,
@@ -186,6 +190,9 @@ export async function getUserStats(userId, from, to) {
 
 	// Determine goal tier based on individual goals
 	const goalTier = getGoalTier(goalStats.total);
+
+	const assistsPerGame =
+		totalGames > 0 ? Number((assistStats.total / totalGames).toFixed(2)) : 0;
 
 	return {
 		total_games: totalGames,
@@ -205,6 +212,8 @@ export async function getUserStats(userId, from, to) {
 		badges,
 		goal_tier: goalTier,
 		total_individual_goals: goalStats.total,
+		total_assists: assistStats.total,
+		assists_per_game: assistsPerGame,
 	};
 }
 
@@ -231,6 +240,8 @@ function getEmptyStats() {
 		badges: [],
 		goal_tier: null,
 		total_individual_goals: 0,
+		total_assists: 0,
+		assists_per_game: 0,
 	};
 }
 
@@ -272,6 +283,42 @@ function countIndividualGoals(games, userGameMap, userId) {
 
 		total += gameGoals;
 		if (gameGoals > maxInOneGame) maxInOneGame = gameGoals;
+	}
+
+	return { total, maxInOneGame };
+}
+
+/**
+ * Counts individual assists credited to a user across all games via the
+ * `assist_by` field on `score_timeline` goal events. Entries without
+ * `assist_by` (legacy goals, 1v1 goals, penalty-shootout entries) are silently
+ * skipped — there is no fallback because assists require explicit attribution.
+ *
+ * Exported for unit testing; also consumable by other services that need to
+ * compute assist totals without going through `getUserStats`.
+ *
+ * @param {object[]} games
+ * @param {Record<string, { team: string }>} userGameMap
+ * @param {string} userId
+ * @returns {{ total: number, maxInOneGame: number }}
+ *
+ * @example
+ *   const { total } = countAssists(games, userGameMap, "user-1"); // → e.g. 12
+ */
+export function countAssists(games, userGameMap, userId) {
+	let total = 0;
+	let maxInOneGame = 0;
+
+	for (const game of games) {
+		const userEntry = userGameMap[game.id];
+		if (!userEntry) continue;
+
+		const timeline = game.score_timeline;
+		if (!Array.isArray(timeline) || timeline.length === 0) continue;
+
+		const gameAssists = timeline.filter((e) => e.assist_by === userId).length;
+		total += gameAssists;
+		if (gameAssists > maxInOneGame) maxInOneGame = gameAssists;
 	}
 
 	return { total, maxInOneGame };
