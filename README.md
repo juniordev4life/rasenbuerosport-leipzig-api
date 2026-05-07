@@ -301,6 +301,100 @@ node scripts/seed.js
 
 Creates 4 test users and ~40 curated games with realistic stats, timelines, and badge-triggering scenarios. Requires Supabase credentials in `.env`.
 
+> **Heads up:** `scripts/seed.js` is the legacy Supabase-based seeder and does not match the current Cloud SQL + Firebase Auth setup. For local development today, prefer the **PROD snapshot workflow** below.
+
+### Local Development with a PROD Snapshot
+
+The recommended local setup is a Docker-based Postgres 16 with a one-off snapshot pulled from the production Cloud SQL instance via the Auth Proxy. **PROD is read-only in this flow** — `pg_dump` only reads.
+
+**Prerequisites**
+
+- Docker Desktop running
+- `cloud-sql-proxy`, `pg_dump`, `psql` installed (`pg_dump` ≥ 16; if you have `pg_dump` ≥ 17, see the note about `transaction_timeout` below)
+- `gcloud auth login` and `gcloud auth application-default login` done, project set to `rasenbuerosport-leipzig-9d54f`, role **Cloud SQL Client**
+
+**1. Dump PROD via the Cloud SQL Auth Proxy**
+
+In one terminal, start the proxy on port 5433:
+
+```bash
+cloud-sql-proxy rasenbuerosport-leipzig-9d54f:europe-west3:rasenbuerosport-db --port=5433
+```
+
+In another terminal, dump (uses the PROD `DATABASE_URL` from `.env`):
+
+```bash
+set -a; source .env; set +a
+pg_dump "$DATABASE_URL" --no-owner --no-acl --format=plain --file=$HOME/rbsl-prod-dump.sql
+```
+
+Stop the proxy once the dump finishes (`Ctrl+C` in its terminal).
+
+**2. Start a local Postgres 16 in Docker on port 5434**
+
+Port 5434 avoids clashing with the proxy on 5433.
+
+```bash
+docker run -d \
+  --name rbsl-pg \
+  -e POSTGRES_PASSWORD=localdev \
+  -e POSTGRES_DB=rasenbuerosport \
+  -p 5434:5432 \
+  -v rbsl-pg-data:/var/lib/postgresql/data \
+  postgres:16
+
+# Wait until ready
+until docker exec rbsl-pg pg_isready -U postgres >/dev/null 2>&1; do sleep 1; done
+```
+
+**3. Restore the dump**
+
+If you used `pg_dump` ≥ 17 against PG 16, strip the unsupported `SET transaction_timeout` line first:
+
+```bash
+sed -i.bak '/^SET transaction_timeout/d' $HOME/rbsl-prod-dump.sql
+```
+
+Restore:
+
+```bash
+PGPASSWORD=localdev psql -h 127.0.0.1 -p 5434 -U postgres -d rasenbuerosport \
+  -v ON_ERROR_STOP=1 -f $HOME/rbsl-prod-dump.sql
+```
+
+Verify:
+
+```bash
+PGPASSWORD=localdev psql -h 127.0.0.1 -p 5434 -U postgres -d rasenbuerosport \
+  -c "SELECT relname, n_live_tup FROM pg_stat_user_tables ORDER BY n_live_tup DESC;"
+```
+
+**4. Point the API at the local DB**
+
+In `.env`, comment the PROD `DATABASE_URL` and add the local one:
+
+```env
+# PROD via Cloud SQL Proxy (port 5433): postgresql://postgres:<prod-pw>@127.0.0.1:5433/rasenbuerosport
+DATABASE_URL=postgresql://postgres:localdev@127.0.0.1:5434/rasenbuerosport
+```
+
+Then `npm run dev` — the API now runs against your local snapshot.
+
+**Lifecycle commands**
+
+```bash
+docker stop rbsl-pg          # pause
+docker start rbsl-pg         # resume (data persists in volume rbsl-pg-data)
+docker rm -f rbsl-pg && docker volume rm rbsl-pg-data   # full reset
+```
+
+**Refresh the snapshot later** — repeat steps 1 and 3 (drop and recreate the DB inside the container if you want a clean slate):
+
+```bash
+docker exec -e PGPASSWORD=localdev rbsl-pg psql -U postgres -c "DROP DATABASE rasenbuerosport;"
+docker exec -e PGPASSWORD=localdev rbsl-pg psql -U postgres -c "CREATE DATABASE rasenbuerosport;"
+```
+
 ### Production
 
 ```bash
