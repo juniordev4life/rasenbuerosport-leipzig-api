@@ -39,6 +39,8 @@ export const createGameSchema = {
 							type: "string",
 							enum: ["play", "corner", "freekick", "penalty"],
 						},
+						minute: { type: "integer", minimum: 1, maximum: 120 },
+						stoppage: { type: "integer", minimum: 0, maximum: 5 },
 					},
 				},
 			},
