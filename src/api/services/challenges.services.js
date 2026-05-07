@@ -10,6 +10,23 @@ import {
 const ACTIVE_CHALLENGES_PER_WEEK = 3;
 
 /**
+ * Coerce a `pg`-returned date-like value to a `YYYY-MM-DD` string. The driver
+ * hands us `Date` objects for `DATE` columns, and `String(date)` produces
+ * `"Mon May 04 2026 00:00:00 GMT+0200 ..."` which is neither a valid Map key
+ * for a calendar date nor a parseable `::date` SQL parameter.
+ *
+ * @param {Date|string|null|undefined} value
+ * @returns {string}
+ * @example
+ *   toISODate(new Date("2026-05-04T10:00:00Z")); // → "2026-05-04"
+ *   toISODate("2026-05-04");                     // → "2026-05-04"
+ */
+function toISODate(value) {
+	if (value instanceof Date) return value.toISOString().slice(0, 10);
+	return String(value);
+}
+
+/**
  * Resolve the active challenges for the current Berlin week — including the
  * caller's progress for each.
  *
@@ -105,9 +122,13 @@ export async function getChallengeHistory(playerId, limit = 12) {
 
 	const byWeek = new Map();
 	for (const row of rows) {
-		const key = String(row.week_start);
+		const key = toISODate(row.week_start);
 		if (!byWeek.has(key)) {
-			byWeek.set(key, { week_start: key, week_end: row.week_end, items: [] });
+			byWeek.set(key, {
+				week_start: key,
+				week_end: toISODate(row.week_end),
+				items: [],
+			});
 		}
 		byWeek.get(key).items.push(row);
 	}
@@ -127,7 +148,7 @@ export async function getChallengeHistory(playerId, limit = 12) {
 			.reduce((sum, c) => sum + c.reward_points, 0);
 		result.push({
 			week_start,
-			week_end: String(week_end),
+			week_end,
 			challenges,
 			completed_count: completedCount,
 			reward_points: rewardPoints,
@@ -158,11 +179,11 @@ export async function getChallengeLeaderboard(limit = 20) {
 
 	const byWeek = new Map();
 	for (const row of weekRows) {
-		const key = String(row.week_start);
+		const key = toISODate(row.week_start);
 		if (!byWeek.has(key)) {
 			byWeek.set(key, {
 				week_start: key,
-				week_end: String(row.week_end),
+				week_end: toISODate(row.week_end),
 				challenges: [],
 			});
 		}
@@ -171,7 +192,7 @@ export async function getChallengeLeaderboard(limit = 20) {
 
 	const earliestStart = [...byWeek.keys()].sort()[0];
 	const latestEnd = weekRows.reduce((max, r) => {
-		const d = String(r.week_end);
+		const d = toISODate(r.week_end);
 		return d > max ? d : max;
 	}, "0000-00-00");
 
