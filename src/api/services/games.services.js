@@ -1,5 +1,6 @@
 import { getPool } from "../../config/database.config.js";
 import { query } from "../helpers/database.helpers.js";
+import { validateScoreTimeline } from "../helpers/timeline.helpers.js";
 
 /**
  * Creates a new game with players
@@ -24,6 +25,12 @@ export async function createGame({
 	score_timeline,
 	result_type,
 }) {
+	// Defense in depth: reject timelines whose events are not strictly
+	// chronological within their period before opening a DB transaction. The
+	// frontend MinutePicker already clamps drags, but malformed payloads from
+	// other clients would otherwise persist undetected.
+	validateScoreTimeline(score_timeline);
+
 	const client = await getPool().connect();
 
 	try {
