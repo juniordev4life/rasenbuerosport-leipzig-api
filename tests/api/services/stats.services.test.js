@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { countAssists } from "../../../src/api/services/stats.services.js";
+import {
+	countAssists,
+	countMissedPenalties,
+} from "../../../src/api/services/stats.services.js";
 import {
 	buildGoalEvent,
 	buildMockGame,
 	buildMockGamePlayer,
+	buildPenaltyMissedEvent,
+	buildRedCardEvent,
 } from "../../test-utils.js";
 
 /**
@@ -155,5 +160,175 @@ describe("countAssists", () => {
 		// Assert
 		expect(result.total).toBe(0);
 		expect(result.maxInOneGame).toBe(0);
+	});
+});
+
+describe("countMissedPenalties", () => {
+	it("returns zero totals for an empty games list", () => {
+		// Arrange & Act
+		const result = countMissedPenalties([], {}, "user-1", "shooter");
+
+		// Assert
+		expect(result).toEqual({ total: 0, maxInOneGame: 0 });
+	});
+
+	it("counts shoots taken by the user (shooter role)", () => {
+		// Arrange
+		const game = buildMockGame({
+			id: "g1",
+			score_timeline: [
+				buildPenaltyMissedEvent({ shooter_id: "user-1", keeper_id: "user-2" }),
+				buildPenaltyMissedEvent({ shooter_id: "user-2", keeper_id: "user-1" }),
+			],
+		});
+
+		// Act
+		const result = countMissedPenalties(
+			[game],
+			buildUserGameMap(["g1"]),
+			"user-1",
+			"shooter",
+		);
+
+		// Assert
+		expect(result.total).toBe(1);
+	});
+
+	it("counts saves credited to the user (keeper role)", () => {
+		// Arrange — three opponents missed against user-1's keeper across two games
+		const games = [
+			buildMockGame({
+				id: "g1",
+				score_timeline: [
+					buildPenaltyMissedEvent({
+						shooter_id: "user-2",
+						keeper_id: "user-1",
+					}),
+					buildPenaltyMissedEvent({
+						shooter_id: "user-3",
+						keeper_id: "user-1",
+					}),
+				],
+			}),
+			buildMockGame({
+				id: "g2",
+				score_timeline: [
+					buildPenaltyMissedEvent({
+						shooter_id: "user-4",
+						keeper_id: "user-1",
+					}),
+				],
+			}),
+		];
+
+		// Act
+		const result = countMissedPenalties(
+			games,
+			buildUserGameMap(["g1", "g2"]),
+			"user-1",
+			"keeper",
+		);
+
+		// Assert
+		expect(result.total).toBe(3);
+		expect(result.maxInOneGame).toBe(2);
+	});
+
+	it("ignores entries without the relevant role field", () => {
+		// Arrange — a shot with no keeper_id still counts for shooter role,
+		// not for keeper role
+		const game = buildMockGame({
+			id: "g1",
+			score_timeline: [
+				buildPenaltyMissedEvent({ shooter_id: "user-1", keeper_id: undefined }),
+			],
+		});
+
+		// Act
+		const asShooter = countMissedPenalties(
+			[game],
+			buildUserGameMap(["g1"]),
+			"user-1",
+			"shooter",
+		);
+		const asKeeper = countMissedPenalties(
+			[game],
+			buildUserGameMap(["g1"]),
+			"user-1",
+			"keeper",
+		);
+
+		// Assert
+		expect(asShooter.total).toBe(1);
+		expect(asKeeper.total).toBe(0);
+	});
+
+	it("ignores non-penalty events", () => {
+		// Arrange
+		const game = buildMockGame({
+			id: "g1",
+			score_timeline: [
+				buildGoalEvent({ scored_by: "user-1" }),
+				buildRedCardEvent({ player_id: "user-1" }),
+				buildPenaltyMissedEvent({ shooter_id: "user-1" }),
+			],
+		});
+
+		// Act
+		const result = countMissedPenalties(
+			[game],
+			buildUserGameMap(["g1"]),
+			"user-1",
+			"shooter",
+		);
+
+		// Assert
+		expect(result.total).toBe(1);
+	});
+
+	it("skips games where the user did not participate", () => {
+		// Arrange
+		const game = buildMockGame({
+			id: "g1",
+			score_timeline: [
+				buildPenaltyMissedEvent({ shooter_id: "user-1", keeper_id: "user-2" }),
+			],
+		});
+
+		// Act — empty userGameMap
+		const result = countMissedPenalties([game], {}, "user-1", "shooter");
+
+		// Assert
+		expect(result.total).toBe(0);
+	});
+
+	it("tracks the per-game maximum", () => {
+		// Arrange
+		const games = [
+			buildMockGame({
+				id: "g1",
+				score_timeline: [
+					buildPenaltyMissedEvent({ shooter_id: "user-1" }),
+					buildPenaltyMissedEvent({ shooter_id: "user-1" }),
+					buildPenaltyMissedEvent({ shooter_id: "user-1" }),
+				],
+			}),
+			buildMockGame({
+				id: "g2",
+				score_timeline: [buildPenaltyMissedEvent({ shooter_id: "user-1" })],
+			}),
+		];
+
+		// Act
+		const result = countMissedPenalties(
+			games,
+			buildUserGameMap(["g1", "g2"]),
+			"user-1",
+			"shooter",
+		);
+
+		// Assert
+		expect(result.total).toBe(4);
+		expect(result.maxInOneGame).toBe(3);
 	});
 });
