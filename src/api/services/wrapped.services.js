@@ -64,6 +64,7 @@ export async function computeWrapped(weekStart, weekEnd) {
 		WHERE g.played_at >= $1::date AND g.played_at < ($2::date + INTERVAL '1 day')
 			AND g.score_timeline IS NOT NULL
 			AND entry->>'scored_by' IS NOT NULL
+			AND (entry->>'event_type' IS NULL OR entry->>'event_type' = 'goal')
 		GROUP BY p.id, p.username, p.avatar_url
 		ORDER BY goals DESC, p.username ASC
 		LIMIT 1`,

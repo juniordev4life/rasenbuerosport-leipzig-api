@@ -5,6 +5,14 @@
  * `src/lib/utils/minute.utils.js`. Keep the two in sync — this is intentional
  * defense-in-depth rather than premature DRY: the frontend ships at every
  * release, and the API owns the database write barrier.
+ *
+ * Event types
+ * -----------
+ *  - `goal` (default for legacy entries without `event_type`): scores a goal
+ *    for a side; `home`/`away` carry the running score.
+ *  - `red_card` (since Phase 3): records a sending-off; does not affect score.
+ *  - `penalty_missed` (since Phase 4): records a missed/saved penalty; does
+ *    not affect score.
  */
 
 /** @type {ReadonlyArray<number>} */
@@ -12,6 +20,67 @@ const STOPPAGE_ENDPOINTS = Object.freeze([45, 90, 105, 120]);
 
 /** @type {number} */
 const MAX_STOPPAGE = 5;
+
+/**
+ * Resolve the discriminator of a timeline entry. Entries without an explicit
+ * `event_type` are treated as goals — this preserves backwards compatibility
+ * with games created before Phase 3 introduced the discriminator.
+ *
+ * @param {{ event_type?: string }} entry
+ * @returns {"goal"|"red_card"|"penalty_missed"|string}
+ * @example
+ * getEventType({ scored_by: "user-1" });             // → "goal"
+ * getEventType({ event_type: "red_card" });          // → "red_card"
+ */
+export function getEventType(entry) {
+	return entry?.event_type ?? "goal";
+}
+
+/**
+ * Whether the entry represents a goal (the default event type).
+ * @param {{ event_type?: string }} entry
+ * @returns {boolean}
+ */
+export function isGoal(entry) {
+	return getEventType(entry) === "goal";
+}
+
+/**
+ * Whether the entry represents a red card.
+ * @param {{ event_type?: string }} entry
+ * @returns {boolean}
+ */
+export function isRedCard(entry) {
+	return getEventType(entry) === "red_card";
+}
+
+/**
+ * Whether the entry represents a missed penalty.
+ * @param {{ event_type?: string }} entry
+ * @returns {boolean}
+ */
+export function isPenaltyMissed(entry) {
+	return getEventType(entry) === "penalty_missed";
+}
+
+/**
+ * Return only the goal entries from a timeline. Use this in any reader that
+ * derives score-related stats so red cards / penalty-missed entries do not
+ * inflate goal counts.
+ *
+ * @param {Array<{ event_type?: string }>} timeline
+ * @returns {Array<{ event_type?: string }>}
+ * @example
+ * filterGoals([
+ *   { scored_by: "u1" },
+ *   { event_type: "red_card", player_id: "u2" },
+ * ]);
+ * // → [{ scored_by: "u1" }]
+ */
+export function filterGoals(timeline) {
+	if (!Array.isArray(timeline)) return [];
+	return timeline.filter(isGoal);
+}
 
 /**
  * Lexicographic comparator for `(minute, stoppage)` pairs.
@@ -76,11 +145,12 @@ export function getMinMinuteForNextEvent(timeline, period) {
 
 /**
  * Walk the timeline in array order and assert that every event with a minute
- * is strictly after the previous event of the same period. Throws an `Error`
- * with `statusCode = 400` on the first violation, otherwise returns silently.
+ * is strictly after the previous event of the same period — regardless of
+ * event type. Throws an `Error` with `statusCode = 400` on the first
+ * violation, otherwise returns silently.
  *
  * Penalty-shootout entries (`period === "penalty"`) and entries without a
- * minute are skipped — both are valid in their own right.
+ * minute are skipped.
  *
  * @param {Array<{ period?: string, minute?: number, stoppage?: number }>} timeline
  * @returns {void}

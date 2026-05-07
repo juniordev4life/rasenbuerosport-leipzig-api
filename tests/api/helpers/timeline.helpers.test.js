@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
 	compareMinute,
+	filterGoals,
+	getEventType,
 	getMinMinuteForNextEvent,
+	isGoal,
+	isPenaltyMissed,
+	isRedCard,
 	validateScoreTimeline,
 } from "../../../src/api/helpers/timeline.helpers.js";
 import {
@@ -9,6 +14,77 @@ import {
 	buildPenaltyMissedEvent,
 	buildRedCardEvent,
 } from "../../test-utils.js";
+
+describe("getEventType", () => {
+	it("defaults to 'goal' when event_type is missing", () => {
+		expect(getEventType({})).toBe("goal");
+		expect(getEventType({ scored_by: "user-1" })).toBe("goal");
+	});
+
+	it("returns the explicit event_type when present", () => {
+		expect(getEventType({ event_type: "red_card" })).toBe("red_card");
+		expect(getEventType({ event_type: "penalty_missed" })).toBe(
+			"penalty_missed",
+		);
+	});
+
+	it("treats null entries as goals", () => {
+		expect(getEventType(null)).toBe("goal");
+		expect(getEventType(undefined)).toBe("goal");
+	});
+});
+
+describe("isGoal / isRedCard / isPenaltyMissed", () => {
+	it("classifies legacy entries without event_type as goals", () => {
+		const legacy = { home: 1, away: 0, scored_by: "user-1" };
+		expect(isGoal(legacy)).toBe(true);
+		expect(isRedCard(legacy)).toBe(false);
+		expect(isPenaltyMissed(legacy)).toBe(false);
+	});
+
+	it("classifies red cards", () => {
+		const entry = buildRedCardEvent();
+		expect(isRedCard(entry)).toBe(true);
+		expect(isGoal(entry)).toBe(false);
+	});
+
+	it("classifies missed penalties", () => {
+		const entry = buildPenaltyMissedEvent();
+		expect(isPenaltyMissed(entry)).toBe(true);
+		expect(isGoal(entry)).toBe(false);
+	});
+});
+
+describe("filterGoals", () => {
+	it("returns an empty array for non-array input", () => {
+		expect(filterGoals(null)).toEqual([]);
+		expect(filterGoals(undefined)).toEqual([]);
+	});
+
+	it("retains legacy entries (no event_type) as goals", () => {
+		const timeline = [
+			{ home: 1, away: 0, period: "regular" },
+			{ home: 2, away: 0, period: "regular", scored_by: "user-1" },
+		];
+		expect(filterGoals(timeline)).toHaveLength(2);
+	});
+
+	it("drops red cards and missed penalties", () => {
+		const timeline = [
+			buildGoalEvent({ minute: 30 }),
+			buildRedCardEvent({ minute: 60 }),
+			buildPenaltyMissedEvent({ minute: 80 }),
+		];
+		const goals = filterGoals(timeline);
+		expect(goals).toHaveLength(1);
+		expect(goals[0].event_type).toBeUndefined();
+	});
+
+	it("preserves explicit event_type='goal' entries", () => {
+		const timeline = [{ event_type: "goal", home: 1, away: 0 }];
+		expect(filterGoals(timeline)).toHaveLength(1);
+	});
+});
 
 describe("compareMinute", () => {
 	it("orders by minute first", () => {

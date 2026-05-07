@@ -1,4 +1,5 @@
 import { query } from "../helpers/database.helpers.js";
+import { filterGoals } from "../helpers/timeline.helpers.js";
 
 /**
  * Gets comprehensive stats for a user, optionally filtered by date range
@@ -262,22 +263,22 @@ function countIndividualGoals(games, userGameMap, userId) {
 		const userEntry = userGameMap[game.id];
 		if (!userEntry) continue;
 
-		const timeline = game.score_timeline;
+		const goalEvents = filterGoals(game.score_timeline);
 		let gameGoals = 0;
 
-		if (Array.isArray(timeline) && timeline.length > 0) {
-			const hasScoredBy = timeline.some((e) => e.scored_by);
+		if (goalEvents.length > 0) {
+			const hasScoredBy = goalEvents.some((e) => e.scored_by);
 
 			if (hasScoredBy) {
 				// Count individual goals from scored_by
-				gameGoals = timeline.filter((e) => e.scored_by === userId).length;
+				gameGoals = goalEvents.filter((e) => e.scored_by === userId).length;
 			} else if (game.mode === "1v1") {
 				// 1v1 fallback: player = team, credit full team score
 				gameGoals =
 					userEntry.team === "home" ? game.score_home : game.score_away;
 			}
 		} else if (game.mode === "1v1") {
-			// No timeline at all, 1v1 fallback
+			// No goal events at all, 1v1 fallback
 			gameGoals = userEntry.team === "home" ? game.score_home : game.score_away;
 		}
 
@@ -313,10 +314,10 @@ export function countAssists(games, userGameMap, userId) {
 		const userEntry = userGameMap[game.id];
 		if (!userEntry) continue;
 
-		const timeline = game.score_timeline;
-		if (!Array.isArray(timeline) || timeline.length === 0) continue;
+		const goalEvents = filterGoals(game.score_timeline);
+		if (goalEvents.length === 0) continue;
 
-		const gameAssists = timeline.filter((e) => e.assist_by === userId).length;
+		const gameAssists = goalEvents.filter((e) => e.assist_by === userId).length;
 		total += gameAssists;
 		if (gameAssists > maxInOneGame) maxInOneGame = gameAssists;
 	}
@@ -871,11 +872,11 @@ function computeBadges(games, userGameMap, userId, stats) {
  * @returns {number}
  */
 function countGameGoals(game, userEntry, userId) {
-	const timeline = game.score_timeline;
-	if (Array.isArray(timeline) && timeline.length > 0) {
-		const hasScoredBy = timeline.some((e) => e.scored_by);
+	const goalEvents = filterGoals(game.score_timeline);
+	if (goalEvents.length > 0) {
+		const hasScoredBy = goalEvents.some((e) => e.scored_by);
 		if (hasScoredBy)
-			return timeline.filter((e) => e.scored_by === userId).length;
+			return goalEvents.filter((e) => e.scored_by === userId).length;
 		if (game.mode === "1v1")
 			return userEntry.team === "home" ? game.score_home : game.score_away;
 	} else if (game.mode === "1v1") {
@@ -891,8 +892,8 @@ function countGameGoals(game, userEntry, userId) {
  * @returns {boolean}
  */
 function checkComeback(game, userEntry) {
-	const timeline = game.score_timeline;
-	if (!Array.isArray(timeline) || timeline.length < 3) return false;
+	const goalEvents = filterGoals(game.score_timeline);
+	if (goalEvents.length < 3) return false;
 	const side = userEntry.team;
 	const isWin =
 		(side === "home" && game.score_home > game.score_away) ||
@@ -900,7 +901,7 @@ function checkComeback(game, userEntry) {
 	if (!isWin) return false;
 	let userScore = 0;
 	let oppScore = 0;
-	for (const entry of timeline) {
+	for (const entry of goalEvents) {
 		if (entry.team === side) userScore++;
 		else oppScore++;
 		if (oppScore - userScore >= 2) return true;
@@ -916,9 +917,9 @@ function checkComeback(game, userEntry) {
  * @returns {boolean}
  */
 function checkFruehstarter(game, userEntry, userId) {
-	const timeline = game.score_timeline;
-	if (!Array.isArray(timeline) || timeline.length === 0) return false;
-	const firstGoal = timeline[0];
+	const goalEvents = filterGoals(game.score_timeline);
+	if (goalEvents.length === 0) return false;
+	const firstGoal = goalEvents[0];
 	if (firstGoal.scored_by) return firstGoal.scored_by === userId;
 	if (game.mode === "1v1") return firstGoal.team === userEntry.team;
 	return false;
