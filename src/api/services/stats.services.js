@@ -1,5 +1,9 @@
 import { query } from "../helpers/database.helpers.js";
-import { filterGoals, isPenaltyMissed } from "../helpers/timeline.helpers.js";
+import {
+	filterGoals,
+	isPenaltyMissed,
+	isRedCard,
+} from "../helpers/timeline.helpers.js";
 
 /**
  * Gets comprehensive stats for a user, optionally filtered by date range
@@ -177,6 +181,20 @@ export async function getUserStats(userId, from, to) {
 	// Individual assist stats (from assist_by in score_timeline)
 	const assistStats = countAssists(games, userGameMap, userId);
 
+	// Phase 5 keeper / shooter / late-goal pre-aggregates feed the new badges.
+	const savedPenaltyStats = countMissedPenalties(
+		games,
+		userGameMap,
+		userId,
+		"keeper",
+	);
+	const missedPenaltyStats = countMissedPenalties(
+		games,
+		userGameMap,
+		userId,
+		"shooter",
+	);
+
 	// Badges
 	const maxWinStreak = getMaxWinStreak(games, userGameMap);
 	const badges = computeBadges(games, userGameMap, userId, {
@@ -184,6 +202,8 @@ export async function getUserStats(userId, from, to) {
 		careerMatchStats,
 		goalStats,
 		assistStats,
+		savedPenaltyStats,
+		missedPenaltyStats,
 		wins1v1,
 		wins2v2,
 		maxWinStreak,
@@ -482,6 +502,22 @@ const GOAL_BADGE_TIERS = [
 	{ type: "torjaeger_diamant", emoji: "\u{1F48E}", threshold: 500 },
 ];
 
+/** @type {Array<{type: string, emoji: string, threshold: number}>} */
+const ASSIST_BADGE_TIERS = [
+	{ type: "vorlagengeber_bronze", emoji: "\u{1F949}", threshold: 10 },
+	{ type: "vorlagengeber_silber", emoji: "\u{1F948}", threshold: 25 },
+	{ type: "vorlagengeber_gold", emoji: "\u{1F947}", threshold: 50 },
+	{ type: "vorlagengeber_platin", emoji: "\u{1F4A0}", threshold: 100 },
+	{ type: "vorlagengeber_diamant", emoji: "\u{1F48E}", threshold: 250 },
+];
+
+/** @type {Array<{type: string, emoji: string, threshold: number}>} */
+const KEEPER_BADGE_TIERS = [
+	{ type: "elfmeterkiller_bronze", emoji: "\u{1F949}", threshold: 5 },
+	{ type: "elfmeterkiller_silber", emoji: "\u{1F948}", threshold: 15 },
+	{ type: "elfmeterkiller_gold", emoji: "\u{1F947}", threshold: 30 },
+];
+
 /**
  * Computes all profile badges with categories, progress, and unlock dates
  * @param {object[]} games - All user games (sorted DESC)
@@ -494,6 +530,9 @@ function computeBadges(games, userGameMap, userId, stats) {
 	const ms = stats.careerMatchStats;
 	const gamesWithStats = ms?.games_with_stats || 0;
 	const gs = stats.goalStats;
+	const as = stats.assistStats || { total: 0, maxInOneGame: 0 };
+	const sps = stats.savedPenaltyStats || { total: 0, maxInOneGame: 0 };
+	const mps = stats.missedPenaltyStats || { total: 0, maxInOneGame: 0 };
 	const chronoGames = [...games].reverse();
 
 	const badges = [];
@@ -572,6 +611,91 @@ function computeBadges(games, userGameMap, userId, stats) {
 							return countGameGoals(game, ue, userId) >= 4;
 						})
 					: null,
+		}),
+	);
+
+	// Phase 5: vorlagengeber — assist tiers analogous to torjaeger.
+	for (let i = 0; i < ASSIST_BADGE_TIERS.length; i++) {
+		const tier = ASSIST_BADGE_TIERS[i];
+		const nextTier = ASSIST_BADGE_TIERS[i + 1] || null;
+		badges.push(
+			makeBadge({
+				type: tier.type,
+				emoji: tier.emoji,
+				category: "goals",
+				current: as.total,
+				target: tier.threshold,
+				unlocked_at:
+					as.total >= tier.threshold
+						? findDateWhenAssistReached(
+								chronoGames,
+								userGameMap,
+								userId,
+								tier.threshold,
+							)
+						: null,
+				next_tier: nextTier
+					? { type: nextTier.type, target: nextTier.threshold }
+					: null,
+			}),
+		);
+	}
+
+	// Phase 5: allrounder — single game with ≥2 goals AND ≥1 assist by user.
+	const hasAllrounder = games.some((game) => {
+		const ue = userGameMap[game.id];
+		if (!ue) return false;
+		return (
+			countGameGoals(game, ue, userId) >= 2 &&
+			countGameAssists(game, userId) >= 1
+		);
+	});
+	badges.push(
+		makeBadge({
+			type: "allrounder",
+			emoji: "⚡",
+			category: "goals",
+			current: hasAllrounder ? 1 : 0,
+			target: 1,
+			unlocked_at: hasAllrounder
+				? findFirstGameMatching(chronoGames, userGameMap, (game, ue) => {
+						return (
+							countGameGoals(game, ue, userId) >= 2 &&
+							countGameAssists(game, userId) >= 1
+						);
+					})
+				: null,
+		}),
+	);
+
+	// Phase 5: spaetstarter — single goal in minute >= 90 (incl. stoppage).
+	const hasSpaetstarter = games.some((game) => {
+		const goalEvents = filterGoals(game.score_timeline);
+		return goalEvents.some(
+			(e) =>
+				e.scored_by === userId &&
+				typeof e.minute === "number" &&
+				e.minute >= 90,
+		);
+	});
+	badges.push(
+		makeBadge({
+			type: "spaetstarter",
+			emoji: "\u{1F319}",
+			category: "goals",
+			current: hasSpaetstarter ? 1 : 0,
+			target: 1,
+			unlocked_at: hasSpaetstarter
+				? findFirstGameMatching(chronoGames, userGameMap, (game) => {
+						const goalEvents = filterGoals(game.score_timeline);
+						return goalEvents.some(
+							(e) =>
+								e.scored_by === userId &&
+								typeof e.minute === "number" &&
+								e.minute >= 90,
+						);
+					})
+				: null,
 		}),
 	);
 
@@ -790,23 +914,88 @@ function computeBadges(games, userGameMap, userId, stats) {
 
 	// === GENERAL BADGES (category: "general") ===
 
-	let gamesNoYellow = 0;
+	// Phase 5: a "clean" game has no FC26 yellow card AND no red-card event for
+	// the user. Both the original fair_play (10 games) and the new fairplay_plus
+	// tiers (25 / 50 games) consume the same count.
+	let gamesNoCards = 0;
 	for (const game of games) {
 		const side = userGameMap[game.id]?.team;
 		if (!side) continue;
-		if (!game.match_stats?.yellow_cards) {
-			gamesNoYellow++;
-			continue;
-		}
-		if (game.match_stats.yellow_cards[side] === 0) gamesNoYellow++;
+		const yellowCount = game.match_stats?.yellow_cards?.[side] ?? 0;
+		if (yellowCount > 0) continue;
+		if (userHadRedCardInGame(game, userId)) continue;
+		gamesNoCards++;
 	}
 	badges.push(
 		makeBadge({
 			type: "fair_play",
 			emoji: "\u{1F91D}",
 			category: "general",
-			current: gamesNoYellow,
+			current: gamesNoCards,
 			target: 10,
+		}),
+	);
+
+	badges.push(
+		makeBadge({
+			type: "fairplay_plus_25",
+			emoji: "\u{1F91D}",
+			category: "general",
+			current: gamesNoCards,
+			target: 25,
+		}),
+	);
+
+	badges.push(
+		makeBadge({
+			type: "fairplay_plus_50",
+			emoji: "\u{1F91D}",
+			category: "general",
+			current: gamesNoCards,
+			target: 50,
+		}),
+	);
+
+	// Phase 5: elfmeterkiller — saved-penalty tiers, only awarded when the user
+	// is named as the keeper on a `penalty_missed` event.
+	for (let i = 0; i < KEEPER_BADGE_TIERS.length; i++) {
+		const tier = KEEPER_BADGE_TIERS[i];
+		const nextTier = KEEPER_BADGE_TIERS[i + 1] || null;
+		badges.push(
+			makeBadge({
+				type: tier.type,
+				emoji: tier.emoji,
+				category: "general",
+				current: sps.total,
+				target: tier.threshold,
+				unlocked_at:
+					sps.total >= tier.threshold
+						? findDateWhenSavedReached(
+								chronoGames,
+								userGameMap,
+								userId,
+								tier.threshold,
+							)
+						: null,
+				next_tier: nextTier
+					? { type: nextTier.type, target: nextTier.threshold }
+					: null,
+			}),
+		);
+	}
+
+	// Phase 5: pechvogel — humorous shooter-side counterpart, 3 missed kicks.
+	badges.push(
+		makeBadge({
+			type: "pechvogel",
+			emoji: "\u{1F340}",
+			category: "general",
+			current: mps.total,
+			target: 3,
+			unlocked_at:
+				mps.total >= 3
+					? findDateWhenMissedReached(chronoGames, userGameMap, userId, 3)
+					: null,
 		}),
 	);
 
@@ -1011,6 +1200,122 @@ function findDateWhenGoalReached(chronoGames, userGameMap, userId, threshold) {
 		const ue = userGameMap[game.id];
 		if (!ue) continue;
 		cumulative += countGameGoals(game, ue, userId);
+		if (cumulative >= threshold) return game.played_at;
+	}
+	return null;
+}
+
+/**
+ * Counts assists credited to a user inside a single game. Exported for unit
+ * testing and reuse from the upcoming challenges service.
+ * @param {object} game
+ * @param {string} userId
+ * @returns {number}
+ * @example
+ *   countGameAssists(game, "user-1"); // → 2
+ */
+export function countGameAssists(game, userId) {
+	const goalEvents = filterGoals(game.score_timeline);
+	return goalEvents.filter((e) => e.assist_by === userId).length;
+}
+
+/**
+ * True if a `penalty_missed` event in the game names the user as the keeper.
+ * @param {object} game
+ * @param {string} userId
+ * @returns {number}
+ */
+function countGameSavedPenalties(game, userId) {
+	const tl = game.score_timeline;
+	if (!Array.isArray(tl)) return 0;
+	return tl.filter((e) => isPenaltyMissed(e) && e.keeper_id === userId).length;
+}
+
+/**
+ * Number of `penalty_missed` events the user took in a single game.
+ * @param {object} game
+ * @param {string} userId
+ * @returns {number}
+ */
+function countGameMissedPenalties(game, userId) {
+	const tl = game.score_timeline;
+	if (!Array.isArray(tl)) return 0;
+	return tl.filter((e) => isPenaltyMissed(e) && e.shooter_id === userId).length;
+}
+
+/**
+ * Whether the user picked up a `red_card` event in the given game. Exported
+ * for unit testing and reuse from the upcoming Fairplay+ checks.
+ * @param {object} game
+ * @param {string} userId
+ * @returns {boolean}
+ */
+export function userHadRedCardInGame(game, userId) {
+	const tl = game.score_timeline;
+	if (!Array.isArray(tl)) return false;
+	return tl.some((e) => isRedCard(e) && e.player_id === userId);
+}
+
+/**
+ * Date when a cumulative assist threshold was first reached.
+ * Mirrors `findDateWhenGoalReached`.
+ * @param {object[]} chronoGames
+ * @param {object} userGameMap
+ * @param {string} userId
+ * @param {number} threshold
+ * @returns {string|null}
+ */
+function findDateWhenAssistReached(
+	chronoGames,
+	userGameMap,
+	userId,
+	threshold,
+) {
+	let cumulative = 0;
+	for (const game of chronoGames) {
+		if (!userGameMap[game.id]) continue;
+		cumulative += countGameAssists(game, userId);
+		if (cumulative >= threshold) return game.played_at;
+	}
+	return null;
+}
+
+/**
+ * Date when a cumulative saved-penalty threshold was first reached.
+ * @param {object[]} chronoGames
+ * @param {object} userGameMap
+ * @param {string} userId
+ * @param {number} threshold
+ * @returns {string|null}
+ */
+function findDateWhenSavedReached(chronoGames, userGameMap, userId, threshold) {
+	let cumulative = 0;
+	for (const game of chronoGames) {
+		if (!userGameMap[game.id]) continue;
+		cumulative += countGameSavedPenalties(game, userId);
+		if (cumulative >= threshold) return game.played_at;
+	}
+	return null;
+}
+
+/**
+ * Date when a cumulative missed-penalty (shooter) threshold was first reached.
+ * @param {object[]} chronoGames
+ * @param {object} userGameMap
+ * @param {string} userId
+ * @param {number} threshold
+ * @returns {string|null}
+ */
+function findDateWhenMissedReached(
+	chronoGames,
+	userGameMap,
+	userId,
+	threshold,
+) {
+	let cumulative = 0;
+	for (const game of chronoGames) {
+		if (!userGameMap[game.id]) continue;
+		cumulative += countGameMissedPenalties(game, userId);
 		if (cumulative >= threshold) return game.played_at;
 	}
 	return null;
