@@ -4,7 +4,7 @@
 
 **The Backend Powering Office Kicker Legends**
 
-Fastify 5 REST API with Claude AI integration, Supabase authentication, and a comprehensive stats engine for tracking foosball matches.
+Fastify 5 REST API with Claude AI integration, Firebase authentication, Cloud SQL Postgres, and a comprehensive stats engine for tracking foosball matches.
 
 ---
 
@@ -25,13 +25,15 @@ The RasenBürosport Leipzig API is the backend service (Playmaker) that powers t
 ```
 Client Request
   → Fastify Route (auto-loaded from src/api/routes/)
-    → Authentication Middleware (Supabase JWT)
+    → Authentication Middleware (Firebase ID token)
     → JSON Schema Validation (params, query, body)
     → Controller (request/response handling)
       → Service (business logic)
-        → Supabase PostgreSQL / Claude API
+        → Cloud SQL Postgres (pg) / Claude API
     → Standardized JSON Response
 ```
+
+In production, Cloud Run reaches Cloud SQL via the built-in Cloud SQL connector. Locally, the Cloud SQL Auth Proxy (or a Docker Postgres with a snapshot — see below) provides the same `DATABASE_URL` interface.
 
 The API follows a strict **layered architecture** — Routes define endpoints, Controllers handle HTTP concerns, and Services contain all business logic and data access.
 
@@ -42,10 +44,11 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | Component | Technology | Version |
 |-----------|-----------|---------|
 | **Framework** | Fastify | 5.7 |
-| **Runtime** | Node.js | >= 22.0 |
+| **Runtime** | Node.js | >= 24.0 |
 | **Language** | JavaScript (ES Modules) | — |
-| **Database** | Supabase (PostgreSQL) | — |
-| **Auth** | Supabase Auth (JWT) | — |
+| **Database** | Google Cloud SQL (PostgreSQL 16) via `pg` | 8.x |
+| **Auth** | Firebase Authentication (Admin SDK verifies ID tokens) | 13.x |
+| **Hosting** | Google Cloud Run (API), Firebase Hosting (Frontend) | — |
 | **AI Model** | Claude Sonnet 4 (Anthropic) | — |
 | **AI Vision** | Claude Vision API | — |
 | **Security** | Helmet, CORS, Rate Limiting | — |
@@ -63,9 +66,8 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | `GET` | `/health` | — | Health check |
-| `POST` | `/api/v1/auth/register` | — | Register new user |
-| `POST` | `/api/v1/auth/login` | — | Login |
 | `GET` | `/api/v1/auth/me` | Bearer | Get current user profile |
+| `PATCH` | `/api/v1/auth/profile` | Bearer | Update current user profile |
 | `GET` | `/api/v1/games` | Bearer | Get user's game history |
 | `POST` | `/api/v1/games` | Bearer | Create a new game |
 | `GET` | `/api/v1/games/recent` | Bearer | Global activity feed |
@@ -76,9 +78,19 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | `POST` | `/api/v1/games/prediction` | Bearer | Generate AI match prediction |
 | `GET` | `/api/v1/leaderboard` | — | Get leaderboard standings |
 | `GET` | `/api/v1/players` | Bearer | Get all player profiles |
-| `GET` | `/api/v1/stats/me` | Bearer | Get comprehensive user stats |
+| `GET` | `/api/v1/stats` | Bearer | Get comprehensive user stats |
 | `GET` | `/api/v1/stats/:playerId` | Bearer | Head-to-head vs specific player |
+| `GET` | `/api/v1/compare/:player1Id/:player2Id` | Bearer | Compare two players |
+| `GET` | `/api/v1/duos` | Bearer | List teammate duos |
+| `GET` | `/api/v1/duos/:player1Id/:player2Id` | Bearer | Detail for a specific duo |
+| `GET` | `/api/v1/seasons` | — | List seasons |
+| `GET` | `/api/v1/seasons/archive` | — | Season archive |
 | `GET` | `/api/v1/teams` | Bearer | Get all available teams |
+| `GET` | `/api/v1/wrapped` | Bearer | List user's weekly wrapped entries |
+| `GET` | `/api/v1/wrapped/latest` | Bearer | Latest weekly wrapped for the user |
+| `POST` | `/api/v1/wrapped/generate` | Scheduler | Trigger weekly wrapped generation (Cloud Scheduler only) |
+
+> User registration and login happen client-side via Firebase Authentication in the frontend. The API never issues credentials — it only verifies Firebase ID tokens supplied as `Authorization: Bearer <id-token>`.
 
 [Full API Documentation →](docs/features/API_ENDPOINTS.md)
 
@@ -156,15 +168,20 @@ Aggregated averages from all games with uploaded FC26 data:
 
 ## Authentication
 
-The API uses **Supabase Auth** with JWT-based authentication:
+The API uses **Firebase Authentication** with ID-token verification:
 
-1. Users register or login via `/api/v1/auth/register` or `/api/v1/auth/login`
-2. Supabase returns a JWT access token
-3. Subsequent requests include the token as `Authorization: Bearer <token>`
-4. The `requireAuth` middleware verifies the token against Supabase Auth
-5. The authenticated user is attached to `request.user`
+1. The frontend signs in via Firebase Auth (Google Sign-In) and obtains a Firebase ID token
+2. Each API request sends the token as `Authorization: Bearer <id-token>`
+3. The `requireAuth` middleware verifies the token via the **Firebase Admin SDK** (`getFirebaseAuth().verifyIdToken`)
+4. The decoded user (`uid`, `email`) is attached to `request.user`, then enriched with the matching `profiles` row (role, username) from Postgres
 
-The **leaderboard** and **health check** endpoints are public — all other endpoints require authentication.
+**Credentials**
+
+- **Cloud Run (prod):** Application Default Credentials — the runtime service account is granted Firebase Admin permissions
+- **Local dev:** `gcloud auth application-default login` is sufficient — no service account JSON needed. As a fallback, set `GOOGLE_APPLICATION_CREDENTIALS=./service-account.json`
+- The `FIREBASE_PROJECT_ID` env var pins the project the Admin SDK validates tokens against
+
+**Public endpoints:** `/health`, `/api/v1/leaderboard`, `/api/v1/seasons*`. Everything else requires a Bearer token. The internal `/api/v1/wrapped/generate` endpoint uses a separate scheduler-secret middleware for Cloud Scheduler.
 
 [Full Auth Documentation →](docs/features/AUTHENTICATION.md)
 
@@ -172,16 +189,22 @@ The **leaderboard** and **health check** endpoints are public — all other endp
 
 ## Database
 
-### Supabase (PostgreSQL)
+### Google Cloud SQL (PostgreSQL 16)
 
 | Table | Purpose |
 |-------|---------|
-| **profiles** | User profiles (username, avatar) |
+| **profiles** | User profiles (username, avatar, role) — `id` matches the Firebase Auth `uid` |
 | **games** | Match records with scores, timelines, stats |
 | **game_players** | Links players to games with team assignment |
-| **teams** | ~400 real football clubs from 25 European leagues |
+| **teams** | ~633 real football clubs from 25 European leagues |
+| **weekly_wrapped** | Generated weekly recap snapshots |
 
-Key features: Row-Level Security (RLS), JSONB columns for match stats and score timelines, foreign key relationships.
+Key features: JSONB columns for match stats and score timelines, foreign-key relationships, indexes on hot query paths. Authorization is enforced in the API layer (no Postgres RLS — auth flows through the Firebase token + `profiles.role`).
+
+**Connectivity**
+
+- **Cloud Run:** uses the Cloud SQL connector (`/cloudsql/<INSTANCE>` Unix socket) — `pg` reads `DATABASE_URL`
+- **Local dev:** Cloud SQL Auth Proxy on `127.0.0.1:5433`, or a local Docker Postgres seeded from a PROD snapshot (recommended — see *Local Development with a PROD Snapshot* below)
 
 [Full Database Documentation →](docs/features/DATABASE.md)
 
@@ -228,7 +251,8 @@ The app includes ~400 real football clubs from **25 European top leagues** (cura
 | **Helmet** | Security headers (CSP, X-Frame-Options, etc.) |
 | **CORS** | Configurable origin (default: `localhost:5173`) |
 | **Rate Limiting** | 250 requests per minute per IP |
-| **JWT Verification** | Supabase Auth token validation |
+| **Token Verification** | Firebase ID token validation via Firebase Admin SDK |
+| **Scheduler Auth** | Shared secret on `POST /wrapped/generate` (Cloud Scheduler) |
 | **Input Validation** | JSON Schema on all endpoints |
 | **Standardized Errors** | Consistent error response format |
 
@@ -256,22 +280,32 @@ Error responses follow the same structure with appropriate status codes and erro
 
 ### Prerequisites
 
-- Node.js >= 22.0
-- A Supabase project (PostgreSQL + Auth)
+- Node.js >= 24.0
+- Google Cloud SDK (`gcloud`) authenticated (`gcloud auth login` + `gcloud auth application-default login`)
+- Cloud SQL Auth Proxy (or Docker for the PROD-snapshot workflow below)
+- Firebase project access (`rasenbuerosport-leipzig-9d54f`) for token verification
 - Anthropic API key (for AI features)
 
 ### Environment Variables
 
-Create a `.env` file in the project root:
+Create a `.env` file in the project root (see `.env.example`):
 
 ```env
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
-ANTHROPIC_API_KEY=sk-ant-...
-NODE_ENV=development
 PORT=3001
 HOST=0.0.0.0
+NODE_ENV=development
+
+# Postgres connection. Locally either to the Cloud SQL Proxy (5433) or a local Docker Postgres (5434).
+DATABASE_URL=postgresql://postgres:<password>@127.0.0.1:5434/rasenbuerosport
+
+# Firebase Admin SDK — Cloud Run uses Application Default Credentials automatically.
+# For local dev, `gcloud auth application-default login` is enough.
+# Optional fallback: GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
+FIREBASE_PROJECT_ID=rasenbuerosport-leipzig-9d54f
+
+ANTHROPIC_API_KEY=sk-ant-...
+WRAPPED_TRIGGER_SECRET=<shared-secret-for-cloud-scheduler>
+
 CORS_ORIGIN=http://localhost:5173
 ```
 
@@ -281,8 +315,10 @@ CORS_ORIGIN=http://localhost:5173
 npm install
 ```
 
+To talk directly to PROD via the Cloud SQL Auth Proxy (read-only use cases like `pg_dump`):
+
 ```bash
-cloud-sql-proxy --quota-project rasenbuerosport-leipzig-9d54f rasenbuerosport-leipzig-9d54f:europe-west3:rasenbuerosport-db
+cloud-sql-proxy rasenbuerosport-leipzig-9d54f:europe-west3:rasenbuerosport-db --port=5433
 ```
 
 ### Development
@@ -293,15 +329,9 @@ npm run dev          # Start with --watch (auto-reload)
 
 The API runs on `http://localhost:3001` by default.
 
-### Seed Demo Data
+### Legacy Seed Script
 
-```bash
-node scripts/seed.js
-```
-
-Creates 4 test users and ~40 curated games with realistic stats, timelines, and badge-triggering scenarios. Requires Supabase credentials in `.env`.
-
-> **Heads up:** `scripts/seed.js` is the legacy Supabase-based seeder and does not match the current Cloud SQL + Firebase Auth setup. For local development today, prefer the **PROD snapshot workflow** below.
+`scripts/seed.js` is a legacy Supabase-based seeder kept only for historical reference. It targets a Supabase project that no longer exists and **will not work** against the current Cloud SQL + Firebase Auth stack. Use the **PROD snapshot workflow** below instead.
 
 ### Local Development with a PROD Snapshot
 
@@ -431,25 +461,31 @@ backend/
 │   ├── server.js                        # Fastify instance
 │   ├── setup.js                         # Plugin & route registration
 │   ├── config/
-│   │   ├── supabase.config.js           # Supabase client singletons
+│   │   ├── database.config.js           # pg Pool singleton (Cloud SQL / local Postgres)
+│   │   ├── firebase.config.js           # Firebase Admin SDK singleton
 │   │   ├── anthropic.config.js          # Anthropic client singleton
 │   │   └── logger.config.js             # Pino logger config
 │   ├── constants/
 │   │   └── roles.constants.js           # User role definitions
 │   └── api/
 │       ├── routes/v1/                   # Auto-loaded route handlers
-│       │   ├── auth/                    # Registration & login
+│       │   ├── auth/                    # /me, PATCH /profile (Firebase-backed)
 │       │   ├── games/                   # Game CRUD & sub-routes
 │       │   │   ├── recent/              # Activity feed
 │       │   │   ├── prediction/          # AI match prediction
 │       │   │   └── _gameId/             # Game detail & sub-resources
 │       │   │       ├── match-report/    # AI match report
 │       │   │       └── match-stats/     # FC26 stats extraction
-│       │   ├── leaderboard/             # Rankings
+│       │   ├── compare/                 # Player vs player comparison
+│       │   ├── duos/                    # Teammate duos
+│       │   ├── leaderboard/             # Rankings (public)
 │       │   ├── players/                 # Player profiles
+│       │   ├── seasons/                 # Seasons + archive (public)
 │       │   ├── stats/                   # User stats & H2H
-│       │   └── teams/                   # Team catalog
+│       │   ├── teams/                   # Team catalog
+│       │   └── wrapped/                 # Weekly wrapped (Cloud Scheduler trigger)
 │       ├── controllers/                 # Request handlers
+│       ├── middlewares/                 # auth (Firebase), schedulerAuth (shared secret)
 │       ├── services/                    # Business logic layer
 │       ├── schemas/                     # JSON Schema definitions
 │       ├── middlewares/                 # Auth middleware
