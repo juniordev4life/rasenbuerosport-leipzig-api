@@ -7,7 +7,7 @@ on:
 
 jobs:
   checks:
-    name: Lint & Format
+    name: Lint, Format & Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -24,3 +24,11 @@ jobs:
 
       - name: Formation Check (Format)
         run: npm run format:check
+
+      - name: Training Session (Unit Tests)
+        run: npm test
+
+      # Re-enable once Phase 1+ has lifted coverage to the configured thresholds
+      # (70% lines/functions/statements, 60% branches in vitest.config.js).
+      # - name: Medical Check (Coverage Thresholds)
+      #   run: npm run test:coverage

@@ -58,4 +58,6 @@ run(
 );
 run("git push");
 
-console.log(`\nRelease v${version} complete — Match Day workflow will deploy on tag push.`);
+console.log(
+	`\nRelease v${version} complete — Match Day workflow will deploy on tag push.`,
+);
