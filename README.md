@@ -4,6 +4,8 @@
 
 **The Backend Powering Office Kicker Legends**
 
+![Version](https://img.shields.io/badge/version-v0.1.0-blue)
+
 Fastify 5 REST API with Claude AI integration, Firebase authentication, Cloud SQL Postgres, and a comprehensive stats engine for tracking foosball matches.
 
 ---

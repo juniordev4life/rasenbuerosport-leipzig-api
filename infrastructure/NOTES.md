@@ -52,17 +52,17 @@ This file is the **single textual inventory** of the live GCP/Firebase infrastru
 
 | Field | Value |
 |-------|-------|
-| Service name | _TODO: confirm — likely `rasenbuerosport-api` or similar_ |
+| Service name | `rasenbuerosport-api` |
 | Region | `europe-west3` |
-| Container image | Built from repo `Dockerfile`, pushed to Artifact Registry (_TODO: confirm registry path_) |
-| Port | `8080` (Cloud Run default) |
-| Min / Max instances | _TODO: fill in_ |
-| Memory / CPU | _TODO: fill in_ |
-| Service Account | _TODO: fill in (e.g. `api-runtime@…iam.gserviceaccount.com`)_ |
+| Container image | Built from repo `Dockerfile`, pushed to Artifact Registry: `europe-west3-docker.pkg.dev/rasenbuerosport-leipzig-9d54f/rasenbuerosport-api/rasenbuerosport-api:<sha>` |
+| Port | `8080` |
+| Min / Max instances | `0` / `3` |
+| Memory / CPU | `512Mi` / `1` |
+| Service Account | _TODO: confirm runtime SA name_ |
 | Cloud SQL connection | Attached: `rasenbuerosport-leipzig-9d54f:europe-west3:rasenbuerosport-db` |
-| Ingress | _TODO: `all` or `internal-and-cloud-load-balancing`?_ |
+| Ingress | `--allow-unauthenticated` (public) |
 | Custom domain | _TODO: `api.<domain>` mapping if any_ |
-| Trigger | _TODO: Cloud Build trigger on push to `main`?_ |
+| Trigger | **GitHub Actions `Match Day`** (`.github/workflows/match-day.yml`) — runs on every push to `main` and on manual `workflow_dispatch`. Auths to GCP via Workload Identity Federation (`WIF_PROVIDER` + `WIF_SERVICE_ACCOUNT` repo secrets). |
 
 **Required env vars (set on the Cloud Run service):**
 
@@ -70,13 +70,11 @@ This file is the **single textual inventory** of the live GCP/Firebase infrastru
 |----------|--------|-------|
 | `PORT` | Cloud Run injects | `8080` |
 | `NODE_ENV` | static | `production` |
-| `DATABASE_URL` | Secret Manager (`rbsl-database-url`) | Uses Cloud SQL Unix socket |
-| `FIREBASE_PROJECT_ID` | static | `rasenbuerosport-leipzig-9d54f` |
-| `CORS_ORIGIN` | static | Firebase Hosting URL(s), comma-separated |
-| `ANTHROPIC_API_KEY` | Secret Manager (`rbsl-anthropic-api-key`) | |
-| `WRAPPED_TRIGGER_SECRET` | Secret Manager (`rbsl-wrapped-trigger-secret`) | Shared with Cloud Scheduler job |
-
-> Secret names above are **proposed** — replace with the actual names once verified in Secret Manager.
+| `DATABASE_URL` | Secret Manager (`DATABASE_URL:latest`) | Uses Cloud SQL Unix socket |
+| `FIREBASE_PROJECT_ID` | _TODO: confirm — currently NOT set in `match-day.yml` `--set-env-vars`. Either rely on ADC project detection or add it explicitly._ | `rasenbuerosport-leipzig-9d54f` |
+| `CORS_ORIGIN` | Secret Manager (`CORS_ORIGIN:latest`) | Firebase Hosting URL(s), comma-separated |
+| `ANTHROPIC_API_KEY` | Secret Manager (`ANTHROPIC_API_KEY:latest`) | |
+| `WRAPPED_TRIGGER_SECRET` | Secret Manager (`WRAPPED_TRIGGER_SECRET:latest`) | Shared with Cloud Scheduler job |
 
 ---
 
@@ -144,11 +142,12 @@ Live secrets (proposed naming — verify and update):
 
 | Secret | Consumer | Rotation |
 |--------|----------|----------|
-| `rbsl-database-url` | Cloud Run API | When Cloud SQL password rotates |
-| `rbsl-anthropic-api-key` | Cloud Run API | When key is rotated in Anthropic console |
-| `rbsl-wrapped-trigger-secret` | Cloud Run API + Cloud Scheduler | Rotate yearly or on suspicion |
+| `DATABASE_URL` | Cloud Run API | When Cloud SQL password rotates |
+| `ANTHROPIC_API_KEY` | Cloud Run API | When key is rotated in Anthropic console |
+| `CORS_ORIGIN` | Cloud Run API | When the app's hosted URL changes |
+| `WRAPPED_TRIGGER_SECRET` | Cloud Run API + Cloud Scheduler | Rotate yearly or on suspicion |
 
-> _TODO: replace this list with the actual `gcloud secrets list` output once confirmed._
+> Names confirmed from `match-day.yml` (`--set-secrets DATABASE_URL=DATABASE_URL:latest,…`). The frontend repo additionally uses these GitHub Actions secrets at build time (mirrored from Firebase / API config): `PUBLIC_FIREBASE_API_KEY`, `PUBLIC_FIREBASE_AUTH_DOMAIN`, `PUBLIC_FIREBASE_PROJECT_ID`, `PUBLIC_FIREBASE_STORAGE_BUCKET`, `PUBLIC_FIREBASE_APP_ID`, `PUBLIC_API_URL`, `PUBLIC_TOLGEE_API_KEY`, `PUBLIC_TOLGEE_API_URL`, plus `FIREBASE_SERVICE_ACCOUNT_KEY` for the deploy step.
 
 ---
 
@@ -175,8 +174,12 @@ Live secrets (proposed naming — verify and update):
 
 ## CI/CD
 
-- **API**: deployment trigger _TODO_ (Cloud Build on push to `main`? Manual `gcloud run deploy`?)
-- **App**: `npm run deploy` runs locally; no automated CI deploy yet
+**Release-driven** in both repos. Pushes to `main` run only `Pre-Match Checks` (lint + format). Deploys (`Match Day`) trigger **only on `v*` tag pushes** — and tags are produced by `npm run release` (uses `changelogen` to bump version, write `CHANGELOG.md`, tag, push).
+
+- **API**: GitHub Actions `Match Day` (`.github/workflows/match-day.yml`) — runs on `v*` tags + `workflow_dispatch`. Builds & pushes the Docker image to Artifact Registry, then `gcloud run deploy`. Auths via Workload Identity Federation (`WIF_PROVIDER` + `WIF_SERVICE_ACCOUNT`).
+- **App**: GitHub Actions `Match Day` — runs on `v*` tags + `workflow_dispatch`. `npm run build` (env vars from GitHub Secrets), then `FirebaseExtended/action-hosting-deploy` to the `live` channel. Auths via Firebase service account JSON (`FIREBASE_SERVICE_ACCOUNT_KEY` secret).
+- **`Pre-Match Checks`** workflow runs on every PR + push to `main` in both repos for fast lint/format feedback.
+- **Local fallback**: `npm run deploy` in the app repo still works for emergency hand-deploys.
 - **DB migrations**: applied manually via `psql` through the Cloud SQL Auth Proxy as part of a release. Migration files live in `migrations/` of the API repo. There is no migration tool wired in yet (e.g. `node-pg-migrate`, `dbmate`).
 
 ---
@@ -184,7 +187,8 @@ Live secrets (proposed naming — verify and update):
 ## Known Gaps & Tech Debt
 
 - No Terraform / IaC — this file is the inventory until that lands
-- No staging environment — deploys go straight to prod (low-stakes app, but worth flagging)
+- No staging environment — `Match Day` deploys straight to prod on every `v*` tag. Releases are gated by `npm run release` (intentional human action), but there is no separate staging step. `workflow_dispatch` is available for re-runs / hotfixes.
+- App uses a service-account JSON (`FIREBASE_SERVICE_ACCOUNT_KEY`) for deploys — consider migrating to Workload Identity Federation like the API to remove the long-lived key.
 - Cloud SQL `db-f1-micro` is fine for current load but not HA (single zone, no read replica)
 - `scripts/seed.js` still references Supabase and is dead code (kept for historical reference only — see API README)
 - No automated DB backups beyond what Cloud SQL does by default — _TODO: confirm retention_

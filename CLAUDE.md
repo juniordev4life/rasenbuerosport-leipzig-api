@@ -362,12 +362,20 @@ Never push directly to `main`. Always use feature branches and pull requests.
 - **PR checks**: GitHub Actions must pass (lint, format, tests)
 - **Merge strategy**: Squash merge, delete branch after merge
 
-### Deployment
+### Deployment — Release-driven
 
 - **Platform**: Google Cloud Run (Docker image built from `Dockerfile`)
 - **Database**: Cloud SQL Postgres 16, reached via the Cloud SQL connector
 - **Auth**: Firebase Admin SDK uses the runtime service account's ADC
-- **Trigger**: deployment is run from `main` (currently a manual / Cloud Build flow — no Terraform Coach repo exists for this project)
+- **Trigger**: GitHub Actions `Match Day` runs **only on `v*` tag pushes**. Pushes to `main` run `Pre-Match Checks` (lint + format) but do **not** deploy.
+- **Releases**: cut with `npm run release` (uses `changelogen`). The script bumps the version, writes `CHANGELOG.md`, tags `v<version>`, pushes — and the tag push triggers Match Day.
+
+```bash
+npm run release           # auto-bump from conventional commits
+npm run release -- 1.2.0  # explicit version
+```
+
+Pre-release sanity: ensure all PRs you want included are merged into `main` and `Pre-Match Checks` is green there before running `npm run release`.
 
 The frontend (`rasenbuerosport-leipzig-app`) is deployed to **Firebase Hosting**, not GCS+CDN. Keep CORS origins in sync between API config and the deployed Firebase Hosting URL.
 

@@ -1,0 +1,26 @@
+name: Pre-Match Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  checks:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Tactics Check (Lint)
+        run: npm run lint:check
+
+      - name: Formation Check (Format)
+        run: npm run format:check
