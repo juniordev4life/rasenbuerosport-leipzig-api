@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
 	countAssists,
+	countGameAssists,
 	countMissedPenalties,
+	userHadRedCardInGame,
 } from "../../../src/api/services/stats.services.js";
 import {
 	buildGoalEvent,
@@ -330,5 +332,87 @@ describe("countMissedPenalties", () => {
 		// Assert
 		expect(result.total).toBe(4);
 		expect(result.maxInOneGame).toBe(3);
+	});
+});
+
+describe("countGameAssists", () => {
+	it("returns 0 for a missing or empty timeline", () => {
+		expect(countGameAssists(buildMockGame({ score_timeline: null }), "u1")).toBe(
+			0,
+		);
+		expect(countGameAssists(buildMockGame({ score_timeline: [] }), "u1")).toBe(
+			0,
+		);
+	});
+
+	it("counts only goals (red cards / missed penalties cannot carry an assist)", () => {
+		// Arrange
+		const game = buildMockGame({
+			score_timeline: [
+				buildGoalEvent({ scored_by: "u2", assist_by: "u1" }),
+				buildRedCardEvent({ player_id: "u1" }),
+				buildPenaltyMissedEvent({ shooter_id: "u1" }),
+			],
+		});
+
+		// Act
+		const result = countGameAssists(game, "u1");
+
+		// Assert
+		expect(result).toBe(1);
+	});
+
+	it("ignores assists credited to other users", () => {
+		// Arrange
+		const game = buildMockGame({
+			score_timeline: [
+				buildGoalEvent({ scored_by: "u2", assist_by: "u3" }),
+				buildGoalEvent({ scored_by: "u2", assist_by: "u1" }),
+			],
+		});
+
+		// Act
+		const result = countGameAssists(game, "u1");
+
+		// Assert
+		expect(result).toBe(1);
+	});
+});
+
+describe("userHadRedCardInGame", () => {
+	it("returns false for a game without a red card event", () => {
+		// Arrange
+		const game = buildMockGame({
+			score_timeline: [buildGoalEvent({ scored_by: "u1" })],
+		});
+
+		// Act & Assert
+		expect(userHadRedCardInGame(game, "u1")).toBe(false);
+	});
+
+	it("returns true when the user is the offender", () => {
+		// Arrange
+		const game = buildMockGame({
+			score_timeline: [buildRedCardEvent({ player_id: "u1" })],
+		});
+
+		// Act & Assert
+		expect(userHadRedCardInGame(game, "u1")).toBe(true);
+	});
+
+	it("returns false when a teammate gets the red card", () => {
+		// Arrange
+		const game = buildMockGame({
+			score_timeline: [buildRedCardEvent({ player_id: "u2" })],
+		});
+
+		// Act & Assert
+		expect(userHadRedCardInGame(game, "u1")).toBe(false);
+	});
+
+	it("treats a null or missing timeline as no red card", () => {
+		expect(
+			userHadRedCardInGame(buildMockGame({ score_timeline: null }), "u1"),
+		).toBe(false);
 	});
 });
