@@ -8,7 +8,7 @@ import { validateScoreTimeline } from "../helpers/timeline.helpers.js";
  * @param {string} params.mode - '1v1' or '2v2'
  * @param {number} params.score_home
  * @param {number} params.score_away
- * @param {object[]} params.players - Array of {id, team, team_name?, rating?}
+ * @param {object[]} params.players - Array of {id, team, team_name?}
  * @param {string} [params.played_at] - ISO date string
  * @param {string} params.created_by - User UUID
  * @param {object[]} [params.score_timeline] - Array of {home, away, period}
@@ -55,15 +55,9 @@ export async function createGame({
 
 		for (const player of players) {
 			await client.query(
-				`INSERT INTO game_players (game_id, player_id, team, team_name, rating)
-				VALUES ($1, $2, $3, $4, $5)`,
-				[
-					game.id,
-					player.id,
-					player.team,
-					player.team_name || null,
-					player.rating || null,
-				],
+				`INSERT INTO game_players (game_id, player_id, team, team_name)
+				VALUES ($1, $2, $3, $4)`,
+				[game.id, player.id, player.team, player.team_name || null],
 			);
 		}
 
@@ -141,7 +135,6 @@ export async function getUserGames(userId, limit = 10, offset = 0, from, to) {
 					'player_id', gp.player_id,
 					'team', gp.team,
 					'team_name', gp.team_name,
-					'rating', gp.rating,
 					'profiles', json_build_object('username', p.username, 'avatar_url', p.avatar_url)
 				)
 			) AS game_players
