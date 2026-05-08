@@ -93,7 +93,6 @@ export const createGameSchema = {
 						id: { type: "string", minLength: 1 },
 						team: { type: "string", enum: ["home", "away"] },
 						team_name: { type: "string", minLength: 1 },
-						rating: { type: "integer", minimum: 1, maximum: 5 },
 					},
 				},
 				minItems: 1,

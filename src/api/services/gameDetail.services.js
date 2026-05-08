@@ -11,7 +11,7 @@ export async function getGameById(gameId) {
 	if (!game) return null;
 
 	const players = await query(
-		`SELECT gp.player_id, gp.team, gp.team_name, gp.rating,
+		`SELECT gp.player_id, gp.team, gp.team_name,
 			json_build_object('username', p.username, 'avatar_url', p.avatar_url) AS profiles
 		FROM game_players gp
 		LEFT JOIN profiles p ON p.id = gp.player_id
