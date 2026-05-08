@@ -1,4 +1,8 @@
 import { query, queryOne } from "../helpers/database.helpers.js";
+import {
+	generateMatchOfTheWeekReport,
+	pickMatchOfTheWeek,
+} from "./matchOfTheWeek.services.js";
 
 /**
  * Computes the date range of a given week (Mon 00:00 to Sun 23:59:59) for the
@@ -128,6 +132,27 @@ export async function computeWrapped(weekStart, weekEnd) {
 		};
 	}
 
+	// Match of the Week — best-effort, fail-soft. The wrapped payload is
+	// still useful without it, and the AI call is the only thing that can
+	// realistically fail here.
+	let matchOfTheWeek = null;
+	try {
+		const picked = await pickMatchOfTheWeek(weekStart, weekEnd);
+		if (picked) {
+			const report = await generateMatchOfTheWeekReport(picked);
+			matchOfTheWeek = {
+				game_id: picked.id,
+				score: `${picked.score_home}:${picked.score_away}`,
+				result_type: picked.result_type,
+				played_at: picked.played_at,
+				drama_score: picked._drama_score,
+				report,
+			};
+		}
+	} catch (err) {
+		console.warn("[wrapped] Match of the Week generation failed:", err.message);
+	}
+
 	return {
 		total_games: totalsRow?.total_games ?? 0,
 		total_goals: totalsRow?.total_goals ?? 0,
@@ -135,6 +160,7 @@ export async function computeWrapped(weekStart, weekEnd) {
 		topscorer: topscorerRow,
 		most_active: mostActiveRow,
 		top_duo: topDuo,
+		match_of_the_week: matchOfTheWeek,
 	};
 }
 

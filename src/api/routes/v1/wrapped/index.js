@@ -1,3 +1,4 @@
+import { getMyWeeklyRecapController } from "../../../controllers/weeklyRecap.controllers.js";
 import {
 	generateWrappedController,
 	getLatestWrappedController,
@@ -18,6 +19,12 @@ export default async function (fastify) {
 		preHandler: requireAuth,
 		schema: getLatestWrappedController.schema,
 		handler: getLatestWrappedController.handler,
+	});
+
+	fastify.get("/recap/me", {
+		preHandler: requireAuth,
+		schema: getMyWeeklyRecapController.schema,
+		handler: getMyWeeklyRecapController.handler,
 	});
 
 	fastify.get("/", {
