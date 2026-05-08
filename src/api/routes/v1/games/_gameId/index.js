@@ -1,10 +1,10 @@
 import {
-	getGameDetailController,
 	deleteGameController,
+	getGameDetailController,
 } from "../../../../controllers/gameDetail.controllers.js";
 import {
-	requireAuth,
 	requireAdmin,
+	requireAuth,
 } from "../../../../middlewares/auth.middlewares.js";
 
 /** @param {import('fastify').FastifyInstance} fastify */
