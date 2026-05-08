@@ -20,14 +20,89 @@ Regeln:
 - Erwähne den Spielverlauf wenn dramatisch (Aufholjagden, Last-Minute-Tore)
 - Bei Verlängerung: "Das Spiel ging in die Verlängerung..."
 - Bei Elfmeterschießen: besonders dramatisch schreiben
-- Hinweis zu \`score_timeline\`: jeder Eintrag hat ein optionales \`event_type\`
-  ("goal" wenn fehlend, "card" mit \`card_type: "yellow" | "red"\`,
-  "penalty_missed", oder das Legacy-\`red_card\`). Karten und verschossene
-  Elfmeter sind dramaturgisch erwähnenswert (Wendepunkt, Schock-Moment,
-  Glück gehabt) — aber zähle sie NICHT als Tore.
+
+Hinweis zu \`score_timeline\`:
+- Jeder Eintrag ist bereits mit Klarnamen angereichert. Verlasse dich AUSSCHLIESSLICH auf diese Felder, NIE auf Spieler-IDs:
+  - Tor: \`scorer\` (Torschütze) und optional \`assist\` (Vorlagengeber).
+    Erwähne den Vorlagengeber wenn vorhanden ("legt für X auf", "Vorarbeit von Y").
+  - Karte: \`offender\` (Spieler) und \`card_color\` ("yellow" | "red").
+  - Verschossener Elfmeter: \`shooter\` (Schütze) und \`keeper\` (Torwart, kann fehlen).
+- Karten und verschossene Elfmeter sind dramaturgisch erwähnenswert (Wendepunkt, Schock-Moment, Glück gehabt) — aber zähle sie NICHT als Tore.
+- Wenn ein \`scorer\` / \`assist\` / \`offender\` / \`shooter\` / \`keeper\` "Unbekannt" ist, lass den Namen weg statt zu raten.
+
 - Kein Markdown, nur Fließtext
 - Maximal 5 Sätze
 - Gib NUR den Spielbericht zurück, keine Einleitung oder Erklärung`;
+
+/**
+ * Resolve a Firebase UID to a human-readable username, falling back to
+ * "Unbekannt" so the AI prompt can detect missing attribution explicitly.
+ *
+ * @param {string|null|undefined} playerId
+ * @param {Map<string, string>} nameMap
+ * @returns {string|null}
+ */
+function resolveName(playerId, nameMap) {
+	if (!playerId) return null;
+	return nameMap.get(playerId) ?? "Unbekannt";
+}
+
+/**
+ * Build a human-readable copy of a `score_timeline` entry. Replaces opaque
+ * Firebase UIDs with usernames so the model attributes goals to the right
+ * player instead of guessing. Drops `home`/`away` running scores in favour
+ * of a single `score_after` string for readability.
+ *
+ * @param {object} entry
+ * @param {Map<string, string>} nameMap
+ * @returns {object}
+ */
+function buildAITimelineEntry(entry, nameMap) {
+	const eventType = entry?.event_type ?? "goal";
+	const base = {
+		event_type: eventType,
+		period: entry?.period ?? "regular",
+	};
+	if (typeof entry?.minute === "number") {
+		base.minute = entry.minute;
+		if (entry.stoppage) base.stoppage = entry.stoppage;
+	}
+
+	if (eventType === "goal") {
+		return {
+			...base,
+			score_after: `${entry.home}:${entry.away}`,
+			goal_type: entry.goal_type ?? "play",
+			scorer: resolveName(entry.scored_by, nameMap),
+			assist: resolveName(entry.assist_by, nameMap),
+		};
+	}
+	if (eventType === "card") {
+		return {
+			...base,
+			card_color: entry.card_type,
+			offender: resolveName(entry.player_id, nameMap),
+			team: entry.team,
+		};
+	}
+	if (eventType === "red_card") {
+		return {
+			...base,
+			card_color: "red",
+			offender: resolveName(entry.player_id, nameMap),
+			team: entry.team,
+		};
+	}
+	if (eventType === "penalty_missed") {
+		return {
+			...base,
+			shooter: resolveName(entry.shooter_id, nameMap),
+			keeper: resolveName(entry.keeper_id, nameMap),
+			team: entry.team,
+		};
+	}
+	return base;
+}
 
 /**
  * Generates an AI match report for a game
@@ -52,6 +127,16 @@ export async function generateMatchReport(gameId) {
 		WHERE gp.game_id = $1`,
 		[gameId],
 	);
+
+	// Build a player_id → username map for attribution lookups inside the
+	// score-timeline transformation. Also includes guests if their player_id
+	// happens to map to a profile (it usually does not — guest entries are
+	// created with synthetic IDs and resolve to "Unbekannt").
+	const nameMap = new Map();
+	for (const gp of players) {
+		const name = gp.profiles?.username;
+		if (gp.player_id && name) nameMap.set(gp.player_id, name);
+	}
 
 	// Build player context with career stats
 	const playerContexts = [];
@@ -82,10 +167,14 @@ export async function generateMatchReport(gameId) {
 		}
 	}
 
+	const timelineForAI = Array.isArray(game.score_timeline)
+		? game.score_timeline.map((entry) => buildAITimelineEntry(entry, nameMap))
+		: [];
+
 	const gameContext = JSON.stringify({
 		score: `${game.score_home}:${game.score_away}`,
 		result_type: game.result_type,
-		score_timeline: game.score_timeline,
+		score_timeline: timelineForAI,
 		match_stats: game.match_stats,
 		players: playerContexts,
 	});
