@@ -10,9 +10,14 @@
  * -----------
  *  - `goal` (default for legacy entries without `event_type`): scores a goal
  *    for a side; `home`/`away` carry the running score.
- *  - `red_card` (since Phase 3): records a sending-off; does not affect score.
- *  - `penalty_missed` (since Phase 4): records a missed/saved penalty; does
- *    not affect score.
+ *  - `red_card` (Phase 3, **legacy**): records a sending-off without a
+ *    discriminator. New writes should use `card` instead, but reader helpers
+ *    treat existing entries as `card` with `card_type: "red"`.
+ *  - `card` (Phase 7): unified yellow / red card event with a
+ *    `card_type: "yellow" | "red"` discriminator — same shape as the goal
+ *    `goal_type` enum. Does not affect score.
+ *  - `penalty_missed` (Phase 4): records a missed/saved penalty; does not
+ *    affect score.
  */
 
 /** @type {ReadonlyArray<number>} */
@@ -46,12 +51,58 @@ export function isGoal(entry) {
 }
 
 /**
- * Whether the entry represents a red card.
+ * Whether the entry represents any card event — covers both the unified
+ * `card` shape (with a `card_type` discriminator) and the legacy
+ * `red_card` event type that shipped first.
+ *
  * @param {{ event_type?: string }} entry
  * @returns {boolean}
  */
+export function isCard(entry) {
+	const t = getEventType(entry);
+	return t === "card" || t === "red_card";
+}
+
+/**
+ * Resolve the colour of a card entry, normalising across the legacy
+ * `red_card` event type and the unified `card` event with `card_type`.
+ *
+ * @param {{ event_type?: string, card_type?: string }} entry
+ * @returns {"yellow"|"red"|null}
+ * @example
+ *   getCardColor({ event_type: "red_card" });                // → "red"
+ *   getCardColor({ event_type: "card", card_type: "yellow"}); // → "yellow"
+ *   getCardColor({ event_type: "goal" });                    // → null
+ */
+export function getCardColor(entry) {
+	if (!isCard(entry)) return null;
+	if (getEventType(entry) === "red_card") return "red";
+	const c = entry?.card_type;
+	return c === "yellow" || c === "red" ? c : null;
+}
+
+/**
+ * Whether the entry represents a red card. True for the legacy
+ * `red_card` event type as well as the unified `card` event with
+ * `card_type: "red"`.
+ *
+ * @param {{ event_type?: string, card_type?: string }} entry
+ * @returns {boolean}
+ */
 export function isRedCard(entry) {
-	return getEventType(entry) === "red_card";
+	return getCardColor(entry) === "red";
+}
+
+/**
+ * Whether the entry represents a yellow card (unified `card` event with
+ * `card_type: "yellow"`). Pre-Phase-7 timelines never carry yellow cards
+ * — those came from the FC26 stats image upload.
+ *
+ * @param {{ event_type?: string, card_type?: string }} entry
+ * @returns {boolean}
+ */
+export function isYellowCard(entry) {
+	return getCardColor(entry) === "yellow";
 }
 
 /**

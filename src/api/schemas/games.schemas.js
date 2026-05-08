@@ -46,6 +46,21 @@ const redCardEntrySchema = {
 	},
 };
 
+const cardEntrySchema = {
+	type: "object",
+	required: ["event_type", "card_type", "player_id", "team", "period"],
+	additionalProperties: false,
+	properties: {
+		event_type: { type: "string", const: "card" },
+		card_type: { type: "string", enum: ["yellow", "red"] },
+		player_id: { type: "string", minLength: 1 },
+		team: { type: "string", enum: ["home", "away"] },
+		period: { type: "string", enum: ["regular", "extra_time"] },
+		minute: { type: "integer", minimum: 1, maximum: 120 },
+		stoppage: { type: "integer", minimum: 0, maximum: 5 },
+	},
+};
+
 const penaltyMissedEntrySchema = {
 	type: "object",
 	required: ["event_type", "shooter_id", "team", "period"],
@@ -90,6 +105,7 @@ export const createGameSchema = {
 				items: {
 					oneOf: [
 						goalEntrySchema,
+						cardEntrySchema,
 						redCardEntrySchema,
 						penaltyMissedEntrySchema,
 					],

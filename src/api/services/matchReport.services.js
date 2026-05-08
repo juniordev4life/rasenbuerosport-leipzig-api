@@ -21,9 +21,10 @@ Regeln:
 - Bei Verlängerung: "Das Spiel ging in die Verlängerung..."
 - Bei Elfmeterschießen: besonders dramatisch schreiben
 - Hinweis zu \`score_timeline\`: jeder Eintrag hat ein optionales \`event_type\`
-  ("goal" wenn fehlend, "red_card" oder "penalty_missed"). Rote Karten und
-  verschossene Elfmeter sind dramaturgisch erwähnenswert (Wendepunkt,
-  Schock-Moment, Glück gehabt) — aber zähle sie NICHT als Tore.
+  ("goal" wenn fehlend, "card" mit \`card_type: "yellow" | "red"\`,
+  "penalty_missed", oder das Legacy-\`red_card\`). Karten und verschossene
+  Elfmeter sind dramaturgisch erwähnenswert (Wendepunkt, Schock-Moment,
+  Glück gehabt) — aber zähle sie NICHT als Tore.
 - Kein Markdown, nur Fließtext
 - Maximal 5 Sätze
 - Gib NUR den Spielbericht zurück, keine Einleitung oder Erklärung`;

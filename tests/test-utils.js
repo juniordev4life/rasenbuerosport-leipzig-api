@@ -129,6 +129,36 @@ export function buildRedCardEvent(overrides = {}) {
 }
 
 /**
+ * Build a unified card entry for `score_timeline`. Defaults to a yellow
+ * card by `user-1` for the home team in minute 60.
+ *
+ * @param {Partial<{
+ *   event_type: "card",
+ *   card_type: "yellow"|"red",
+ *   player_id: string, team: "home"|"away",
+ *   period: "regular"|"extra_time",
+ *   minute: number, stoppage: number,
+ * }>} [overrides]
+ * @returns {object}
+ *
+ * @example
+ *   const yellow = buildCardEvent({ player_id: "user-2", minute: 30 });
+ *   const red = buildCardEvent({ card_type: "red" });
+ */
+export function buildCardEvent(overrides = {}) {
+	return {
+		event_type: "card",
+		card_type: "yellow",
+		player_id: "user-1",
+		team: "home",
+		period: "regular",
+		minute: 60,
+		stoppage: 0,
+		...overrides,
+	};
+}
+
+/**
  * Build a missed-penalty entry for `score_timeline`.
  *
  * @param {Partial<{

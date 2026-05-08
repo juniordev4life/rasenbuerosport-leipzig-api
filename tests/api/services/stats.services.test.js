@@ -4,8 +4,10 @@ import {
 	countGameAssists,
 	countMissedPenalties,
 	userHadRedCardInGame,
+	userHadYellowCardInGame,
 } from "../../../src/api/services/stats.services.js";
 import {
+	buildCardEvent,
 	buildGoalEvent,
 	buildMockGame,
 	buildMockGamePlayer,
@@ -414,5 +416,56 @@ describe("userHadRedCardInGame", () => {
 		expect(
 			userHadRedCardInGame(buildMockGame({ score_timeline: null }), "u1"),
 		).toBe(false);
+	});
+
+	it("recognises a unified card event with card_type 'red' as a red card", () => {
+		const game = buildMockGame({
+			score_timeline: [buildCardEvent({ player_id: "u1", card_type: "red" })],
+		});
+		expect(userHadRedCardInGame(game, "u1")).toBe(true);
+	});
+
+	it("does not classify a yellow card as a red card", () => {
+		const game = buildMockGame({
+			score_timeline: [buildCardEvent({ player_id: "u1", card_type: "yellow" })],
+		});
+		expect(userHadRedCardInGame(game, "u1")).toBe(false);
+	});
+});
+
+describe("userHadYellowCardInGame", () => {
+	it("returns true when the user picked up a yellow card", () => {
+		const game = buildMockGame({
+			score_timeline: [buildCardEvent({ player_id: "u1", card_type: "yellow" })],
+		});
+		expect(userHadYellowCardInGame(game, "u1")).toBe(true);
+	});
+
+	it("returns false when no card events are present", () => {
+		const game = buildMockGame({
+			score_timeline: [buildGoalEvent({ scored_by: "u1" })],
+		});
+		expect(userHadYellowCardInGame(game, "u1")).toBe(false);
+	});
+
+	it("returns false when the user only got a red card", () => {
+		const game = buildMockGame({
+			score_timeline: [buildCardEvent({ player_id: "u1", card_type: "red" })],
+		});
+		expect(userHadYellowCardInGame(game, "u1")).toBe(false);
+	});
+
+	it("returns false when a teammate got the yellow card", () => {
+		const game = buildMockGame({
+			score_timeline: [buildCardEvent({ player_id: "u2", card_type: "yellow" })],
+		});
+		expect(userHadYellowCardInGame(game, "u1")).toBe(false);
+	});
+
+	it("treats legacy red_card events as red, not yellow", () => {
+		const game = buildMockGame({
+			score_timeline: [buildRedCardEvent({ player_id: "u1" })],
+		});
+		expect(userHadYellowCardInGame(game, "u1")).toBe(false);
 	});
 });
