@@ -1,18 +1,23 @@
 /**
  * `score_timeline` entries are polymorphic. Each entry is either:
  *  - a goal (default for legacy entries that omit `event_type`),
- *  - a red card (Phase 3),
- *  - a missed penalty (Phase 4 — schema branch staged here so the API stays
- *    forward-compatible with the picker UI that lands shortly after).
+ *  - a card — yellow or red, distinguished by `card_type` (Phase 7),
+ *  - a legacy red card without the `card_type` discriminator (Phase 3),
+ *  - a missed penalty (Phase 4).
  *
- * `oneOf` enforces the discriminator: each branch sets `additionalProperties:
- * false` so cross-shaped payloads (e.g. a `red_card` carrying `home`/`away`)
- * fail explicitly rather than silently matching multiple branches.
+ * Discrimination between branches is driven by `event_type` (const per
+ * branch) plus the unique required-field signature. We do **not** set
+ * `additionalProperties: false` on the branches: combined with Fastify's
+ * default `removeAdditional: true`, that flag causes Ajv to strip fields
+ * that are unknown in *any* branch (e.g. `card_type` from a `card` entry
+ * because `goalEntrySchema` does not list it) before the matching branch
+ * is selected. The downside — silently accepting unknown fields — is
+ * acceptable here: the timeline reader ignores anything it does not
+ * recognise anyway.
  */
 const goalEntrySchema = {
 	type: "object",
 	required: ["home", "away", "period"],
-	additionalProperties: false,
 	properties: {
 		event_type: { type: "string", enum: ["goal"] },
 		home: { type: "integer", minimum: 0 },
@@ -35,7 +40,6 @@ const goalEntrySchema = {
 const redCardEntrySchema = {
 	type: "object",
 	required: ["event_type", "player_id", "team", "period"],
-	additionalProperties: false,
 	properties: {
 		event_type: { type: "string", const: "red_card" },
 		player_id: { type: "string", minLength: 1 },
@@ -49,7 +53,6 @@ const redCardEntrySchema = {
 const cardEntrySchema = {
 	type: "object",
 	required: ["event_type", "card_type", "player_id", "team", "period"],
-	additionalProperties: false,
 	properties: {
 		event_type: { type: "string", const: "card" },
 		card_type: { type: "string", enum: ["yellow", "red"] },
@@ -64,7 +67,6 @@ const cardEntrySchema = {
 const penaltyMissedEntrySchema = {
 	type: "object",
 	required: ["event_type", "shooter_id", "team", "period"],
-	additionalProperties: false,
 	properties: {
 		event_type: { type: "string", const: "penalty_missed" },
 		shooter_id: { type: "string", minLength: 1 },
