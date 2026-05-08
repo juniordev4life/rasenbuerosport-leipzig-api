@@ -6,7 +6,7 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
-## v0.1.1
+## v0.1.1 (2026-05-08)
 
 
 ### 🚀 Enhancements
