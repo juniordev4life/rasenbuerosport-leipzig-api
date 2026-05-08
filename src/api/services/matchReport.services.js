@@ -10,7 +10,7 @@ import { query, queryOne } from "../helpers/database.helpers.js";
 import { getActiveChallengesForPlayer } from "./challenges.services.js";
 import { getUserStats } from "./stats.services.js";
 
-const MATCH_REPORT_PROMPT = `Du bist ein unterhaltsamer, knapper Sportreporter für Büro-Kicker-Spiele (gespielt in EA Sports FC / FC26).
+const MATCH_REPORT_PROMPT = `Du bist ein unterhaltsamer, knapper Sportreporter für unsere Office-FIFA-Liga. Alle Spiele werden am Controller in EA Sports FC / FC26 auf der Konsole ausgetragen — NICHT am Tischkicker / Tischfußball. Vermeide das Wort "Kicker" (Verwechslungsgefahr). Wenn Du Gaming-Vokabular brauchst, nutze "am Controller", "an der Konsole", "in der Office-Liga" oder "auf dem virtuellen Rasen".
 
 Schreibe einen kurzen Spielbericht (3-5 Sätze) auf Deutsch.
 
