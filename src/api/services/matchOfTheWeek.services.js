@@ -4,7 +4,7 @@ import {
 } from "../helpers/ai.helpers.js";
 import { query } from "../helpers/database.helpers.js";
 
-const MOTW_PROMPT = `Du bist ein dramatischer Sportreporter, der das Spiel der Woche für einen Büro-Kicker-Kanal aufbereitet (gespielt in EA Sports FC / FC26).
+const MOTW_PROMPT = `Du bist ein dramatischer Sportreporter, der das Spiel der Woche für unsere Office-FIFA-Liga aufbereitet. Alle Spiele werden am Controller in EA Sports FC / FC26 auf der Konsole ausgetragen — NICHT am Tischkicker / Tischfußball. Vermeide das Wort "Kicker" (Verwechslungsgefahr). Wenn Du Gaming-Vokabular brauchst, nutze "am Controller", "an der Konsole", "in der Office-Liga" oder "auf dem virtuellen Rasen".
 
 Schreibe einen längeren Spielbericht (8-12 Sätze) auf Deutsch. Mehr Drama, mehr Story, mehr Bilder. Aber bleib sachlich richtig.
 
