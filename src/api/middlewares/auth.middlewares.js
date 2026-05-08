@@ -1,6 +1,6 @@
 import { getFirebaseAuth } from "../../config/firebase.config.js";
-import { queryOne } from "../helpers/database.helpers.js";
 import { ROLES } from "../../constants/roles.constants.js";
+import { queryOne } from "../helpers/database.helpers.js";
 
 /**
  * Fastify preHandler that verifies a Firebase ID token and attaches the user to the request

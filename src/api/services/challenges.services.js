@@ -1,4 +1,3 @@
-import { query } from "../helpers/database.helpers.js";
 import {
 	computePlayerWeekStatsPure,
 	computeProgress,
@@ -6,6 +5,7 @@ import {
 	msUntilWeekEndBerlin,
 	pickChallengesForWeek,
 } from "../helpers/challenges.helpers.js";
+import { query } from "../helpers/database.helpers.js";
 
 const ACTIVE_CHALLENGES_PER_WEEK = 3;
 
