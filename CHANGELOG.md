@@ -5,3 +5,89 @@ All notable changes to this project will be documented in this file. Generated b
 Releases are cut with `npm run release`, which bumps the version, writes this file, tags `v<version>`, and pushes. The tag push triggers the `Match Day` GitHub Actions workflow which builds and deploys the Cloud Run service.
 
 <!-- changelogen entries appear below -->
+
+## v0.1.1
+
+
+### 🚀 Enhancements
+
+- Initial backend setup with Fastify 5 and Supabase ([fc7c5a4](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/fc7c5a4))
+- Add players, teams, stats endpoints and extend games API ([045d209](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/045d209))
+- Add V1 API — game detail, H2H, activity feed, score timeline ([4430965](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/4430965))
+- Add match stats extraction, AI reports, predictions, badges & career stats ([de82b12](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/de82b12))
+- Add .node-version file to specify Node.js version ([234afe5](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/234afe5))
+- Add game mode filter to leaderboard API ([8bc228d](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/8bc228d))
+- **teams:** Enhance getAllTeams functionality with filtering options ([559c118](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/559c118))
+- Enhance match stats upload with type parameter and add new image URL columns for passes and defense ([1b30326](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/1b30326))
+- Migrate from Supabase to Firebase for authentication and database operations ([e5cf655](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/e5cf655))
+- Update logo URLs in database and modify schema validations ([3cef3c1](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/3cef3c1))
+- Implement Elo rating system with player ratings and history ([42349eb](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/42349eb))
+- Add script for retroactive Elo rating calculation ([ef84819](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/ef84819))
+- Enhance game and user statistics with date filtering, season management, and new badges ([403f4dc](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/403f4dc))
+- Add delete game functionality with admin access control and Elo recalculation ([039de1d](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/039de1d))
+- Decode RTF unicode escapes early for cleaner team names ([14749c1](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/14749c1))
+- Remove Elo rating system and related functionalities ([40e5e4d](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/40e5e4d))
+- Expand game mode options in createGameSchema and predictionSchema ([12ab483](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/12ab483))
+- Add goal_type property to score timeline in createGameSchema ([faf7e36](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/faf7e36))
+- Implement weekly wrapped snapshots with associated controllers, services, and schemas ([aa3548e](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/aa3548e))
+- Add WRAPPED_TRIGGER_SECRET to Cloud Run deployment secrets ([5e80a5a](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/5e80a5a))
+- Add minute and stoppage to score_timeline schema ([251f6ec](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/251f6ec))
+- Add infrastructure notes for GCP/Firebase setup and configuration ([7842bdd](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/7842bdd))
+- Implement release-driven deployment workflow and update infrastructure documentation ([1008224](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/1008224))
+- Enforce strictly chronological score-timeline events ([#3](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/3))
+- Track assists on goal events and expose them in user stats ([#4](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/4))
+- Introduce event-type discriminator and red-card events in score timeline ([#5](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/5))
+- Count missed-penalty events for shooter and keeper roles ([#6](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/6))
+- Add Phase 5 badges (Vorlagengeber, Elfmeterkiller, Pechvogel, …) ([#7](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/7))
+- Weekly challenges API (active / history / leaderboard) ([#8](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/8))
+- Unified card event with yellow/red discriminator ([#11](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/11))
+- Match of the Week, personal recap, smarter match-report context ([#14](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/14))
+- Cache the personal recap per Berlin day, clarify console-gaming context in all AI prompts ([#18](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/18))
+
+### 🩹 Fixes
+
+- Handle null username in handle_new_user trigger for invited users ([cf4417e](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/cf4417e))
+- **cors:** Support multiple origins via comma-separated CORS_ORIGIN ([47f7d04](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/47f7d04))
+- **biome:** Update schema version and restructure organizeImports configuration ([12ee259](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/12ee259))
+- Adjust formatting in download-logos.js for improved readability ([62a1157](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/62a1157))
+- Correct SQL join condition in computeWrapped function ([0e3aa6c](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/0e3aa6c))
+- Update README to reflect Firebase authentication and Cloud SQL integration ([1955bea](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/1955bea))
+- Include current-week completions in challenge bonus points ([#9](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/9))
+- Coerce pg DATE columns to YYYY-MM-DD before re-using as SQL params ([#10](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/10))
+- Pre-resolve player names before sending the timeline to the AI ([#12](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/12))
+
+### 💅 Refactors
+
+- Rename functions for clarity and remove unused imports ([35ea87a](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/35ea87a))
+- Rename variables for consistency and clarity in migration scripts ([e190167](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/e190167))
+- Remove training session step from match day workflow ([bcbe72e](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/bcbe72e))
+- Enhance getAllTeams function to format star_rating and improve response structure ([919a999](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/919a999))
+- Simplify getUserProfile function by removing unused parameters and improving error handling ([83cf47b](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/83cf47b))
+- Improve code readability in dashboard stats controllers and services ([db89217](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/db89217))
+- Improve code formatting in auth and games services ([bf86ec6](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/bf86ec6))
+- Improve formatting of Promise.all in getDashboardStatsController ([254f2c1](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/254f2c1))
+
+### 📖 Documentation
+
+- Add comprehensive API documentation with feature guides ([f00f4fc](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/f00f4fc))
+- Add supported leagues table with 25 European top leagues ([eeb5110](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/eeb5110))
+- Update README with local development instructions using PROD snapshot ([f782beb](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/f782beb))
+- Add Cloud Scheduler setup for weekly Wrapped generation ([#16](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/16))
+
+### 🏡 Chore
+
+- Update README to remove team and hosting details, simplify closing statement ([f115f66](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/f115f66))
+- Update Node.js version to 26 ([6386b85](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/6386b85))
+- Downgrade Node.js version from 26 to 24 in workflow, Dockerfile, and package.json ([e42eb0e](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/e42eb0e))
+- Update GitHub Actions to use checkout and setup-node version 5 ([9fbd820](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/9fbd820))
+- Update Google Cloud action versions in match-day workflow and adjust minItems in createGameSchema ([760db1f](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/760db1f))
+- Drop the unused game_players.rating column ([#13](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/13))
+
+### ✅ Tests
+
+- Bootstrap Vitest foundation with CI integration ([#2](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/2))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
