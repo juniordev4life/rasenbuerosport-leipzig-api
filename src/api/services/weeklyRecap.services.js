@@ -4,21 +4,23 @@ import {
 } from "../helpers/ai.helpers.js";
 import {
 	computePlayerWeekStatsPure,
+	formatBerlinDate,
 	getWeekRangeBerlin,
 } from "../helpers/challenges.helpers.js";
 import { query, queryOne } from "../helpers/database.helpers.js";
 import { getActiveChallengesForPlayer } from "./challenges.services.js";
 
-const RECAP_PROMPT = `Du bist ein persönlicher Sport-Coach für einen Büro-Kicker-Spieler. Schreibe einen Wochenrückblick für den Spieler in der zweiten Person Singular ("Du"), auf Deutsch.
+const RECAP_PROMPT = `Du bist ein persönlicher Coach für einen Office-FIFA-Spieler. Geschrieben wird über Spiele in EA Sports FC / FC26 — gespielt am Controller auf der Konsole, NICHT am Tischkicker / Tischfußball. Wenn Du Gaming-Vokabular brauchst, sag ruhig "am Controller", "an der Konsole", "in der Office-Liga" oder "auf dem virtuellen Rasen". Vermeide das Wort "Kicker" (Verwechslungsgefahr Tischkicker).
+
+Schreibe einen Wochenrückblick für den Spieler in der zweiten Person Singular ("Du"), auf Deutsch.
 
 Regeln:
 - 4-7 Sätze, lockerer Ton
 - Beziehe konkrete Zahlen aus \`week_stats\` ein (Spiele, Siege, Tore, Vorlagen)
-- Wenn \`badges_unlocked_this_week\` nicht leer ist: erwähne die Badges namentlich
 - Wenn \`challenges_completed_this_week\` nicht leer ist: erwähne die Challenges + Punkte
 - Wenn \`top_opponent\` gesetzt ist: erwähne ihn namentlich
 - Wenn \`vs_last_week\` Verbesserung/Rückschritt zeigt: einbauen ("besser als letzte Woche", "drei Spiele weniger als letzte Woche")
-- Bei null Spielen: motivierend, aber kurz ("Diese Woche kein Match — Zeit für ein Comeback?")
+- Bei null Spielen: motivierend, aber kurz ("Diese Woche noch kein Match — Zeit, den Controller in die Hand zu nehmen")
 - KEINE Spielernamen erfinden. Nutze nur Namen aus \`top_opponent\` oder dem aufrufenden \`player.name\`
 - Kein Markdown, nur Fließtext
 - Gib NUR den Rückblick zurück, keine Einleitung`;
@@ -168,6 +170,19 @@ export async function generatePersonalRecap(playerId) {
 	}
 
 	const now = new Date();
+	const today = formatBerlinDate(now);
+
+	// Daily cache: at most one Anthropic call per player per Berlin
+	// calendar day. The cache rolls over automatically when the date
+	// changes — the next request after midnight Berlin sees a stale
+	// `valid_for_date` and regenerates.
+	const cached = await queryOne(
+		`SELECT payload FROM personal_recap_cache
+		WHERE player_id = $1 AND valid_for_date = $2::date`,
+		[playerId, today],
+	);
+	if (cached?.payload) return cached.payload;
+
 	const { weekStart, weekEnd } = getWeekRangeBerlin(now);
 	const lastWeekRef = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
 	const { weekStart: lastStart, weekEnd: lastEnd } =
@@ -187,13 +202,14 @@ export async function generatePersonalRecap(playerId) {
 	};
 
 	// If there is genuinely nothing to say, return a minimal canned text
-	// rather than spending a Claude call.
+	// rather than spending a Claude call. Cache it too so we don't hit the
+	// canned branch on every load when a player is inactive for a stretch.
 	if (
 		stats.games_played === 0 &&
 		lastStats.games_played === 0 &&
 		challenges.completed.length === 0
 	) {
-		return {
+		const empty = {
 			week_start: weekStart,
 			week_end: weekEnd,
 			stats,
@@ -201,8 +217,10 @@ export async function generatePersonalRecap(playerId) {
 			top_opponent: null,
 			challenges_completed_this_week: [],
 			total_bonus_points: 0,
-			text: "Diese Woche noch kein Match — Zeit für ein Comeback?",
+			text: "Diese Woche noch kein Match — Zeit, den Controller in die Hand zu nehmen.",
 		};
+		await persistRecapCache(playerId, today, empty);
+		return empty;
 	}
 
 	const recapContext = JSON.stringify({
@@ -238,7 +256,7 @@ export async function generatePersonalRecap(playerId) {
 		);
 	}
 
-	return {
+	const result = {
 		week_start: weekStart,
 		week_end: weekEnd,
 		stats,
@@ -248,4 +266,35 @@ export async function generatePersonalRecap(playerId) {
 		total_bonus_points: challenges.total_points,
 		text,
 	};
+
+	await persistRecapCache(playerId, today, result);
+
+	return result;
+}
+
+/**
+ * Idempotent upsert into `personal_recap_cache` keyed on `player_id`.
+ * Replaces any prior cache entry so the latest day's recap always wins.
+ *
+ * @param {string} playerId
+ * @param {string} validForDate YYYY-MM-DD
+ * @param {object} payload
+ * @returns {Promise<void>}
+ */
+async function persistRecapCache(playerId, validForDate, payload) {
+	try {
+		await query(
+			`INSERT INTO personal_recap_cache (player_id, valid_for_date, payload, generated_at)
+			VALUES ($1, $2::date, $3, now())
+			ON CONFLICT (player_id) DO UPDATE
+				SET valid_for_date = EXCLUDED.valid_for_date,
+					payload = EXCLUDED.payload,
+					generated_at = now()`,
+			[playerId, validForDate, JSON.stringify(payload)],
+		);
+	} catch (err) {
+		// Cache writes are best-effort — never let a cache failure shadow the
+		// successful narrative we already produced.
+		console.warn("[weeklyRecap] failed to persist cache:", err.message);
+	}
 }

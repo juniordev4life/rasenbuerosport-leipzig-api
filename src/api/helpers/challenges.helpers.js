@@ -9,6 +9,25 @@
 import { filterGoals } from "./timeline.helpers.js";
 
 /**
+ * Format a `Date` (default: now) as a `YYYY-MM-DD` string in Europe/Berlin
+ * time. Useful as a cache key for "valid for today" lookups that should
+ * roll over at 00:00 Berlin rather than 00:00 UTC.
+ *
+ * @param {Date} [reference]
+ * @returns {string}
+ * @example
+ *   formatBerlinDate(new Date("2026-05-08T22:30:00Z")); // → "2026-05-09"
+ */
+export function formatBerlinDate(reference = new Date()) {
+	return new Intl.DateTimeFormat("en-CA", {
+		timeZone: "Europe/Berlin",
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+	}).format(reference);
+}
+
+/**
  * Compute the ISO week range (Monday → Sunday) containing the reference date,
  * interpreted in Europe/Berlin time. Returned as inclusive `YYYY-MM-DD`
  * strings so they can be passed straight to a `::date` SQL parameter.
