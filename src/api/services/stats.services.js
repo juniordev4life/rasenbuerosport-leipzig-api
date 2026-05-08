@@ -3,6 +3,7 @@ import {
 	filterGoals,
 	isPenaltyMissed,
 	isRedCard,
+	isYellowCard,
 } from "../helpers/timeline.helpers.js";
 
 /**
@@ -914,15 +915,17 @@ function computeBadges(games, userGameMap, userId, stats) {
 
 	// === GENERAL BADGES (category: "general") ===
 
-	// Phase 5: a "clean" game has no FC26 yellow card AND no red-card event for
-	// the user. Both the original fair_play (10 games) and the new fairplay_plus
-	// tiers (25 / 50 games) consume the same count.
+	// Phase 5: a "clean" game has no FC26 yellow card on the user's side AND
+	// no own card event of any colour for the user. Both the original
+	// fair_play (10 games) and the new fairplay_plus tiers (25 / 50 games)
+	// consume the same count.
 	let gamesNoCards = 0;
 	for (const game of games) {
 		const side = userGameMap[game.id]?.team;
 		if (!side) continue;
 		const yellowCount = game.match_stats?.yellow_cards?.[side] ?? 0;
 		if (yellowCount > 0) continue;
+		if (userHadYellowCardInGame(game, userId)) continue;
 		if (userHadRedCardInGame(game, userId)) continue;
 		gamesNoCards++;
 	}
@@ -1244,8 +1247,10 @@ function countGameMissedPenalties(game, userId) {
 }
 
 /**
- * Whether the user picked up a `red_card` event in the given game. Exported
- * for unit testing and reuse from the upcoming Fairplay+ checks.
+ * Whether the user picked up a red card (legacy `red_card` or unified
+ * `card` with `card_type: "red"`) in the given game. Exported for unit
+ * testing and reuse from the Fair Play badge family.
+ *
  * @param {object} game
  * @param {string} userId
  * @returns {boolean}
@@ -1254,6 +1259,21 @@ export function userHadRedCardInGame(game, userId) {
 	const tl = game.score_timeline;
 	if (!Array.isArray(tl)) return false;
 	return tl.some((e) => isRedCard(e) && e.player_id === userId);
+}
+
+/**
+ * Whether the user picked up a yellow card (`card` event with
+ * `card_type: "yellow"`) in the given game. Exported for unit testing
+ * and reuse from the Fair Play badge family.
+ *
+ * @param {object} game
+ * @param {string} userId
+ * @returns {boolean}
+ */
+export function userHadYellowCardInGame(game, userId) {
+	const tl = game.score_timeline;
+	if (!Array.isArray(tl)) return false;
+	return tl.some((e) => isYellowCard(e) && e.player_id === userId);
 }
 
 /**

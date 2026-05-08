@@ -2,14 +2,18 @@ import { describe, expect, it } from "vitest";
 import {
 	compareMinute,
 	filterGoals,
+	getCardColor,
 	getEventType,
 	getMinMinuteForNextEvent,
+	isCard,
 	isGoal,
 	isPenaltyMissed,
 	isRedCard,
+	isYellowCard,
 	validateScoreTimeline,
 } from "../../../src/api/helpers/timeline.helpers.js";
 import {
+	buildCardEvent,
 	buildGoalEvent,
 	buildPenaltyMissedEvent,
 	buildRedCardEvent,
@@ -42,16 +46,57 @@ describe("isGoal / isRedCard / isPenaltyMissed", () => {
 		expect(isPenaltyMissed(legacy)).toBe(false);
 	});
 
-	it("classifies red cards", () => {
+	it("classifies legacy red_card events as red cards", () => {
 		const entry = buildRedCardEvent();
 		expect(isRedCard(entry)).toBe(true);
 		expect(isGoal(entry)).toBe(false);
+	});
+
+	it("classifies unified card events with card_type: 'red' as red cards", () => {
+		const entry = buildCardEvent({ card_type: "red" });
+		expect(isRedCard(entry)).toBe(true);
+		expect(isYellowCard(entry)).toBe(false);
+	});
+
+	it("classifies unified card events with card_type: 'yellow' as yellow cards", () => {
+		const entry = buildCardEvent({ card_type: "yellow" });
+		expect(isYellowCard(entry)).toBe(true);
+		expect(isRedCard(entry)).toBe(false);
 	});
 
 	it("classifies missed penalties", () => {
 		const entry = buildPenaltyMissedEvent();
 		expect(isPenaltyMissed(entry)).toBe(true);
 		expect(isGoal(entry)).toBe(false);
+	});
+});
+
+describe("isCard / getCardColor", () => {
+	it("isCard covers both legacy and unified card shapes", () => {
+		expect(isCard(buildRedCardEvent())).toBe(true);
+		expect(isCard(buildCardEvent({ card_type: "yellow" }))).toBe(true);
+		expect(isCard(buildCardEvent({ card_type: "red" }))).toBe(true);
+		expect(isCard(buildGoalEvent())).toBe(false);
+		expect(isCard(buildPenaltyMissedEvent())).toBe(false);
+	});
+
+	it("getCardColor returns 'red' for legacy red_card", () => {
+		expect(getCardColor(buildRedCardEvent())).toBe("red");
+	});
+
+	it("getCardColor reads card_type for unified card events", () => {
+		expect(getCardColor(buildCardEvent({ card_type: "yellow" }))).toBe("yellow");
+		expect(getCardColor(buildCardEvent({ card_type: "red" }))).toBe("red");
+	});
+
+	it("getCardColor returns null for non-card events", () => {
+		expect(getCardColor(buildGoalEvent())).toBeNull();
+		expect(getCardColor(buildPenaltyMissedEvent())).toBeNull();
+	});
+
+	it("getCardColor returns null for malformed card events", () => {
+		expect(getCardColor({ event_type: "card", card_type: "blue" })).toBeNull();
+		expect(getCardColor({ event_type: "card" })).toBeNull();
 	});
 });
 
