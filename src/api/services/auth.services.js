@@ -1,23 +1,13 @@
 import { queryOne } from "../helpers/database.helpers.js";
 
 /**
- * Gets the current user's profile
+ * Looks up the current user's profile. Returns null if no row exists yet.
+ * Authorization is decided by the caller based on email domain.
  * @param {string} userId - Firebase Auth UID
- * @returns {Promise<object>}
- * @throws {Error} 403 if profile does not exist (user not authorized)
+ * @returns {Promise<object|null>}
  */
 export async function getUserProfile(userId) {
-	const profile = await queryOne("SELECT * FROM profiles WHERE id = $1", [
-		userId,
-	]);
-
-	if (!profile) {
-		const error = new Error("User not authorized");
-		error.statusCode = 403;
-		throw error;
-	}
-
-	return profile;
+	return queryOne("SELECT * FROM profiles WHERE id = $1", [userId]);
 }
 
 /**
