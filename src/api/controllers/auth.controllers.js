@@ -9,13 +9,10 @@ export const meController = {
 			const profile = await authService.getUserProfile(request.user.id);
 
 			if (profile) {
-				return setGeneralResponse(
-					reply,
-					200,
-					"Success",
-					"Profile retrieved",
-					{ ...profile, needsSetup: false },
-				);
+				return setGeneralResponse(reply, 200, "Success", "Profile retrieved", {
+					...profile,
+					needsSetup: false,
+				});
 			}
 
 			const emailDomain = request.user.email?.split("@")[1]?.toLowerCase();
