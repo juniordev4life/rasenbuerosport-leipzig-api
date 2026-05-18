@@ -6,6 +6,22 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v0.1.2
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.1...v0.1.2)
+
+### 🚀 Enhancements
+
+- **auth:** Auto-provision profiles for @redbulls.com Google sign-ins ([#20](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/20))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v0.1.1 ([ea1bd90](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/ea1bd90))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v0.1.1 (2026-05-08)
 
 
