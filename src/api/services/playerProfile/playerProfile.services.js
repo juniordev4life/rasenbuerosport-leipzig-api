@@ -77,7 +77,8 @@ export function isCacheValid(cache, currentMatchCount) {
 export async function computePlayerProfile(playerId) {
 	const profile = await queryOne(
 		`SELECT id, username, avatar_url, current_rating, matches_played,
-		        profile_cache
+		        profile_cache,
+		        (SELECT COUNT(*)::int FROM game_players gp WHERE gp.player_id = profiles.id) AS actual_match_count
 		   FROM profiles WHERE id = $1`,
 		[playerId],
 	);
@@ -87,7 +88,12 @@ export async function computePlayerProfile(playerId) {
 		throw err;
 	}
 
-	const matchCount = Number(profile.matches_played ?? 0);
+	// matchCount is derived from the live game_players count rather than
+	// profiles.matches_played, because the ELO integration only started
+	// incrementing matches_played from the date it was wired in. Historical
+	// matches still need to count for profile-state gating (Frischling /
+	// Im Aufbau / Etabliert).
+	const matchCount = Number(profile.actual_match_count ?? 0);
 	const profileState = determineProfileState(matchCount);
 
 	// Recent form is always fresh — cheap LIMIT 5 query, must reflect
@@ -236,8 +242,9 @@ async function loadRankAndCount(playerId) {
 	const rows = await query(
 		`
 		WITH ranked AS (
-			SELECT id, RANK() OVER (ORDER BY current_rating DESC) AS rnk
-			FROM profiles WHERE matches_played > 0
+			SELECT p.id, RANK() OVER (ORDER BY p.current_rating DESC) AS rnk
+			FROM profiles p
+			WHERE EXISTS (SELECT 1 FROM game_players gp WHERE gp.player_id = p.id)
 		)
 		SELECT (SELECT rnk FROM ranked WHERE id = $1) AS rank,
 		       (SELECT COUNT(*)::int FROM ranked) AS total
@@ -361,7 +368,9 @@ function assembleResponse({
 			currentRating: Number(profile.current_rating ?? 1500),
 			rank,
 			totalPlayers,
-			matchCount: Number(profile.matches_played ?? 0),
+			matchCount: Number(
+				profile.actual_match_count ?? profile.matches_played ?? 0,
+			),
 		},
 		archetype: archetypeMeta
 			? {
