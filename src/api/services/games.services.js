@@ -2,6 +2,7 @@ import { getPool } from "../../config/database.config.js";
 import { query } from "../helpers/database.helpers.js";
 import { validateScoreTimeline } from "../helpers/timeline.helpers.js";
 import { stripAudioTags } from "../utils/audioTags.utils.js";
+import { applyEloToMatch } from "./elo/eloPersistence.services.js";
 
 /**
  * Creates a new game with players
@@ -54,17 +55,30 @@ export async function createGame({
 			],
 		);
 
+		const gamePlayers = [];
 		for (const player of players) {
 			await client.query(
 				`INSERT INTO game_players (game_id, player_id, team, team_name)
 				VALUES ($1, $2, $3, $4)`,
 				[game.id, player.id, player.team, player.team_name || null],
 			);
+			gamePlayers.push({ player_id: player.id, team: player.team });
 		}
+
+		// ELO runs inside the same transaction: either match + ELO commit
+		// together or both roll back. This guarantees no row gets bumped
+		// in `profiles.current_rating` without a matching `elo_snapshot`
+		// on the game row.
+		await applyEloToMatch({ client, game, gamePlayers });
 
 		await client.query("COMMIT");
 
-		return game;
+		// Re-read the game so the returned object includes the
+		// just-written `elo_snapshot` column.
+		const {
+			rows: [updatedGame],
+		} = await getPool().query("SELECT * FROM games WHERE id = $1", [game.id]);
+		return updatedGame ?? game;
 	} catch (error) {
 		await client.query("ROLLBACK");
 		const err = new Error(error.message);

@@ -128,6 +128,7 @@ DATENSCHEMA (User-Message enthält dieses JSON):
   ],
   "storylines": "(optional) { newly_unlocked_badges?, completed_challenges?, streaks? } — fehlt komplett, wenn nichts erwähnenswert ist. ERFINDE keine Storylines, wenn das Feld nicht da ist.",
   "under_strength_periods": "(optional) Array von { team_name, side, from_minute, until_minute, duration_minutes, reason, player? } — vorberechnete Unterzahl-Phasen aus roten Karten. Verwende AUSSCHLIESSLICH duration_minutes, wenn du die Dauer einer Unterzahl-Phase erwähnst. Berechne KEINE Minuten selbst.",
+  "pass_network_by_team": "(optional) Objekt mit Team-Namen als Keys, jeweils { passStyle: 'Zentral'|'Rechtslastig'|'Linkslastig'|'Ausgewogen'|'Flügelspiel', lateralityScore (-100..+100), verticalityScore (0..100), centralPlayer?, topPassConnections? }. Visueller Spielstil aus dem Pass-Netzwerk der Pässe-Screenshot-Auswertung.",
   "drama_level": "low | medium | high"
 }
 \`\`\`
@@ -148,6 +149,9 @@ WAHRHEITS-KURZFASSUNG (lies das hier noch einmal, bevor du anfängst):
 - Bei \`mode: "1v1"\` gibt es KEINEN Teamkollegen — erwähne nie einen.
 - Wenn \`storylines\` fehlt, gibt es keine Storyline. Nicht erfinden.
 - Dauern in Minuten (z.B. "X Minuten in Unterzahl") AUSSCHLIESSLICH aus \`under_strength_periods[*].duration_minutes\`. Niemals selbst rechnen, niemals "Minute X" und "X Minuten lang" verwechseln.
+- TAKTISCH-VISUELLE BEOBACHTUNG (optional, nur wenn Feld da):
+  Wenn \`pass_network_by_team\` vorhanden ist und der \`passStyle\` eines Teams nicht "Ausgewogen" ist, darfst du EINE kurze taktische Beobachtung einfügen — z.B. "Dortmund baute das Spiel fast ausschließlich über die rechte Seite auf" (Rechtslastig), "Palace versuchte den Weg durch die Mitte" (Zentral), oder "Dortmund nutzte konsequent die Breite des Feldes" (Flügelspiel). Maximal EINE solche Beobachtung pro Bericht. Bei \`passStyle === "Ausgewogen"\` oder fehlendem Feld: ignorieren, nicht erfinden.
+  Wenn \`centralPlayer\` zusätzlich gefüllt ist und die Aktion eindeutig über diesen Spieler lief, darf seine Trikotnummer dezent eingestreut werden (max einmal).
 
 PFLICHT-CHECK vor dem Ende:
 1. Wenn du Tor-Zahlen genannt hast ("zwei Tore von X", "Hattrick", "Mann des Abends mit Y Treffern"): zähle die Tore dieses Spielers in \`score_timeline\` DURCH. Stimmt die Zahl? Wenn nein, korrigiere.
@@ -623,6 +627,22 @@ export async function generateMatchReport(gameId) {
 	if (underStrengthPeriods.length > 0) {
 		context.under_strength_periods = underStrengthPeriods;
 	}
+
+	// Pass-network indicators come from the Pässe-screen extractor
+	// (see matchStats.services.js) and live in dedicated columns. We
+	// expose them by team_name so the LLM doesn't have to do another
+	// home/away lookup — same pattern as match_stats_by_team.
+	const passNetworkByTeam = {};
+	if (game.home_pass_network) {
+		passNetworkByTeam[homeTeamName] = game.home_pass_network;
+	}
+	if (game.away_pass_network) {
+		passNetworkByTeam[awayTeamName] = game.away_pass_network;
+	}
+	if (Object.keys(passNetworkByTeam).length > 0) {
+		context.pass_network_by_team = passNetworkByTeam;
+	}
+
 	const gameContext = JSON.stringify(context);
 
 	const { text: report } = await callAnthropicWithRetry({

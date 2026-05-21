@@ -13,6 +13,62 @@ const LATERALITY_LABELS = ["links", "rechts", "symmetrisch"];
 const VERTICALITY_LABELS = ["zentral", "flügel", "gemischt"];
 
 /**
+ * Canonical five-state pass-distribution classification used for UI
+ * tags and downstream aggregation. Derived deterministically from
+ * the two numeric scores so the same input always produces the same
+ * label.
+ *
+ * @type {ReadonlyArray<"Zentral"|"Rechtslastig"|"Linkslastig"|"Ausgewogen"|"Flügelspiel">}
+ */
+export const PASS_STYLES = [
+	"Zentral",
+	"Rechtslastig",
+	"Linkslastig",
+	"Ausgewogen",
+	"Flügelspiel",
+];
+
+/**
+ * Classify a pair of pass-network scores into one of the five
+ * canonical states. Lateral dominance trumps verticality — a team
+ * that runs everything down one flank is "Linkslastig" or
+ * "Rechtslastig", regardless of where on the field the action
+ * happens. Only when laterality is balanced do we look at
+ * verticality. Anything else is "Ausgewogen".
+ *
+ * Thresholds match the same bounds used by the LLM-side prompt so
+ * label decisions cannot drift between layers:
+ *   |lateralityScore| ≥ 60  → Links- or Rechtslastig
+ *   verticalityScore  ≥ 70  → Zentral
+ *   verticalityScore  ≤ 30  → Flügelspiel
+ *   otherwise              → Ausgewogen
+ *
+ * @param {number|null} lateralityScore  -100..+100 or null
+ * @param {number|null} verticalityScore 0..100 or null
+ * @returns {"Zentral"|"Rechtslastig"|"Linkslastig"|"Ausgewogen"|"Flügelspiel"|null}
+ *
+ * @example
+ *   derivePassStyle(75, 50);  // → "Rechtslastig"
+ *   derivePassStyle(-80, 80); // → "Linkslastig"
+ *   derivePassStyle(0, 85);   // → "Zentral"
+ *   derivePassStyle(20, 22);  // → "Flügelspiel"
+ *   derivePassStyle(10, 55);  // → "Ausgewogen"
+ *   derivePassStyle(null, null); // → null
+ */
+export function derivePassStyle(lateralityScore, verticalityScore) {
+	if (lateralityScore == null && verticalityScore == null) return null;
+	if (lateralityScore != null) {
+		if (lateralityScore <= -60) return "Linkslastig";
+		if (lateralityScore >= 60) return "Rechtslastig";
+	}
+	if (verticalityScore != null) {
+		if (verticalityScore >= 70) return "Zentral";
+		if (verticalityScore <= 30) return "Flügelspiel";
+	}
+	return "Ausgewogen";
+}
+
+/**
  * Clamp a numeric score to the given bounds, returning `null` for
  * anything that is not a finite number.
  *
@@ -89,6 +145,7 @@ export function normalisePassNetwork(raw) {
 	if (lateralityScore == null && verticalityScore == null) return null;
 
 	const result = {
+		passStyle: derivePassStyle(lateralityScore, verticalityScore),
 		laterality:
 			lateralityScore != null ? lateralityFromScore(lateralityScore) : null,
 		verticality:
@@ -127,6 +184,37 @@ export function normalisePassNetwork(raw) {
 	}
 
 	return result;
+}
+
+/**
+ * Build the UI-facing pass-style tag list for a single team. With
+ * the canonical five-state model this is currently a one-element
+ * array (the team's `passStyle`), but the array shape keeps the
+ * door open for additional pass-related tags later (e.g. "Hohe
+ * Konsistenz" once duo aggregation lands in Phase 2).
+ *
+ * Returns an empty array when the indicators are null or carry no
+ * usable signal — the UI then simply shows no tag rather than a
+ * placeholder.
+ *
+ * @param {object|null} indicators - Output of normalisePassNetwork.
+ * @returns {string[]}
+ *
+ * @example
+ *   generatePassNetworkTags({
+ *     passStyle: "Rechtslastig",
+ *     lateralityScore: 75,
+ *     verticalityScore: 22,
+ *     ...
+ *   });
+ *   // → ["Rechtslastig"]
+ *
+ *   generatePassNetworkTags(null);
+ *   // → []
+ */
+export function generatePassNetworkTags(indicators) {
+	if (!indicators || !indicators.passStyle) return [];
+	return [indicators.passStyle];
 }
 
 /**
