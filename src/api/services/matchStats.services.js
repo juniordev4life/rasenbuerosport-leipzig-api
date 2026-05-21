@@ -1,5 +1,6 @@
 import { getAnthropicClient } from "../../config/anthropic.config.js";
 import { queryOne } from "../helpers/database.helpers.js";
+import { normalisePassNetwork } from "../utils/passNetwork.utils.js";
 
 const OVERVIEW_EXTRACTION_PROMPT = `You are analyzing a post-match statistics screen from EA Sports FC (FC25/FC26).
 
@@ -98,6 +99,36 @@ Return ONLY a valid JSON object with this exact structure. Use null for any stat
   "wing_passes": { "home": <number>, "away": <number> },
   "solo_runs": { "home": <number>, "away": <number> }
 }
+
+ZUSÄTZLICHE PASS-NETZWERK-ANALYSE:
+
+Auf dem Pässe-Screen sind links unten und rechts unten zwei VISUELLE Pass-Netzwerke abgebildet, die die Spielfeld-Positionen der Spieler als Knoten und ihre Pass-Verbindungen als Linien zeigen. Dicke Linien bedeuten viele Pässe zwischen diesen Spielern.
+
+Werte JEDES der beiden Netzwerke unabhängig aus. Schau dir die Spielfeld-Position der Knoten, die Knotengrößen und die Linien-Dicken an.
+
+Bewertungsregeln:
+- Lateralität (auf welcher Seite vom angreifenden Team aus läuft das Spiel): "links" / "rechts" / "symmetrisch"
+  - lateralityScore: Zahl zwischen -100 (klar links) und +100 (klar rechts), 0 = perfekt symmetrisch
+  - Label-Zuordnung: ≤ -60 → "links", ≥ +60 → "rechts", sonst "symmetrisch"
+- Vertikalität: "zentral" / "flügel" / "gemischt"
+  - verticalityScore: Zahl zwischen 0 (extrem flügellastig) und 100 (extrem zentral)
+  - Label-Zuordnung: ≥ 70 → "zentral", ≤ 30 → "flügel", sonst "gemischt"
+- centralPlayer: Trikotnummer des Spielers mit dem GRÖSSTEN Knoten (oder dem mit den meisten Verbindungen, wenn mehrere Knoten ähnlich groß sind)
+- topPassConnections: die DREI dicksten Linien, als {from, to}-Paare mit Trikotnummern, dickste zuerst
+
+WENN das Netzwerk nicht klar erkennbar ist (zu klein, verdeckt, zu wenig Daten): setze ALLE Felder auf null statt zu raten. Lieber keine Auswertung als eine erfundene.
+
+Ergänze deine JSON-Antwort um folgende zwei Top-Level-Schlüssel — UNTER den oben genannten numerischen Pass-Statistiken, NICHT als Ersatz dafür:
+
+"homePassNetwork": {
+  "laterality": "links | rechts | symmetrisch | null",
+  "verticality": "zentral | flügel | gemischt | null",
+  "lateralityScore": <Zahl oder null>,
+  "verticalityScore": <Zahl oder null>,
+  "centralPlayer": "<Trikotnummer als String oder null>",
+  "topPassConnections": [{ "from": "<Nummer>", "to": "<Nummer>" }, ...] (max 3)
+},
+"awayPassNetwork": { /* gleiche Struktur für das rechte Netzwerk */ }
 
 Return ONLY the JSON object, no markdown fences, no explanation.`;
 
@@ -214,8 +245,39 @@ export async function extractStatsFromImage(imageUrl, type = "overview") {
 }
 
 /**
+ * Split the AI-extracted JSON into the regular numeric stats (which
+ * get merged into the `match_stats` JSONB column) and the visual
+ * pass-network indicators (which land in their own dedicated columns
+ * via `home_pass_network` / `away_pass_network`).
+ *
+ * Validation goes through `normalisePassNetwork`, so anything the LLM
+ * returned off-schema becomes `null` rather than corrupt JSON in the
+ * database. A missing network block is treated the same as an empty
+ * one — `null` in the column.
+ *
+ * @param {object} extracted - Raw AI extraction output.
+ * @returns {{
+ *   stats: object,
+ *   homePassNetwork: object|null,
+ *   awayPassNetwork: object|null,
+ * }}
+ */
+function splitPassesExtraction(extracted) {
+	const { homePassNetwork, awayPassNetwork, ...stats } = extracted ?? {};
+	return {
+		stats,
+		homePassNetwork: normalisePassNetwork(homePassNetwork),
+		awayPassNetwork: normalisePassNetwork(awayPassNetwork),
+	};
+}
+
+/**
  * Stores extracted match stats and image URL for a game.
- * Merges new stats into existing match_stats JSONB.
+ * Merges new stats into existing match_stats JSONB. For the passes
+ * screenshot, also extracts and persists the per-team pass-network
+ * indicators to their dedicated columns (validated via
+ * `normalisePassNetwork` — invalid → null).
+ *
  * @param {string} gameId - Game UUID
  * @param {object} newStats - Extracted stats JSON (partial)
  * @param {string} imageUrl - Cloud Storage URL of the screenshot
@@ -230,18 +292,46 @@ export async function saveMatchStats(
 ) {
 	const imageColumn = IMAGE_COLUMNS[type] || IMAGE_COLUMNS.overview;
 
-	// Fetch existing match_stats to merge
 	const existing = await queryOne(
 		"SELECT match_stats FROM games WHERE id = $1",
 		[gameId],
 	);
 
-	const mergedStats = { ...(existing?.match_stats || {}), ...newStats };
+	let statsToMerge = newStats;
+	let homePassNetwork = null;
+	let awayPassNetwork = null;
+	let writePassNetwork = false;
+	if (type === "passes") {
+		const split = splitPassesExtraction(newStats);
+		statsToMerge = split.stats;
+		homePassNetwork = split.homePassNetwork;
+		awayPassNetwork = split.awayPassNetwork;
+		writePassNetwork = true;
+	}
 
-	const data = await queryOne(
-		`UPDATE games SET match_stats = $1, ${imageColumn} = $2 WHERE id = $3 RETURNING *`,
-		[JSON.stringify(mergedStats), imageUrl, gameId],
-	);
+	const mergedStats = { ...(existing?.match_stats || {}), ...statsToMerge };
+
+	const data = writePassNetwork
+		? await queryOne(
+				`UPDATE games
+				    SET match_stats = $1,
+				        ${imageColumn} = $2,
+				        home_pass_network = $3::jsonb,
+				        away_pass_network = $4::jsonb
+				  WHERE id = $5
+				RETURNING *`,
+				[
+					JSON.stringify(mergedStats),
+					imageUrl,
+					homePassNetwork ? JSON.stringify(homePassNetwork) : null,
+					awayPassNetwork ? JSON.stringify(awayPassNetwork) : null,
+					gameId,
+				],
+			)
+		: await queryOne(
+				`UPDATE games SET match_stats = $1, ${imageColumn} = $2 WHERE id = $3 RETURNING *`,
+				[JSON.stringify(mergedStats), imageUrl, gameId],
+			);
 
 	if (!data) {
 		const err = new Error("Game not found");
@@ -253,13 +343,24 @@ export async function saveMatchStats(
 }
 
 /**
+ * Helpers exported only for unit-testing the split logic in
+ * isolation. Not part of the public service API.
+ */
+export const __test__ = { splitPassesExtraction };
+
+/**
  * Removes match stats from a game (for re-upload)
  * @param {string} gameId - Game UUID
  * @returns {Promise<object>} Updated game record
  */
 export async function deleteMatchStats(gameId) {
 	const data = await queryOne(
-		`UPDATE games SET match_stats = NULL, stats_image_url = NULL, passes_image_url = NULL, defense_image_url = NULL
+		`UPDATE games SET match_stats = NULL,
+		    stats_image_url = NULL,
+		    passes_image_url = NULL,
+		    defense_image_url = NULL,
+		    home_pass_network = NULL,
+		    away_pass_network = NULL
 		WHERE id = $1 RETURNING *`,
 		[gameId],
 	);
