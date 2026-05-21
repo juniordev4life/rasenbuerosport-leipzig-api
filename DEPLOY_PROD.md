@@ -15,10 +15,11 @@ mitgepflegt**. So bleibt der Runbook immer aktuell.
 
 ## Aktueller Release-Stand — bereit für Prod
 
-Auf main gemergt, **noch nicht in Production deployed**:
+Auf main gemergt (oder in einer der offenen Stack-PRs), **noch nicht in Production deployed**:
 
 - **Reporter-Personas + Talk-Show** ([API #21](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/21), [App #17](https://github.com/juniordev4life/rasenbuerosport-leipzig-app/pull/17))
 - **Pass-Netzwerk-Auswertung** ([API #22](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/22) + [#23](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/23), [App #18](https://github.com/juniordev4life/rasenbuerosport-leipzig-app/pull/18))
+- **ELO-System (Phase 1 + 2)** — Pure Functions + Integration ([#25](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/25), aktueller PR)
 
 **Zusammenfassung der ausstehenden Änderungen:**
 
@@ -27,8 +28,9 @@ Auf main gemergt, **noch nicht in Production deployed**:
 - Freitags-Talkrunde „Bürowoche" (Drehbuch + Multi-Speaker-Audio)
 - Anthropic-Modell-Upgrade auf `claude-sonnet-4-6`
 - Pass-Netzwerk-Auswertung mit 5-Zustands-Klassifizierung (Zentral / Rechtslastig / Linkslastig / Ausgewogen / Flügelspiel)
-- Vier neue DB-Migrationen (010–013)
-- Vier neue API-Endpoints
+- Contribution-weighted ELO-System für 1v1 + 2v2 mit asymmetrischer Verteilung, Margin-of-Victory und Zeit-gewichteten Roten Karten
+- **Fünf neue DB-Migrationen (010–014)**
+- Sechs neue / erweiterte API-Endpoints
 - Frontend: Audio-Player, Reporter-Label, Pass-Verteilungs-Pills
 
 ---
@@ -36,9 +38,9 @@ Auf main gemergt, **noch nicht in Production deployed**:
 ## 0. Vor dem Deploy — Pre-Flight Checks
 
 - [ ] CI auf main grün (beide Repos)
-- [ ] `npm test` lokal grün — API: 247 Tests
+- [ ] `npm test` lokal grün — API: 313 Tests
 - [ ] `npm run check:ci` lokal clean (Lint + Format)
-- [ ] Letzter Smoke-Test in lokaler Dev-Umgebung erfolgreich (Match-Report mit Audio + Talk-Show + Pass-Network-Pills)
+- [ ] Letzter Smoke-Test in lokaler Dev-Umgebung erfolgreich (Match-Report mit Audio + Talk-Show + Pass-Network-Pills + ELO-Berechnung beim Match-Save)
 
 ---
 
@@ -94,6 +96,8 @@ Alle Variablen müssen **vor dem Container-Deploy** gesetzt sein, sonst geben di
 - [ ] `ELEVENLABS_MODEL_ID` — Default `eleven_v3`
 - [ ] `ELEVENLABS_KEEP_AUDIO_TAGS` — Default `false`. Nur `true`, wenn v3-Alpha-Zugriff für den Workspace bestätigt ist.
 
+**ELO** hat keine eigenen Env-Vars — alle Tuning-Konstanten leben in `src/constants/elo.constants.js` und werden mit dem Code deployed.
+
 ### Setting via gcloud (Beispiel)
 
 ```bash
@@ -113,8 +117,7 @@ gcloud run services update rasenbuerosport-api \
 ## 4. DB-Migrationen (Cloud SQL Prod)
 
 **Reihenfolge wichtig — Migrationen vor dem Code-Deploy einspielen.**
-Wenn der neue Code gegen die alte DB läuft, schlagen alle Audio- /
-Talk-Show- / Pass-Network-Endpoints fehl.
+Wenn der neue Code gegen die alte DB läuft, schlagen Audio-/Talk-Show-/Pass-Network-/ELO-Endpoints fehl.
 
 - [ ] Cloud SQL Auth Proxy starten:
   ```bash
@@ -131,12 +134,16 @@ Talk-Show- / Pass-Network-Endpoints fehl.
     -f migrations/010_match_report_audio.sql \
     -f migrations/011_match_report_reporter.sql \
     -f migrations/012_talkshow_episodes.sql \
-    -f migrations/013_pass_network.sql
+    -f migrations/013_pass_network.sql \
+    -f migrations/014_elo_system.sql
   ```
 - [ ] Verifizieren:
   ```sql
   \d games                -- match_report_audio_url, match_report_audio_generated_at,
-                          -- reporter_id, home_pass_network, away_pass_network
+                          -- reporter_id, home_pass_network, away_pass_network,
+                          -- elo_snapshot
+  \d profiles             -- current_rating, matches_played, rating_updated_at,
+                          -- rating_history
   \d talkshow_episodes    -- existiert mit week_start, week_end, script_json, audio_url
   ```
 - [ ] Cloud SQL Auth Proxy stoppen (Ctrl+C)
@@ -149,8 +156,17 @@ Talk-Show- / Pass-Network-Endpoints fehl.
 | `011_match_report_reporter.sql` | `reporter_id` auf `games` mit CHECK-Constraint + Partial-Index |
 | `012_talkshow_episodes.sql` | Neue Tabelle `talkshow_episodes` (week_start PK, script_json, audio_url) |
 | `013_pass_network.sql` | `home_pass_network` + `away_pass_network` JSONB auf `games` |
+| `014_elo_system.sql` | `profiles.current_rating/matches_played/rating_updated_at/rating_history` + `games.elo_snapshot` + Index auf current_rating |
 
-Alle vier sind **additiv und nicht-destruktiv** — kein Datenverlust möglich.
+Alle fünf sind **additiv und nicht-destruktiv** — kein Datenverlust möglich.
+
+**ELO-Backfill (optional):** Die Migration setzt alle Spieler auf `current_rating = 1500` und `matches_played = 0`. Wenn historische Matches retroaktiv durchs ELO-System laufen sollen:
+
+```bash
+# Stand: noch nicht implementiert; ein Backfill-Skript würde alle Games
+# in played_at-Reihenfolge durchlaufen und für jedes recomputeEloForGame
+# rufen. Wenn das benötigt wird, eigenes Ticket.
+```
 
 ---
 
@@ -229,6 +245,41 @@ Alle vier sind **additiv und nicht-destruktiv** — kein Datenverlust möglich.
   FROM games WHERE passes_image_url IS NOT NULL ORDER BY played_at DESC LIMIT 5;
   ```
 
+### D) ELO-System
+
+- [ ] Test-Match in Prod anlegen (1v1 oder 2v2) — die Response von `POST /api/v1/games` muss `elo_snapshot` enthalten:
+  ```bash
+  curl -X POST https://<api-url>/api/v1/games \
+    -H "Authorization: Bearer <Token>" \
+    -H "Content-Type: application/json" \
+    -d '{ "mode": "2v2", "score_home": 3, "score_away": 1, ... }'
+  ```
+- [ ] Spieler-Rating abrufen:
+  ```bash
+  curl https://<api-url>/api/v1/players/<playerId>/rating \
+    -H "Authorization: Bearer <Token>"
+  ```
+  Response sollte `current_rating`, `matches_played`, `rating_history` enthalten.
+- [ ] Match-ELO abrufen:
+  ```bash
+  curl https://<api-url>/api/v1/games/<gameId>/elo \
+    -H "Authorization: Bearer <Token>"
+  ```
+- [ ] DB-Check:
+  ```sql
+  -- Spieler-Ratings
+  SELECT id, username, current_rating, matches_played,
+         jsonb_array_length(rating_history) AS history_len
+  FROM profiles ORDER BY current_rating DESC LIMIT 10;
+
+  -- Match-Snapshot
+  SELECT id, elo_snapshot->>'version' AS version,
+         jsonb_array_length(elo_snapshot->'teamA') AS team_a_size
+  FROM games WHERE elo_snapshot IS NOT NULL ORDER BY played_at DESC LIMIT 5;
+  ```
+- [ ] Plausibilitäts-Check: Bei einem 3:1-2v2-Sieg sollte der Torschütze (3 Tore) deutlich mehr ELO gewinnen als sein Mitspieler ohne Scorerpunkt. Die Summe der vier Player-Deltas sollte ungefähr 0 sein.
+- [ ] Rating-History wird beim wiederholten Match anhängend gefüllt (max 30 Einträge).
+
 ---
 
 ## 7. Cloud Scheduler — Wöchentliche Talk-Show (zukünftig, Phase 4)
@@ -259,13 +310,19 @@ Sobald Phase 4 implementiert ist:
 2. **App-Rollback**:
    - Firebase Hosting → Release-History → vorherige Version rollouten
 3. **DB-Rollback** — nicht nötig:
-   - Migrationen 010–013 sind additiv. Selbst wenn der API-Container auf der alten Version läuft, sind die neuen Spalten/Tabellen einfach unbenutzt.
+   - Migrationen 010–014 sind additiv. Selbst wenn der API-Container auf der alten Version läuft, sind die neuen Spalten/Tabellen einfach unbenutzt.
 4. **Audio-Cache leeren** (bei Bedarf):
    ```bash
    PGPASSWORD=<prod-pw> psql -h 127.0.0.1 -p 5433 -U postgres -d rasenbuerosport \
      -c "UPDATE games SET match_report_audio_url = NULL;"
    gsutil rm gs://<bucket>/match-reports/*.mp3
    gsutil rm gs://<bucket>/talkshow/*.mp3
+   ```
+5. **ELO komplett zurücksetzen** (Notnagel, falls die Persistenz-Logik buggy ist):
+   ```sql
+   UPDATE profiles SET current_rating = 1500, matches_played = 0,
+                       rating_updated_at = NULL, rating_history = '[]'::jsonb;
+   UPDATE games SET elo_snapshot = NULL;
    ```
 
 ---
@@ -279,6 +336,8 @@ Sobald Phase 4 implementiert ist:
 - **Reporter-Verteilung** — über mehrere Wochen sollten alle drei Personas vorkommen. Wenn ein Reporter konstant unterrepräsentiert ist: `selectReporter.utils.js` → `REPORTER_WEIGHTS_BY_DRAMA` rebalancieren.
 - **Player-Name-Aussprache** — wenn Spielernamen schlecht klingen: `src/constants/playerPronunciation.constants.js` ergänzen, nicht im Prompt fummeln.
 - **Pass-Netzwerk-Extraktion zu unzuverlässig** — wenn der Vision-Call die Netzwerke nicht erkennt, schreibt `normalisePassNetwork` `null` in die DB statt fehlerhafter Werte. Falls das systematisch passiert: Prompt-Block in `PASSES_EXTRACTION_PROMPT` schärfen oder einen Beispiel-Screenshot im Prompt ergänzen.
+- **ELO-Tuning** — wenn sich die Deltas zu wenig oder zu stark bewegen, an `src/constants/elo.constants.js` justieren (`kFactor`, `goalWeight`, `assistWeight`, `redCardPenalty`, `shareMin/Max`). Bei jedem Tuning-Change `ELO_ALGORITHM_VERSION` bumpen, damit alte Match-Snapshots als „v1.0"-Stand erkennbar bleiben.
+- **ELO bei unvollständigen Profilen** — fehlt für einen Spieler im `profiles.id`-Lookup ein Eintrag, fällt das System auf `startingRating: 1500` und `matchesPlayed: 0` zurück. Das ist kein Crash, aber prüfbar in `eloMatchInput.services.js`.
 
 ---
 
@@ -290,15 +349,15 @@ Sobald Phase 4 implementiert ist:
 
 ---
 
-## Release-Historie
+## 11. Release-Historie
 
 | Datum | Release | API-Tag | App-Tag | Notes |
 |---|---|---|---|---|
-| _yyyy-mm-dd_ | _z. B. Reporter-Personas + Pass-Network_ | _v0.2.0_ | _v0.x.0_ | _Beim ersten Prod-Deploy hier eintragen_ |
+| _yyyy-mm-dd_ | _Reporter-Personas + Pass-Network + ELO_ | _v0.2.0_ | _v0.x.0_ | _Beim ersten Prod-Deploy hier eintragen_ |
 
 ---
 
-## Pflege-Erinnerung für Claude und Marco
+## 12. Pflege-Erinnerung für Claude und Marco
 
 Dieses Dokument ist ein **lebendes Runbook**. Mit jedem Feature-PR, der
 eine der folgenden Eigenschaften mitbringt, wird DEPLOY_PROD.md
