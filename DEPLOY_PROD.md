@@ -19,7 +19,8 @@ Auf main gemergt (oder in einer der offenen Stack-PRs), **noch nicht in Producti
 
 - **Reporter-Personas + Talk-Show** ([API #21](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/21), [App #17](https://github.com/juniordev4life/rasenbuerosport-leipzig-app/pull/17))
 - **Pass-Netzwerk-Auswertung** ([API #22](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/22) + [#23](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/23), [App #18](https://github.com/juniordev4life/rasenbuerosport-leipzig-app/pull/18))
-- **ELO-System (Phase 1 + 2)** — Pure Functions + Integration ([#25](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/25), aktueller PR)
+- **ELO-System (Phase 1 + 2)** — Pure Functions + Integration ([#25](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/25), [#28](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/28))
+- **Player Profile (Phase A, Backend)** — 6-Achsen + Archetyp + LLM-Bio + Relationships ([#27](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/27), aktueller PR)
 
 **Zusammenfassung der ausstehenden Änderungen:**
 
@@ -29,9 +30,10 @@ Auf main gemergt (oder in einer der offenen Stack-PRs), **noch nicht in Producti
 - Anthropic-Modell-Upgrade auf `claude-sonnet-4-6`
 - Pass-Netzwerk-Auswertung mit 5-Zustands-Klassifizierung (Zentral / Rechtslastig / Linkslastig / Ausgewogen / Flügelspiel)
 - Contribution-weighted ELO-System für 1v1 + 2v2 mit asymmetrischer Verteilung, Margin-of-Victory und Zeit-gewichteten Roten Karten
-- **Fünf neue DB-Migrationen (010–014)**
-- Sechs neue / erweiterte API-Endpoints
-- Frontend: Audio-Player, Reporter-Label, Pass-Verteilungs-Pills
+- Player Profile mit 6 Achsen, 8 Archetypen, Lieblings-/Angstgegner + Top-Partner
+- **Sechs neue DB-Migrationen (010–015)**
+- Sieben neue / erweiterte API-Endpoints
+- Frontend: Audio-Player, Reporter-Label, Pass-Verteilungs-Pills (Profile-UI folgt in Phase A.2)
 
 ---
 
@@ -135,7 +137,8 @@ Wenn der neue Code gegen die alte DB läuft, schlagen Audio-/Talk-Show-/Pass-Net
     -f migrations/011_match_report_reporter.sql \
     -f migrations/012_talkshow_episodes.sql \
     -f migrations/013_pass_network.sql \
-    -f migrations/014_elo_system.sql
+    -f migrations/014_elo_system.sql \
+    -f migrations/015_profile_cache.sql
   ```
 - [ ] Verifizieren:
   ```sql
@@ -143,7 +146,7 @@ Wenn der neue Code gegen die alte DB läuft, schlagen Audio-/Talk-Show-/Pass-Net
                           -- reporter_id, home_pass_network, away_pass_network,
                           -- elo_snapshot
   \d profiles             -- current_rating, matches_played, rating_updated_at,
-                          -- rating_history
+                          -- rating_history, profile_cache
   \d talkshow_episodes    -- existiert mit week_start, week_end, script_json, audio_url
   ```
 - [ ] Cloud SQL Auth Proxy stoppen (Ctrl+C)
@@ -157,8 +160,9 @@ Wenn der neue Code gegen die alte DB läuft, schlagen Audio-/Talk-Show-/Pass-Net
 | `012_talkshow_episodes.sql` | Neue Tabelle `talkshow_episodes` (week_start PK, script_json, audio_url) |
 | `013_pass_network.sql` | `home_pass_network` + `away_pass_network` JSONB auf `games` |
 | `014_elo_system.sql` | `profiles.current_rating/matches_played/rating_updated_at/rating_history` + `games.elo_snapshot` + Index auf current_rating |
+| `015_profile_cache.sql` | `profiles.profile_cache` JSONB (cached axes/archetype/bio für Player Profile) |
 
-Alle fünf sind **additiv und nicht-destruktiv** — kein Datenverlust möglich.
+Alle sechs sind **additiv und nicht-destruktiv** — kein Datenverlust möglich.
 
 **ELO-Backfill (optional):** Die Migration setzt alle Spieler auf `current_rating = 1500` und `matches_played = 0`. Wenn historische Matches retroaktiv durchs ELO-System laufen sollen:
 
@@ -279,6 +283,27 @@ Alle fünf sind **additiv und nicht-destruktiv** — kein Datenverlust möglich.
   ```
 - [ ] Plausibilitäts-Check: Bei einem 3:1-2v2-Sieg sollte der Torschütze (3 Tore) deutlich mehr ELO gewinnen als sein Mitspieler ohne Scorerpunkt. Die Summe der vier Player-Deltas sollte ungefähr 0 sein.
 - [ ] Rating-History wird beim wiederholten Match anhängend gefüllt (max 30 Einträge).
+
+### E) Player Profile
+
+- [ ] `GET /api/v1/players/<player-id>/profile` mit Auth-Token → 200, Payload enthält:
+  - `state` (`freshman` / `developing` / `established`)
+  - `axes` mit allen sechs Werten (finisher, playmaker, clutch, consistency, discipline, winner) zwischen 0-100
+  - `archetype` mit `label`, `color`, `icon`
+  - `bio` mit `adjective` + `bio` (nur bei `state = established`)
+  - `relationships` mit `lieblingsgegner`, `angstgegner`, `topPartner` (alle können `null` sein bei < 3 gemeinsamen Spielen)
+  - `topBadges` (max 3 Einträge, nach Tier sortiert)
+- [ ] Frischling-Pfad: Spieler mit < 5 Matches liefert `state = "freshman"`, `axes = null`, keine Bio. Eingangs-Hinweis erscheint im Frontend.
+- [ ] Im-Aufbau-Pfad: Spieler mit 5-14 Matches liefert `state = "developing"`, Achsen vorhanden, Archetyp ohne LLM-Bio.
+- [ ] Cache-Invalidation: nach Speichern eines neuen Matches darf der nächste Profile-Request **nicht** den alten Cache liefern — neue `matches_played` im Payload prüfen.
+- [ ] DB-Check:
+  ```sql
+  SELECT id, username,
+         profile_cache->>'matchCountAtComputation' AS cached_matches,
+         matches_played
+  FROM profiles WHERE profile_cache IS NOT NULL LIMIT 5;
+  ```
+- [ ] LLM-Timeout-Fallback: bei langsamem Anthropic-Call wird der zuletzt gecachte Bio-Block ausgespielt; Endpoint blockiert nie länger als 5 s.
 
 ---
 
