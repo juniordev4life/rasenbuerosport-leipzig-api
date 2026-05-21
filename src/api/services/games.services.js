@@ -1,6 +1,7 @@
 import { getPool } from "../../config/database.config.js";
 import { query } from "../helpers/database.helpers.js";
 import { validateScoreTimeline } from "../helpers/timeline.helpers.js";
+import { stripAudioTags } from "../utils/audioTags.utils.js";
 
 /**
  * Creates a new game with players
@@ -147,6 +148,10 @@ export async function getUserGames(userId, limit = 10, offset = 0, from, to) {
 		LIMIT $${idx++} OFFSET $${idx}`,
 		params,
 	);
+
+	for (const g of games) {
+		if (g.match_report) g.match_report = stripAudioTags(g.match_report);
+	}
 
 	return games;
 }
