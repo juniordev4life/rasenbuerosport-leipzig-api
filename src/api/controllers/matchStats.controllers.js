@@ -34,6 +34,8 @@ export const uploadMatchStatsController = {
 					stats_image_url: game.stats_image_url,
 					passes_image_url: game.passes_image_url,
 					defense_image_url: game.defense_image_url,
+					home_pass_network: game.home_pass_network,
+					away_pass_network: game.away_pass_network,
 					type,
 				},
 			);
