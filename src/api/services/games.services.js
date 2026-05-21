@@ -3,6 +3,7 @@ import { query } from "../helpers/database.helpers.js";
 import { validateScoreTimeline } from "../helpers/timeline.helpers.js";
 import { stripAudioTags } from "../utils/audioTags.utils.js";
 import { applyEloToMatch } from "./elo/eloPersistence.services.js";
+import { invalidateProfileCache } from "./playerProfile/playerProfile.services.js";
 
 /**
  * Creates a new game with players
@@ -70,6 +71,16 @@ export async function createGame({
 		// in `profiles.current_rating` without a matching `elo_snapshot`
 		// on the game row.
 		await applyEloToMatch({ client, game, gamePlayers });
+
+		// Invalidate cached player profiles for everyone who appeared in
+		// this match — their match history just grew by one, so the
+		// cached axes/archetype/bio need to be recomputed on the next
+		// profile request. Runs in the same TX as ELO so cache state
+		// can never diverge from match/ELO state.
+		await invalidateProfileCache({
+			client,
+			playerIds: gamePlayers.map((gp) => gp.player_id),
+		});
 
 		await client.query("COMMIT");
 
