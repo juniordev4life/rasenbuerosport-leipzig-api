@@ -1,9 +1,8 @@
 import { handleErrorResponse } from "../helpers/error.helpers.js";
 import { setGeneralResponse } from "../helpers/response.helpers.js";
-import { generateMatchReport } from "../services/matchReport.services.js";
-import { stripAudioTags } from "../utils/audioTags.utils.js";
+import { generateAudioReport } from "../services/audioReport.services.js";
 
-export const generateReportController = {
+export const generateAudioReportController = {
 	schema: {
 		params: {
 			type: "object",
@@ -16,17 +15,14 @@ export const generateReportController = {
 	handler: async (request, reply) => {
 		try {
 			const { gameId } = request.params;
-			const { report, reporterId } = await generateMatchReport(gameId);
+			const audioUrl = await generateAudioReport(gameId);
 
 			return setGeneralResponse(
 				reply,
 				200,
 				"Success",
-				"Match report generated",
-				{
-					match_report: stripAudioTags(report),
-					reporter_id: reporterId,
-				},
+				"Audio match report ready",
+				{ match_report_audio_url: audioUrl },
 			);
 		} catch (error) {
 			return handleErrorResponse(reply, error, request);

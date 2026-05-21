@@ -76,7 +76,8 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | `GET` | `/api/v1/games/:gameId` | Bearer | Get game details |
 | `POST` | `/api/v1/games/:gameId/match-stats` | Bearer | Extract stats from FC26 screenshot |
 | `DELETE` | `/api/v1/games/:gameId/match-stats` | Bearer | Remove match stats |
-| `POST` | `/api/v1/games/:gameId/match-report` | Bearer | Generate AI match report |
+| `POST` | `/api/v1/games/:gameId/match-report` | Bearer | Generate reporter-style AI match report (Buschmann/Reif tone) |
+| `POST` | `/api/v1/games/:gameId/match-report/audio` | Bearer | Render the report as mp3 via ElevenLabs TTS (cached on Firebase Storage) |
 | `POST` | `/api/v1/games/prediction` | Bearer | Generate AI match prediction |
 | `GET` | `/api/v1/leaderboard` | — | Get leaderboard standings |
 | `GET` | `/api/v1/players` | Bearer | Get all player profiles |
@@ -110,9 +111,20 @@ Upload a screenshot of FC26's post-match statistics screen. **Claude Vision** an
 
 When players and teams are selected in the game wizard, the API generates a pre-match prediction based on career statistics, H2H records, current form, and xG efficiency. The prediction is entertaining, data-driven, and includes a score estimate.
 
-### 3. Match Report
+### 3. Match Report (Multi-Reporter)
 
-After a game with FC26 statistics, the API generates a German-language match commentary (3-5 sentences). It detects narratives like underdog victories, xG over-performance, dramatic comebacks, and career milestones.
+After a game with FC26 statistics, the API generates a German-language **reporter-style** match commentary (60–90 words). The text is narrated by one of three reporter personas — **Der Klassiker** (Buschmann/Reif tone), **Der Analyst** (data-driven, precise) or **Der Euphoriker** (energetic, spectacular) — picked per match by `selectReporter()` (`src/api/utils/selectReporter.utils.js`).
+
+Selection pipeline:
+1. **Hard rules** — comeback / hattrick → Euphoriker; clear win without drama → Analyst; early red card → Klassiker.
+2. **Drama-weighted random** — fallback uses per-drama-level probability tables.
+3. **Anti-repetition** — if the last two reports were narrated by the same persona, that persona's weight is divided by four.
+
+The chosen persona drives both the prompt (`buildReporterPrompt(reporterId)` injects a persona-specific block and one-shot example into the shared scaffold) and the TTS voice. The selected `reporter_id` is persisted on the game row. Re-generating the report invalidates the cached audio so it can be re-rendered with the new persona's voice.
+
+### 4. Audio Match Report
+
+`POST /api/v1/games/:gameId/match-report/audio` renders the reporter text to an mp3 via **ElevenLabs v3** (model `eleven_v3`). Voice ID and tuning (`stability`, `similarity_boost`, `style`) are persona-specific (see `src/constants/reporters.constants.js`); persona voice IDs live in `ELEVENLABS_VOICE_ID_KLASSIKER` / `_ANALYST` / `_EUPHORIKER` with a fallback to the shared `ELEVENLABS_VOICE_ID`. A pronunciation map (`src/constants/playerPronunciation.constants.js`) rewrites tricky usernames before TTS. The mp3 is uploaded to Firebase Storage (`match-reports/<gameId>.mp3`), made public, and the URL is cached on the game row — subsequent calls skip the TTS roundtrip.
 
 [Full AI Documentation →](docs/features/AI_FEATURES.md)
 
