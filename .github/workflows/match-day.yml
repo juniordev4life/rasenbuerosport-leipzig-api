@@ -74,7 +74,7 @@ jobs:
             --cpu 1 \
             --min-instances 0 \
             --max-instances 3 \
-            --set-env-vars "NODE_ENV=production" \
-            --set-secrets "DATABASE_URL=DATABASE_URL:latest,ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest,CORS_ORIGIN=CORS_ORIGIN:latest,WRAPPED_TRIGGER_SECRET=WRAPPED_TRIGGER_SECRET:latest" \
+            --set-env-vars "NODE_ENV=production,PUSH_VAPID_PUBLIC_KEY=BBKrLzhuUUOHc56dcXBVwrGV-DCYu30QVdCb-my3Mg6upUR-QL7liHugKOOXGeRHcIuqNsM02V0_MZX6oltLpe0,PUSH_VAPID_SUBJECT=mailto:Marco.Slusalek@redbulls.com" \
+            --set-secrets "DATABASE_URL=DATABASE_URL:latest,ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest,CORS_ORIGIN=CORS_ORIGIN:latest,WRAPPED_TRIGGER_SECRET=WRAPPED_TRIGGER_SECRET:latest,PUSH_VAPID_PRIVATE_KEY=PUSH_VAPID_PRIVATE_KEY:latest" \
             --add-cloudsql-instances "${{ secrets.CLOUD_SQL_CONNECTION_NAME }}" \
             --quiet
