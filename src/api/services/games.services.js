@@ -1,9 +1,11 @@
 import { getPool } from "../../config/database.config.js";
-import { query } from "../helpers/database.helpers.js";
+import { logger } from "../../config/logger.config.js";
+import { query, queryOne } from "../helpers/database.helpers.js";
 import { validateScoreTimeline } from "../helpers/timeline.helpers.js";
 import { stripAudioTags } from "../utils/audioTags.utils.js";
 import { applyEloToMatch } from "./elo/eloPersistence.services.js";
 import { invalidateProfileCache } from "./playerProfile/playerProfile.services.js";
+import { notifyMatchCreated } from "./pushSender.services.js";
 
 /**
  * Creates a new game with players
@@ -89,6 +91,26 @@ export async function createGame({
 		const {
 			rows: [updatedGame],
 		} = await getPool().query("SELECT * FROM games WHERE id = $1", [game.id]);
+
+		// Fan out a "newMatch" push to every user who wasn't involved.
+		// Fire-and-forget so a flaky push service can't slow down or
+		// fail the API response — push errors are swallowed inside the
+		// sender, but we still want the .catch() here as a safety net
+		// in case the orchestrator itself throws.
+		notifyMatchCreated({
+			game: updatedGame ?? game,
+			players: gamePlayers,
+			resolveDisplayName: async (id) => {
+				const row = await queryOne(
+					"SELECT username FROM profiles WHERE id = $1",
+					[id],
+				);
+				return row?.username ?? null;
+			},
+		}).catch((err) => {
+			logger.warn({ err: err?.message }, "notifyMatchCreated failed");
+		});
+
 		return updatedGame ?? game;
 	} catch (error) {
 		await client.query("ROLLBACK");
