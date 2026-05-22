@@ -21,15 +21,12 @@ export const subscribeController = {
 				endpoint: request.body.endpoint,
 				p256dh: request.body.keys.p256dh,
 				auth: request.body.keys.auth,
-				userAgent: request.body.userAgent ?? request.headers["user-agent"] ?? null,
+				userAgent:
+					request.body.userAgent ?? request.headers["user-agent"] ?? null,
 			});
-			return setGeneralResponse(
-				reply,
-				201,
-				"Created",
-				"Subscription saved",
-				{ id: sub.id },
-			);
+			return setGeneralResponse(reply, 201, "Created", "Subscription saved", {
+				id: sub.id,
+			});
 		} catch (error) {
 			return handleErrorResponse(reply, error, request);
 		}
@@ -103,13 +100,10 @@ export const updatePreferencesController = {
 				error.statusCode = 404;
 				throw error;
 			}
-			return setGeneralResponse(
-				reply,
-				200,
-				"Success",
-				"Preferences updated",
-				{ id: sub.id, preferences: sub.preferences },
-			);
+			return setGeneralResponse(reply, 200, "Success", "Preferences updated", {
+				id: sub.id,
+				preferences: sub.preferences,
+			});
 		} catch (error) {
 			return handleErrorResponse(reply, error, request);
 		}
