@@ -29,3 +29,36 @@ export const getMyStatsController = {
 		}
 	},
 };
+
+/**
+ * Career stats for any player by id. Used by the profile page to fill
+ * the Karriere-Statistiken card (goals, assists, hattricks, longest
+ * streak, highest win, peak ELO) without a client-side game-window
+ * cap. Auth-required, anyone signed in can see anyone's aggregate.
+ */
+export const getPlayerStatsController = {
+	schema: getStatsSchema,
+	handler: async (request, reply) => {
+		try {
+			const { playerId } = request.params;
+			let { from, to, season } = request.query;
+
+			if (season) {
+				const range = getSeasonDateRange(season);
+				from = range.from;
+				to = range.to;
+			}
+
+			const data = await getUserStats(playerId, from, to);
+			return setGeneralResponse(
+				reply,
+				200,
+				"Success",
+				"Player stats retrieved",
+				data,
+			);
+		} catch (error) {
+			return handleErrorResponse(reply, error, request);
+		}
+	},
+};
