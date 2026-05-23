@@ -77,12 +77,18 @@ export async function applyEloToMatch({ client, game, gamePlayers }) {
 			    SET current_rating = $1,
 			        matches_played = matches_played + 1,
 			        rating_updated_at = now(),
-			        rating_history = $2::jsonb
+			        rating_history = $2::jsonb,
+			        peak_elo_value = GREATEST(peak_elo_value, $1),
+			        peak_elo_at = CASE
+			            WHEN $1 > peak_elo_value THEN $4::timestamptz
+			            ELSE peak_elo_at
+			        END
 			  WHERE id = $3`,
 			[
 				playerResult.ratingAfter,
 				JSON.stringify(trimmedHistory),
 				playerResult.playerId,
+				game.played_at,
 			],
 		);
 	}
