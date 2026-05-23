@@ -196,8 +196,11 @@ export async function getUserStats(userId, from, to) {
 		"shooter",
 	);
 
-	// Badges
+	// Career milestones — surface alongside the badge data for the
+	// lifetime-stats card on the player profile.
 	const maxWinStreak = getMaxWinStreak(games, userGameMap);
+	const highestWin = findHighestWin(games, userGameMap);
+	const peakElo = await getPeakElo(userId);
 	const badges = computeBadges(games, userGameMap, userId, {
 		total_games: totalGames,
 		careerMatchStats,
@@ -215,6 +218,8 @@ export async function getUserStats(userId, from, to) {
 
 	const assistsPerGame =
 		totalGames > 0 ? Number((assistStats.total / totalGames).toFixed(2)) : 0;
+	const goalsPerGame =
+		totalGames > 0 ? Number((goalStats.total / totalGames).toFixed(2)) : 0;
 
 	return {
 		total_games: totalGames,
@@ -236,7 +241,57 @@ export async function getUserStats(userId, from, to) {
 		total_individual_goals: goalStats.total,
 		total_assists: assistStats.total,
 		assists_per_game: assistsPerGame,
+		goals_per_game: goalsPerGame,
+		hattricks: goalStats.hattricks,
+		longest_win_streak: maxWinStreak,
+		highest_win: highestWin,
+		peak_elo: peakElo,
 	};
+}
+
+/**
+ * Pulls the player's all-time peak ELO from `profiles.peak_elo_value`
+ * (maintained by the ELO engine on every match save — see migration
+ * 017). Falls back to `current_rating` for fresh accounts that have
+ * not played yet, and to the trimmed `rating_history` for rows that
+ * predate the migration before the recompute script has been run.
+ *
+ * @param {string} userId
+ * @returns {Promise<{ value: number, played_at: string|null }|null>}
+ */
+async function getPeakElo(userId) {
+	const rows = await query(
+		`SELECT current_rating, peak_elo_value, peak_elo_at, rating_history
+		   FROM profiles WHERE id = $1`,
+		[userId],
+	);
+	const profile = rows[0];
+	if (!profile) return null;
+
+	if (profile.peak_elo_value != null) {
+		return {
+			value: profile.peak_elo_value,
+			played_at: profile.peak_elo_at ?? null,
+		};
+	}
+
+	// Backwards-compatibility for rows that somehow lack the new column
+	// (defensive — the migration sets a default, so this is a no-op in
+	// practice).
+	const history = Array.isArray(profile.rating_history)
+		? profile.rating_history
+		: [];
+	if (history.length > 0) {
+		const peak = history.reduce(
+			(max, v) => (typeof v === "number" && v > max ? v : max),
+			Number.NEGATIVE_INFINITY,
+		);
+		if (Number.isFinite(peak)) return { value: peak, played_at: null };
+	}
+	if (profile.current_rating != null) {
+		return { value: profile.current_rating, played_at: null };
+	}
+	return null;
 }
 
 /**
@@ -264,6 +319,11 @@ function getEmptyStats() {
 		total_individual_goals: 0,
 		total_assists: 0,
 		assists_per_game: 0,
+		goals_per_game: 0,
+		hattricks: 0,
+		longest_win_streak: 0,
+		highest_win: null,
+		peak_elo: null,
 	};
 }
 
@@ -279,6 +339,7 @@ function getEmptyStats() {
 function countIndividualGoals(games, userGameMap, userId) {
 	let total = 0;
 	let maxInOneGame = 0;
+	let hattricks = 0;
 
 	for (const game of games) {
 		const userEntry = userGameMap[game.id];
@@ -305,9 +366,43 @@ function countIndividualGoals(games, userGameMap, userId) {
 
 		total += gameGoals;
 		if (gameGoals > maxInOneGame) maxInOneGame = gameGoals;
+		if (gameGoals >= 3) hattricks += 1;
 	}
 
-	return { total, maxInOneGame };
+	return { total, maxInOneGame, hattricks };
+}
+
+/**
+ * Finds the user's biggest goal-difference win across `games`. Used
+ * for the lifetime-stats card on the player profile.
+ *
+ * @param {object[]} games   - Sorted DESC by played_at.
+ * @param {object}   userGameMap
+ * @returns {{ score: string, goal_diff: number, opponent_name: string, played_at: string }|null}
+ */
+function findHighestWin(games, userGameMap) {
+	let best = null;
+	for (const game of games) {
+		const ue = userGameMap[game.id];
+		if (!ue) continue;
+		const my = ue.team === "home" ? game.score_home : game.score_away;
+		const opp = ue.team === "home" ? game.score_away : game.score_home;
+		const diff = my - opp;
+		if (diff <= 0) continue;
+		if (!best || diff > best.goal_diff) {
+			const opponents = (game.game_players ?? [])
+				.filter((gp) => gp.team !== ue.team)
+				.map((gp) => gp.profiles?.username ?? "?")
+				.join(" & ");
+			best = {
+				score: `${my}:${opp}`,
+				goal_diff: diff,
+				opponent_name: opponents || null,
+				played_at: game.played_at,
+			};
+		}
+	}
+	return best;
 }
 
 /**

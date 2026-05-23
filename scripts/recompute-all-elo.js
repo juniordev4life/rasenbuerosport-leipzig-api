@@ -203,7 +203,7 @@ async function writeBackup(pool, customPath) {
 	const [{ rows: profiles }, { rows: snapshots }] = await Promise.all([
 		pool.query(
 			`SELECT id, current_rating, matches_played, rating_history,
-			        rating_updated_at
+			        rating_updated_at, peak_elo_value, peak_elo_at
 			   FROM profiles`,
 		),
 		pool.query(
@@ -255,13 +255,17 @@ async function restoreFromBackup(pool, path) {
 				    SET current_rating = $1,
 				        matches_played = $2,
 				        rating_history = $3::jsonb,
-				        rating_updated_at = COALESCE($4::timestamptz, now())
-				  WHERE id = $5`,
+				        rating_updated_at = COALESCE($4::timestamptz, now()),
+				        peak_elo_value = COALESCE($5, 1500),
+				        peak_elo_at = $6::timestamptz
+				  WHERE id = $7`,
 				[
 					p.current_rating,
 					p.matches_played,
 					JSON.stringify(p.rating_history ?? []),
 					p.rating_updated_at ?? null,
+					p.peak_elo_value ?? null,
+					p.peak_elo_at ?? null,
 					p.id,
 				],
 			);
@@ -303,7 +307,9 @@ async function resetProfiles(pool) {
 		    SET current_rating = 1500,
 		        matches_played = 0,
 		        rating_history = '[]'::jsonb,
-		        rating_updated_at = now()`,
+		        rating_updated_at = now(),
+		        peak_elo_value = 1500,
+		        peak_elo_at = NULL`,
 	);
 	console.log(`Reset ${rowCount} profile(s) to 1500 / 0 matches.`);
 	return rowCount;

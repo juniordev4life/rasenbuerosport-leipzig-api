@@ -125,6 +125,27 @@ export const getStatsSchema = {
 						},
 						goal_tier: { type: ["string", "null"] },
 						total_individual_goals: { type: "integer" },
+						total_assists: { type: "integer" },
+						assists_per_game: { type: "number" },
+						goals_per_game: { type: "number" },
+						hattricks: { type: "integer" },
+						longest_win_streak: { type: "integer" },
+						highest_win: {
+							type: ["object", "null"],
+							properties: {
+								score: { type: "string" },
+								goal_diff: { type: "integer" },
+								opponent_name: { type: ["string", "null"] },
+								played_at: { type: "string" },
+							},
+						},
+						peak_elo: {
+							type: ["object", "null"],
+							properties: {
+								value: { type: "number" },
+								played_at: { type: ["string", "null"] },
+							},
+						},
 					},
 				},
 				error: { type: "array" },
