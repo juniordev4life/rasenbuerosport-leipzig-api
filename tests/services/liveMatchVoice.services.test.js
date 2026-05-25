@@ -75,8 +75,48 @@ describe("parseLiveMatchVoiceEvent", () => {
 			playerId: "marco",
 			side: "home",
 			minute: 17,
+			assisterId: null,
 			transcript: "Tor Marco Minute 17",
 		});
+	});
+
+	it("returns the assister when it's a same-team teammate of the scorer", async () => {
+		callAnthropicWithRetry.mockResolvedValue({
+			text: '{"ok": true, "eventType": "goal", "playerId": "marco", "minute": 17, "assisterId": "flo"}',
+		});
+		const result = await parseLiveMatchVoiceEvent({
+			transcript: "Tor Marco Minute 17 Vorlage Florian",
+			players: PLAYERS,
+			currentMinute: 17,
+		});
+		expect(result.ok).toBe(true);
+		expect(result.assisterId).toBe("flo");
+	});
+
+	it("drops an assister that's on the opposing team", async () => {
+		callAnthropicWithRetry.mockResolvedValue({
+			text: '{"ok": true, "eventType": "goal", "playerId": "marco", "minute": 17, "assisterId": "jay"}',
+		});
+		const result = await parseLiveMatchVoiceEvent({
+			transcript: "Tor Marco Vorlage Jay",
+			players: PLAYERS,
+			currentMinute: 17,
+		});
+		expect(result.ok).toBe(true);
+		expect(result.assisterId).toBeNull();
+	});
+
+	it("ignores the assister field on non-goal events", async () => {
+		callAnthropicWithRetry.mockResolvedValue({
+			text: '{"ok": true, "eventType": "yellow_card", "playerId": "flo", "minute": 35, "assisterId": "marco"}',
+		});
+		const result = await parseLiveMatchVoiceEvent({
+			transcript: "Gelb Florian",
+			players: PLAYERS,
+			currentMinute: 35,
+		});
+		expect(result.ok).toBe(true);
+		expect(result.assisterId).toBeNull();
 	});
 
 	it("survives markdown-fenced LLM responses", async () => {
