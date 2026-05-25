@@ -3,8 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("../../src/api/helpers/ai.helpers.js", () => ({
 	callAnthropicWithRetry: vi.fn(),
 }));
+vi.mock("../../src/api/helpers/database.helpers.js", () => ({
+	query: vi.fn(async () => []),
+}));
 
 import { callAnthropicWithRetry } from "../../src/api/helpers/ai.helpers.js";
+import { query } from "../../src/api/helpers/database.helpers.js";
 import {
 	__test__,
 	buildExtractPrompt,
@@ -34,6 +38,18 @@ describe("buildExtractPrompt", () => {
 		expect(prompt).toContain("Tor Marco Minute 17");
 	});
 
+	it("renders voice aliases inline so Claude treats them as valid names", () => {
+		const prompt = buildExtractPrompt({
+			transcript: "Tor Dirk",
+			players: [
+				{ id: "bm", username: "BlackIVmaniac", side: "away", aliases: ["Dirk", "DBL"] },
+				{ id: "marco", username: "Marco", side: "home", aliases: [] },
+			],
+			currentMinute: 10,
+		});
+		expect(prompt).toMatch(/BlackIVmaniac.*auch genannt: Dirk, DBL/);
+	});
+
 	it("lists the four supported event types", () => {
 		const prompt = buildExtractPrompt({
 			transcript: "x",
@@ -58,6 +74,29 @@ describe("cleanLlmJson", () => {
 describe("parseLiveMatchVoiceEvent", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		query.mockResolvedValue([]);
+	});
+
+	it("hydrates each player with voice_aliases from the DB and feeds them to the prompt", async () => {
+		query.mockResolvedValue([
+			{ id: "bm", voice_aliases: ["Dirk", "DBL"] },
+			{ id: "marco", voice_aliases: ["Marc"] },
+		]);
+		callAnthropicWithRetry.mockResolvedValue({
+			text: '{"ok": true, "eventType": "goal", "playerId": "bm", "minute": 10}',
+		});
+		const result = await parseLiveMatchVoiceEvent({
+			transcript: "Tor Dirk",
+			players: PLAYERS,
+			currentMinute: 10,
+		});
+		expect(result.ok).toBe(true);
+		expect(query).toHaveBeenCalledWith(expect.any(String), [
+			["marco", "flo", "jay", "bm"],
+		]);
+		const promptArg = callAnthropicWithRetry.mock.calls[0][0].messages[0].content;
+		expect(promptArg).toContain("auch genannt: Dirk, DBL");
+		expect(promptArg).toContain("auch genannt: Marc");
 	});
 
 	it("returns a structured event when the LLM resolves the player", async () => {

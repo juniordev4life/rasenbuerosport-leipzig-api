@@ -10,6 +10,7 @@
  */
 
 import { callAnthropicWithRetry } from "../helpers/ai.helpers.js";
+import { query } from "../helpers/database.helpers.js";
 
 const MODEL = "claude-sonnet-4-6";
 const TIMEOUT_MS = 6000;
@@ -46,7 +47,13 @@ function cleanLlmJson(raw) {
  */
 export function buildExtractPrompt({ transcript, players, currentMinute }) {
 	const roster = players
-		.map((p) => `- id: ${p.id} · name: ${p.username} · team: ${p.side}`)
+		.map((p) => {
+			const aliasPart =
+				Array.isArray(p.aliases) && p.aliases.length > 0
+					? ` · auch genannt: ${p.aliases.join(", ")}`
+					: "";
+			return `- id: ${p.id} · name: ${p.username} · team: ${p.side}${aliasPart}`;
+		})
 		.join("\n");
 	return `Du wandelst eine deutsche Live-Reporter-Eingabe für ein FIFA-Office-Match in ein strukturiertes Event um.
 
@@ -64,7 +71,7 @@ DEINE AUFGABE:
    - "yellow_card"    — Gelbe Karte
    - "red_card"       — Rote Karte (auch Ampelkarte zählt als rot)
    - "penalty_missed" — Verschossener Elfmeter
-2. Erkenne den genannten Spieler (Schütze bzw. verwarnten Spieler) aus der Aufstellung — Vornamen, Spitznamen oder phonetische Varianten möglich. Wähle aus der Liste den wahrscheinlichsten Match.
+2. Erkenne den genannten Spieler (Schütze bzw. verwarnten Spieler) aus der Aufstellung — Vornamen, Spitznamen, phonetische Varianten ODER ein gelisteter Alias unter „auch genannt" sind alle gültig. Wähle aus der Liste den wahrscheinlichsten Match.
 3. Erkenne die Minute. Sprecher sagt "Minute siebzehn", "in der 17.", "17te". Konvertiere zu Integer 1-120. Wenn keine Minute genannt wird, nutze \`currentMinute\`.
 4. Bei einem Tor: erkenne optional einen Vorlagengeber. Sprecher sagt "Vorlage X", "Pass von X", "nach Vorlage X", "Assist X". Der Vorlagengeber muss im SELBEN Team spielen wie der Schütze — sonst weglassen. Bei Eigentor, Karte oder verschossenem Elfer NIE einen Vorlagengeber zurückgeben.
 
@@ -108,9 +115,11 @@ export async function parseLiveMatchVoiceEvent({
 		return { ok: false, reason: "Leeres Transkript", transcript: "" };
 	}
 
+	const enrichedPlayers = await enrichWithAliases(players);
+
 	const prompt = buildExtractPrompt({
 		transcript: cleanedTranscript,
-		players,
+		players: enrichedPlayers,
 		currentMinute,
 	});
 
@@ -182,7 +191,11 @@ export async function parseLiveMatchVoiceEvent({
 	let assisterId = null;
 	if (parsed.eventType === "goal" && parsed.assisterId) {
 		const assister = players.find((p) => p.id === parsed.assisterId);
-		if (assister && assister.side === player.side && assister.id !== player.id) {
+		if (
+			assister &&
+			assister.side === player.side &&
+			assister.id !== player.id
+		) {
 			assisterId = assister.id;
 		}
 	}
@@ -198,4 +211,31 @@ export async function parseLiveMatchVoiceEvent({
 	};
 }
 
-export const __test__ = { cleanLlmJson };
+/**
+ * Hydrate each player with their `voice_aliases` from the profiles
+ * table. Guest IDs aren't in `profiles`, so they're returned with an
+ * empty alias list — they can only be referenced by their in-app
+ * name.
+ *
+ * @param {Array<{ id: string, username: string, side: "home"|"away" }>} players
+ * @returns {Promise<Array<{ id: string, username: string, side: "home"|"away", aliases: string[] }>>}
+ */
+async function enrichWithAliases(players) {
+	const ids = players.map((p) => p.id).filter((id) => !id.startsWith("__"));
+	if (ids.length === 0) {
+		return players.map((p) => ({ ...p, aliases: [] }));
+	}
+	const rows = await query(
+		`SELECT id, voice_aliases FROM profiles WHERE id = ANY($1::text[])`,
+		[ids],
+	);
+	const aliasMap = new Map(
+		rows.map((r) => [
+			r.id,
+			Array.isArray(r.voice_aliases) ? r.voice_aliases : [],
+		]),
+	);
+	return players.map((p) => ({ ...p, aliases: aliasMap.get(p.id) ?? [] }));
+}
+
+export const __test__ = { cleanLlmJson, enrichWithAliases };
