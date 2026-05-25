@@ -6,6 +6,44 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v0.1.3
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.2...v0.1.3)
+
+### 🚀 Enhancements
+
+- Reporter personas, audio match reports & Friday talk show ([#21](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/21))
+- Extract pass-network indicators from the Pässe screenshot ([#22](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/22))
+- **elo:** Pure-function core for contribution-weighted ELO ([#25](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/25))
+- **profile:** Pure-function core for the player profile ([#27](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/27))
+- **profile:** Orchestrator + cache + LLM bio + relationships + endpoint ([#29](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/29))
+- **push:** Web-push backend, subscription routes and newMatch trigger ([#31](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/31))
+- **scripts:** One-off ELO backfill with backup + restore ([#32](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/32))
+- **stats:** Career stats endpoint with lifetime peak ELO ([#33](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/33))
+- **live-match:** Voice-event parser endpoint for live tracking ([#38](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/38))
+- **voice-event:** Extract optional assister from the transcript ([#39](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/39))
+- **voice-aliases:** Per-player spoken-form synonyms for the voice tracker ([#40](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/40))
+
+### 🩹 Fixes
+
+- **profile:** Derive matchCount from game_players, not profiles.matches_played ([#30](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/30))
+- **stats:** Add /v1/stats/players/:playerId for per-player career stats ([#34](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/34))
+- **stats:** Register /players/:playerId inside stats plugin ([#35](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/35))
+- **stats:** Remove stale nested players/:playerId route ([#36](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/36))
+
+### 📖 Documentation
+
+- Introduce DEPLOY_PROD.md runbook + pflege-regel ([#24](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/24))
+- **deploy:** Cover web-push, peak ELO, migrations 016/017 and the ELO recompute backfill ([#37](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/37))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v0.1.2 ([9ce5510](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/9ce5510))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v0.1.2 (2026-05-18)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.1...v0.1.2)
