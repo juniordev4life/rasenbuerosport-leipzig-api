@@ -48,6 +48,11 @@ export const updateProfileController = {
 			properties: {
 				username: { type: "string", minLength: 2, maxLength: 30 },
 				avatar_url: { type: "string" },
+				voice_aliases: {
+					type: "array",
+					maxItems: 10,
+					items: { type: "string", minLength: 1, maxLength: 30 },
+				},
 			},
 		},
 	},

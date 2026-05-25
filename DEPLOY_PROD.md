@@ -178,7 +178,8 @@ Wenn der neue Code gegen die alte DB läuft, schlagen Audio-/Talk-Show-/Pass-Net
     -f migrations/014_elo_system.sql \
     -f migrations/015_profile_cache.sql \
     -f migrations/016_push_subscriptions.sql \
-    -f migrations/017_peak_elo.sql
+    -f migrations/017_peak_elo.sql \
+    -f migrations/018_voice_aliases.sql
   ```
 - [ ] Verifizieren:
   ```sql
@@ -190,6 +191,9 @@ Wenn der neue Code gegen die alte DB läuft, schlagen Audio-/Talk-Show-/Pass-Net
                           -- peak_elo_value, peak_elo_at
   \d push_subscriptions   -- existiert mit user_id, endpoint, p256dh, auth, preferences
   \d talkshow_episodes    -- existiert mit week_start, week_end, script_json, audio_url
+  -- voice_aliases
+  SELECT column_name FROM information_schema.columns
+   WHERE table_name='profiles' AND column_name='voice_aliases';
   ```
 - [ ] Cloud SQL Auth Proxy stoppen (Ctrl+C)
 
@@ -205,8 +209,9 @@ Wenn der neue Code gegen die alte DB läuft, schlagen Audio-/Talk-Show-/Pass-Net
 | `015_profile_cache.sql` | `profiles.profile_cache` JSONB (cached axes/archetype/bio für Player Profile) |
 | `016_push_subscriptions.sql` | Neue Tabelle `push_subscriptions` (user_id FK, endpoint, p256dh, auth, preferences JSONB, failure_count) |
 | `017_peak_elo.sql` | `profiles.peak_elo_value` + `peak_elo_at` für die Lifetime-Stats-Card |
+| `018_voice_aliases.sql` | `profiles.voice_aliases` JSONB (Sprach-Synonyme pro Spieler für den Live-Voice-Tracker) |
 
-Alle acht sind **additiv und nicht-destruktiv** — kein Datenverlust möglich.
+Alle neun sind **additiv und nicht-destruktiv** — kein Datenverlust möglich.
 
 ---
 
