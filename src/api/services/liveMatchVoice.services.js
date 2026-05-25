@@ -64,21 +64,26 @@ DEINE AUFGABE:
    - "yellow_card"    — Gelbe Karte
    - "red_card"       — Rote Karte (auch Ampelkarte zählt als rot)
    - "penalty_missed" — Verschossener Elfmeter
-2. Erkenne den genannten Spieler aus der Aufstellung — Vornamen, Spitznamen oder phonetische Varianten möglich. Wähle aus der Liste den wahrscheinlichsten Match.
+2. Erkenne den genannten Spieler (Schütze bzw. verwarnten Spieler) aus der Aufstellung — Vornamen, Spitznamen oder phonetische Varianten möglich. Wähle aus der Liste den wahrscheinlichsten Match.
 3. Erkenne die Minute. Sprecher sagt "Minute siebzehn", "in der 17.", "17te". Konvertiere zu Integer 1-120. Wenn keine Minute genannt wird, nutze \`currentMinute\`.
+4. Bei einem Tor: erkenne optional einen Vorlagengeber. Sprecher sagt "Vorlage X", "Pass von X", "nach Vorlage X", "Assist X". Der Vorlagengeber muss im SELBEN Team spielen wie der Schütze — sonst weglassen. Bei Eigentor, Karte oder verschossenem Elfer NIE einen Vorlagengeber zurückgeben.
 
 REGELN:
 - Antworte STRIKT als JSON, kein Markdown, keine Backticks, keine Erklärungstexte.
 - Wenn das Event NICHT eindeutig zuordenbar ist (keine bekannte Person ODER kein bekanntes Event-Wort), gib \`{ "ok": false, "reason": "<kurzer Grund>" }\` zurück.
-- Wenn alles passt: \`{ "ok": true, "eventType": "...", "playerId": "...", "minute": <int> }\`.
+- Wenn alles passt: \`{ "ok": true, "eventType": "...", "playerId": "...", "minute": <int>, "assisterId": "<id>"|null }\`.
+- \`assisterId\` ist optional — wenn kein Vorlagengeber genannt wird oder nicht im Team ist, sende \`null\`.
 - Antworte mit gar keinem anderen Text als dem JSON.
 
 BEISPIELE:
 Eingabe: "Tor Marco Minute siebzehn"
-Antwort: {"ok": true, "eventType": "goal", "playerId": "<Marcos-id>", "minute": 17}
+Antwort: {"ok": true, "eventType": "goal", "playerId": "<Marcos-id>", "minute": 17, "assisterId": null}
+
+Eingabe: "Tor Marco siebzehnte Minute Vorlage BlackIVmaniac"
+Antwort: {"ok": true, "eventType": "goal", "playerId": "<Marcos-id>", "minute": 17, "assisterId": "<BlackIVmaniacs-id>"}
 
 Eingabe: "Gelb für Florian Minute fünfunddreißig"
-Antwort: {"ok": true, "eventType": "yellow_card", "playerId": "<Florians-id>", "minute": 35}
+Antwort: {"ok": true, "eventType": "yellow_card", "playerId": "<Florians-id>", "minute": 35, "assisterId": null}
 
 Eingabe: "Was war das denn"
 Antwort: {"ok": false, "reason": "Kein erkennbares Event"}`;
@@ -170,12 +175,25 @@ export async function parseLiveMatchVoiceEvent({
 		};
 	}
 
+	// Optional assister — only meaningful for goals, only when the
+	// candidate is on the same team as the scorer. Anything else is
+	// silently dropped rather than turned into a hard reject so a
+	// noisy "Vorlage Y" tail can't sink an otherwise valid event.
+	let assisterId = null;
+	if (parsed.eventType === "goal" && parsed.assisterId) {
+		const assister = players.find((p) => p.id === parsed.assisterId);
+		if (assister && assister.side === player.side && assister.id !== player.id) {
+			assisterId = assister.id;
+		}
+	}
+
 	return {
 		ok: true,
 		eventType: parsed.eventType,
 		playerId: player.id,
 		side: player.side,
 		minute,
+		assisterId,
 		transcript: cleanedTranscript,
 	};
 }
