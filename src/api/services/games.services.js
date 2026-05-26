@@ -154,17 +154,35 @@ export async function deleteGame(gameId) {
 }
 
 /**
- * Gets recent games for a user with offset pagination
+ * Gets recent games with offset pagination.
+ * When `mine` is true (default), restricts to games the user was involved in.
+ * When `mine` is false, returns all games regardless of involvement.
  * @param {string} userId
  * @param {number} limit
  * @param {number} offset
+ * @param {string} [from]
+ * @param {string} [to]
+ * @param {boolean} [mine=true]
  * @returns {Promise<object[]>}
  */
-export async function getUserGames(userId, limit = 10, offset = 0, from, to) {
-	const conditions = ["gp2.player_id = $1"];
-	const params = [userId];
-	let idx = 2;
+export async function getUserGames(
+	userId,
+	limit = 10,
+	offset = 0,
+	from,
+	to,
+	mine = true,
+) {
+	const conditions = [];
+	const params = [];
+	let idx = 1;
 
+	if (mine) {
+		conditions.push(
+			`EXISTS (SELECT 1 FROM game_players gpu WHERE gpu.game_id = g.id AND gpu.player_id = $${idx++})`,
+		);
+		params.push(userId);
+	}
 	if (from) {
 		conditions.push(`g.played_at >= $${idx++}`);
 		params.push(from);
@@ -174,6 +192,7 @@ export async function getUserGames(userId, limit = 10, offset = 0, from, to) {
 		params.push(to);
 	}
 
+	const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 	params.push(limit, offset);
 
 	const games = await query(
@@ -187,9 +206,9 @@ export async function getUserGames(userId, limit = 10, offset = 0, from, to) {
 				)
 			) AS game_players
 		FROM games g
-		INNER JOIN game_players gp2 ON gp2.game_id = g.id AND ${conditions.join(" AND ")}
 		LEFT JOIN game_players gp ON gp.game_id = g.id
 		LEFT JOIN profiles p ON p.id = gp.player_id
+		${where}
 		GROUP BY g.id
 		ORDER BY g.played_at DESC
 		LIMIT $${idx++} OFFSET $${idx}`,

@@ -130,6 +130,7 @@ export const getGamesSchema = {
 			season: { type: "string", pattern: "^\\d{4}-Q[1-4]$" },
 			from: { type: "string", format: "date" },
 			to: { type: "string", format: "date" },
+			mine: { type: "boolean", default: true },
 		},
 	},
 };
