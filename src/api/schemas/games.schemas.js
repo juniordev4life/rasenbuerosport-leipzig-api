@@ -83,7 +83,10 @@ export const createGameSchema = {
 		type: "object",
 		required: ["mode", "score_home", "score_away", "players"],
 		properties: {
-			mode: { type: "string", enum: ["1v1", "2v2", "2v1", "1v2"] },
+			mode: {
+				type: "string",
+				enum: ["1v1", "1v2", "2v1", "2v2", "2v3", "3v2", "3v3"],
+			},
 			score_home: { type: "integer", minimum: 0 },
 			score_away: { type: "integer", minimum: 0 },
 			players: {
@@ -98,7 +101,7 @@ export const createGameSchema = {
 					},
 				},
 				minItems: 1,
-				maxItems: 4,
+				maxItems: 6,
 			},
 			played_at: { type: "string", format: "date-time" },
 			score_timeline: {
