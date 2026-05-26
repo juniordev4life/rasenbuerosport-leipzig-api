@@ -6,6 +6,22 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v0.1.4
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.3...v0.1.4)
+
+### 🩹 Fixes
+
+- **games:** Support listing all games via mine query param ([#41](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/41))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v0.1.3 ([d02cdd5](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/d02cdd5))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v0.1.3 (2026-05-25)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.2...v0.1.3)
