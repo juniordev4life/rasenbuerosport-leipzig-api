@@ -6,6 +6,22 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v0.1.6
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.5...v0.1.6)
+
+### 🩹 Fixes
+
+- **deploy:** Wire ElevenLabs env vars into Cloud Run deploys ([#43](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/43))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v0.1.5 ([10589d3](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/10589d3))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v0.1.5 (2026-05-26)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.4...v0.1.5)
