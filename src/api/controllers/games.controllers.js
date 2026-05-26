@@ -29,7 +29,14 @@ export const getGamesController = {
 	schema: getGamesSchema,
 	handler: async (request, reply) => {
 		try {
-			let { limit = 10, offset = 0, from, to, season } = request.query;
+			let {
+				limit = 10,
+				offset = 0,
+				from,
+				to,
+				season,
+				mine = true,
+			} = request.query;
 
 			if (season) {
 				const range = getSeasonDateRange(season);
@@ -43,6 +50,7 @@ export const getGamesController = {
 				offset,
 				from,
 				to,
+				mine,
 			);
 			return setGeneralResponse(
 				reply,
