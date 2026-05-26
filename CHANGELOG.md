@@ -6,6 +6,22 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v0.1.5
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.4...v0.1.5)
+
+### 🩹 Fixes
+
+- **games:** Allow 3-player and up-to-3v3 matches to be saved ([#42](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/42))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v0.1.4 ([e26901a](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/e26901a))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v0.1.4 (2026-05-26)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.3...v0.1.4)
