@@ -154,6 +154,89 @@ describe("createGameSchema — score_timeline polymorphism", () => {
 		expect(ok).toBe(true);
 	});
 
+	/**
+	 * Regression coverage for the lineup matrix.
+	 *
+	 * Production incident: the `mode` enum and the `players.maxItems` cap
+	 * have drifted apart from the product spec more than once. The 1v2/2v1
+	 * variants were initially missing, and 2v3/3v2/3v3 were added only after
+	 * 3-user / full-team matches silently failed at save time. This block
+	 * locks the full supported matrix in place so the next round of mode
+	 * tweaks cannot regress quietly.
+	 *
+	 * The matching DB-level check constraint lives in
+	 * `migrations/019_extend_game_modes.sql` — the schema and the constraint
+	 * must stay in sync.
+	 */
+	const lineups = [
+		{ mode: "1v1", home: 1, away: 1 },
+		{ mode: "1v2", home: 1, away: 2 },
+		{ mode: "2v1", home: 2, away: 1 },
+		{ mode: "2v2", home: 2, away: 2 },
+		{ mode: "2v3", home: 2, away: 3 },
+		{ mode: "3v2", home: 3, away: 2 },
+		{ mode: "3v3", home: 3, away: 3 },
+	];
+
+	for (const { mode, home, away } of lineups) {
+		it(`accepts a ${mode} lineup (${home + away} players)`, () => {
+			const players = [
+				...Array.from({ length: home }, (_, i) => ({
+					id: `home-${i + 1}`,
+					team: "home",
+				})),
+				...Array.from({ length: away }, (_, i) => ({
+					id: `away-${i + 1}`,
+					team: "away",
+				})),
+			];
+
+			const payload = {
+				mode,
+				score_home: 3,
+				score_away: 2,
+				players,
+			};
+
+			const ok = validate(payload);
+
+			expect(ok).toBe(true);
+			expect(payload.players).toHaveLength(home + away);
+		});
+	}
+
+	it("rejects an unsupported mode (e.g. 4v4)", () => {
+		const payload = {
+			mode: "4v4",
+			score_home: 1,
+			score_away: 0,
+			players: [
+				{ id: "h1", team: "home" },
+				{ id: "a1", team: "away" },
+			],
+		};
+
+		const ok = validate(payload);
+
+		expect(ok).toBe(false);
+	});
+
+	it("rejects more than 6 players", () => {
+		const payload = {
+			mode: "3v3",
+			score_home: 1,
+			score_away: 0,
+			players: Array.from({ length: 7 }, (_, i) => ({
+				id: `p${i}`,
+				team: i < 4 ? "home" : "away",
+			})),
+		};
+
+		const ok = validate(payload);
+
+		expect(ok).toBe(false);
+	});
+
 	it("accepts a penalty_missed entry and preserves shooter_id + keeper_id", () => {
 		const payload = {
 			...baseValidGame,

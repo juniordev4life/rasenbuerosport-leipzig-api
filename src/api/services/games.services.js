@@ -10,7 +10,7 @@ import { notifyMatchCreated } from "./pushSender.services.js";
 /**
  * Creates a new game with players
  * @param {object} params
- * @param {string} params.mode - '1v1' or '2v2'
+ * @param {string} params.mode - One of '1v1', '1v2', '2v1', '2v2', '2v3', '3v2', '3v3'
  * @param {number} params.score_home
  * @param {number} params.score_away
  * @param {object[]} params.players - Array of {id, team, team_name?}
