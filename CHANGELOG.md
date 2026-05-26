@@ -6,6 +6,22 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v0.1.8
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.7...v0.1.8)
+
+### 🩹 Fixes
+
+- **deploy:** Drop ELEVENLABS_KEEP_AUDIO_TAGS from Secret Manager mount ([#45](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/45))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v0.1.7 ([bef0c7e](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/bef0c7e))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v0.1.7 (2026-05-26)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.6...v0.1.7)
