@@ -19,10 +19,18 @@ const MIN_MATCHES = 3;
  * @property {string} playerId
  * @property {string} username
  * @property {string|null} avatarUrl
- * @property {number} totalMatches
- * @property {number} wins
- * @property {number} losses
- * @property {number} winRate - 0..1 with one decimal precision
+ * @property {number} totalMatches - Games played together (partner) or
+ *   against each other (opponent).
+ * @property {number} wins - Wins from the perspective of the profile
+ *   owner.
+ * @property {number} losses - Losses from the perspective of the
+ *   profile owner.
+ * @property {number} winRate - Decimal win ratio in the closed range
+ *   [0, 1], rounded to two decimal places. Example: a 4-from-20
+ *   record serialises as `0.20`, i.e. 20 %. The client is expected
+ *   to multiply by 100 for percentage display — keeping the wire
+ *   format as a probability matches the rest of the stats payload
+ *   and lets aggregations stay numerically stable.
  */
 
 /**
@@ -180,6 +188,9 @@ function finaliseCard(entry) {
 		totalMatches: entry.totalMatches,
 		wins: entry.wins,
 		losses: entry.losses,
+		// Probability format ([0, 1]) with 2-decimal precision — see
+		// the `winRate` description on `RelationshipCard` for why it
+		// stays a ratio and not a percentage on the wire.
 		winRate: Math.round((entry.wins / entry.totalMatches) * 100) / 100,
 	};
 }
