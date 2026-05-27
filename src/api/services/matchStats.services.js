@@ -1,4 +1,5 @@
 import { getAnthropicClient } from "../../config/anthropic.config.js";
+import { getStorageBucket } from "../../config/firebase.config.js";
 import { queryOne } from "../helpers/database.helpers.js";
 import { normalisePassNetwork } from "../utils/passNetwork.utils.js";
 
@@ -340,6 +341,33 @@ export async function saveMatchStats(
 	}
 
 	return data;
+}
+
+/**
+ * Best-effort delete of the original screenshot in Firebase Storage
+ * after a successful extraction + DB write. The Anthropic call only
+ * reads the image once (via signed download URL), and the frontend
+ * uses `{type}_image_url` solely as a truthy "stats present" flag —
+ * so the underlying object is dead weight from this point on.
+ *
+ * Errors are deliberately swallowed: if the delete fails (network
+ * blip, missing object, permission issue), the stats are still
+ * correctly stored and the user sees the right UI. The orphan object
+ * can be cleaned up later by a sweeper or just left in the bucket.
+ *
+ * @param {string} gameId - Game UUID
+ * @param {"overview"|"passes"|"defense"} type - Screenshot type
+ * @returns {Promise<void>}
+ * @example
+ * await deleteMatchStatsImage("abc-123", "passes");
+ */
+export async function deleteMatchStatsImage(gameId, type) {
+	try {
+		const bucket = getStorageBucket();
+		await bucket.file(`match-stats/${gameId}/${type}.jpg`).delete();
+	} catch {
+		// Intentional no-op — see JSDoc above.
+	}
 }
 
 /**

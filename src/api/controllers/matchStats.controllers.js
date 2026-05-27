@@ -24,6 +24,18 @@ export const uploadMatchStatsController = {
 				type,
 			);
 
+			// Screenshot is one-shot input for Claude Vision — once stats
+			// land in the DB, the underlying object is dead weight. Fire
+			// and forget; failure here doesn't roll back the save.
+			matchStatsService
+				.deleteMatchStatsImage(gameId, type)
+				.catch((err) =>
+					request.log.warn(
+						{ err, gameId, type },
+						"match-stats screenshot cleanup failed",
+					),
+				);
+
 			return setGeneralResponse(
 				reply,
 				200,
