@@ -6,6 +6,26 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v0.1.9
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.8...v0.1.9)
+
+### 🚀 Enhancements
+
+- **match-stats:** Delete uploaded screenshot after Vision extraction ([6d417d4](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/6d417d4))
+
+### 📖 Documentation
+
+- **profile:** Clarify winRate is a [0,1] ratio on RelationshipCard ([744fa73](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/744fa73))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v0.1.8 ([22d46dc](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/22d46dc))
+
+### ❤️ Contributors
+
+- Marco Slusalek <marco.slusalek@redbulls.com>
+
 ## v0.1.8 (2026-05-26)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.7...v0.1.8)
