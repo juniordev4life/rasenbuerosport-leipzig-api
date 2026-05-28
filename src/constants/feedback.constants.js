@@ -26,12 +26,19 @@ export const FEEDBACK_RECIPIENT_EMAIL =
 	process.env.FEEDBACK_RECIPIENT_EMAIL ?? "marco.slusalek@redbulls.com";
 
 /**
- * Sender address used by Resend. Must be a domain verified inside
- * the Resend dashboard. For local dev / unverified setups, Resend
- * accepts `onboarding@resend.dev` as a sandbox sender.
+ * Sender address used by Resend.
+ *
+ * For production, set this to an address on a domain you have
+ * verified in the Resend dashboard (DNS records — SPF, DKIM, DMARC
+ * — pointing at Resend). Until that's done, the only sender
+ * Resend will accept is its sandbox address `onboarding@resend.dev`.
+ *
+ * Sandbox restriction: when using `onboarding@resend.dev`, Resend
+ * only permits sending TO the email registered on the account.
+ * Verify-your-domain unlocks arbitrary recipients.
  */
 export const FEEDBACK_SENDER_EMAIL =
-	process.env.FEEDBACK_SENDER_EMAIL ?? "feedback@onboarding.resend.dev";
+	process.env.FEEDBACK_SENDER_EMAIL ?? "onboarding@resend.dev";
 
 /**
  * Labels applied when creating GitHub issues. They line up with the
