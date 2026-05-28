@@ -92,6 +92,7 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | `GET` | `/api/v1/wrapped` | Bearer | List user's weekly wrapped entries |
 | `GET` | `/api/v1/wrapped/latest` | Bearer | Latest weekly wrapped for the user |
 | `POST` | `/api/v1/wrapped/generate` | Scheduler | Trigger weekly wrapped generation (Cloud Scheduler only) |
+| `POST` | `/api/v1/feedback` | Bearer | Submit in-app feedback (general → email via Resend, bug/feature → GitHub issue) |
 
 > User registration and login happen client-side via Firebase Authentication in the frontend. The API never issues credentials — it only verifies Firebase ID tokens supplied as `Authorization: Bearer <id-token>`.
 
@@ -320,6 +321,15 @@ FIREBASE_PROJECT_ID=rasenbuerosport-leipzig-9d54f
 ANTHROPIC_API_KEY=sk-ant-...
 WRAPPED_TRIGGER_SECRET=<shared-secret-for-cloud-scheduler>
 
+# In-app feedback. RESEND_API_KEY routes "general" feedback to FEEDBACK_RECIPIENT_EMAIL via Resend.
+# FEEDBACK_GITHUB_TOKEN is a fine-grained PAT with "Issues: write" on FEEDBACK_GITHUB_REPO; it files bug/feature feedback as GitHub issues.
+RESEND_API_KEY=re_...
+FEEDBACK_GITHUB_TOKEN=github_pat_...
+# Optional overrides — all have sensible defaults:
+# FEEDBACK_GITHUB_REPO=juniordev4life/rasenbuerosport-leipzig-app
+# FEEDBACK_RECIPIENT_EMAIL=marco.slusalek@redbulls.com
+# FEEDBACK_SENDER_EMAIL=feedback@onboarding.resend.dev
+
 CORS_ORIGIN=http://localhost:5173
 ```
 
@@ -480,7 +490,8 @@ backend/
 │   │   ├── anthropic.config.js          # Anthropic client singleton
 │   │   └── logger.config.js             # Pino logger config
 │   ├── constants/
-│   │   └── roles.constants.js           # User role definitions
+│   │   ├── roles.constants.js           # User role definitions
+│   │   └── feedback.constants.js        # Feedback recipient / GitHub repo / labels
 │   └── api/
 │       ├── routes/v1/                   # Auto-loaded route handlers
 │       │   ├── auth/                    # /me, PATCH /profile (Firebase-backed)
@@ -497,7 +508,8 @@ backend/
 │       │   ├── seasons/                 # Seasons + archive (public)
 │       │   ├── stats/                   # User stats & H2H
 │       │   ├── teams/                   # Team catalog
-│       │   └── wrapped/                 # Weekly wrapped (Cloud Scheduler trigger)
+│       │   ├── wrapped/                 # Weekly wrapped (Cloud Scheduler trigger)
+│       │   └── feedback/                # In-app feedback (Resend mail + GitHub issues)
 │       ├── controllers/                 # Request handlers
 │       ├── middlewares/                 # auth (Firebase), schedulerAuth (shared secret)
 │       ├── services/                    # Business logic layer
