@@ -78,6 +78,63 @@ const penaltyMissedEntrySchema = {
 	},
 };
 
+/**
+ * One shot inside a penalty shootout. Stored as a row inside
+ * `games.penalty_shootout.shots`. Snake-case matches the rest of the
+ * games API; the frontend (`PenaltyStep.svelte`) builds shots in
+ * camelCase and translates at the wire boundary inside `saveGame`.
+ */
+const penaltyShootoutShotSchema = {
+	type: "object",
+	required: ["order", "round", "team", "shooter_id", "result"],
+	properties: {
+		order: { type: "integer", minimum: 1 },
+		round: { type: "integer", minimum: 1 },
+		team: { type: "string", enum: ["home", "away"] },
+		shooter_id: { type: "string", minLength: 1 },
+		result: { type: "string", enum: ["goal", "missed"] },
+		keeper_id: { type: ["string", "null"], minLength: 1 },
+		elo_deltas: {
+			type: "object",
+			additionalProperties: { type: "integer" },
+		},
+	},
+};
+
+/**
+ * Full penalty-shootout payload. Optional on every game; required
+ * shape when present so we never persist a half-formed shootout.
+ */
+const penaltyShootoutSchema = {
+	type: "object",
+	required: ["score_before", "final_score", "winner_side", "shots"],
+	properties: {
+		triggered_at: { type: "string", format: "date-time" },
+		score_before: {
+			type: "object",
+			required: ["home", "away"],
+			properties: {
+				home: { type: "integer", minimum: 0 },
+				away: { type: "integer", minimum: 0 },
+			},
+		},
+		final_score: {
+			type: "object",
+			required: ["home", "away"],
+			properties: {
+				home: { type: "integer", minimum: 0 },
+				away: { type: "integer", minimum: 0 },
+			},
+		},
+		winner_side: { type: "string", enum: ["home", "away"] },
+		shots: {
+			type: "array",
+			minItems: 1,
+			items: penaltyShootoutShotSchema,
+		},
+	},
+};
+
 export const createGameSchema = {
 	body: {
 		type: "object",
@@ -120,6 +177,7 @@ export const createGameSchema = {
 				enum: ["regular", "extra_time", "penalty"],
 				default: "regular",
 			},
+			penalty_shootout: penaltyShootoutSchema,
 		},
 	},
 };
