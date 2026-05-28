@@ -60,6 +60,13 @@ export function checkComeback(timeline, finalHome, finalAway, threshold = 2) {
  *   // → "low"
  */
 export function determineDramaLevel(game) {
+	// A penalty shootout is inherently dramatic — overrides everything
+	// else and skips the heuristic. Any game with a shootout makes the
+	// reporter prompt lean toward the high-drama persona weights, so
+	// Elferkrimi matches default to Euphoriker without a separate hard
+	// rule in selectReporter.
+	if (game?.penalty_shootout) return "high";
+
 	const homeScore = Number(game?.score_home ?? 0);
 	const awayScore = Number(game?.score_away ?? 0);
 	const timeline = Array.isArray(game?.score_timeline)
