@@ -18,6 +18,10 @@ import { notifyMatchCreated } from "./pushSender.services.js";
  * @param {string} params.created_by - User UUID
  * @param {object[]} [params.score_timeline] - Array of {home, away, period}
  * @param {string} [params.result_type] - 'regular', 'extra_time', or 'penalty'
+ * @param {object} [params.penalty_shootout] - Shoot-by-shoot record. Required
+ *   shape (validated via JSON schema before this fn runs):
+ *   `{ score_before, final_score, winner_side, shots: [...] }`.
+ *   Stored verbatim in the `penalty_shootout` JSONB column.
  * @returns {Promise<object>}
  */
 export async function createGame({
@@ -29,6 +33,7 @@ export async function createGame({
 	created_by,
 	score_timeline,
 	result_type,
+	penalty_shootout,
 }) {
 	// Defense in depth: reject timelines whose events are not strictly
 	// chronological within their period before opening a DB transaction. The
@@ -44,8 +49,8 @@ export async function createGame({
 		const {
 			rows: [game],
 		} = await client.query(
-			`INSERT INTO games (mode, score_home, score_away, played_at, created_by, score_timeline, result_type)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)
+			`INSERT INTO games (mode, score_home, score_away, played_at, created_by, score_timeline, result_type, penalty_shootout)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 			RETURNING *`,
 			[
 				mode,
@@ -55,6 +60,7 @@ export async function createGame({
 				created_by,
 				score_timeline ? JSON.stringify(score_timeline) : null,
 				result_type || "regular",
+				penalty_shootout ? JSON.stringify(penalty_shootout) : null,
 			],
 		);
 

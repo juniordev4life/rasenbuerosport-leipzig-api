@@ -1,0 +1,33 @@
+-- Migration 020: Penalty shootout column on games
+--
+-- Stores the full shoot-by-shoot record for matches that ended on
+-- penalties. The regular-time score on `games.score_home`/`score_away`
+-- stays untouched — penalty data lives separately so the existing
+-- match listing, stats engine and reporter pipeline keep treating
+-- the regular result as the source of truth, and the i.E. score
+-- decoration is rendered on top from this JSONB blob.
+--
+-- Shape (validated client-side and again in the API JSON schema):
+--   {
+--     "triggered_at": "2026-05-28T19:00:00Z",
+--     "score_before": { "home": 2, "away": 2 },
+--     "final_score":  { "home": 4, "away": 2 },
+--     "winner_side":  "home",
+--     "shots": [
+--       {
+--         "order": 1, "round": 1, "team": "home",
+--         "shooter_id": "<uid>",
+--         "result": "goal" | "missed",
+--         "keeper_id": "<uid>" | null,
+--         "elo_deltas": { "<uid>": 3 }
+--       },
+--       ...
+--     ]
+--   }
+--
+-- NULL means "no shootout" — the default for every existing row and
+-- every regular / extra-time match going forward. result_type stays
+-- the lone discriminator for "this match ended on penalties".
+
+ALTER TABLE games
+  ADD COLUMN IF NOT EXISTS penalty_shootout JSONB;
