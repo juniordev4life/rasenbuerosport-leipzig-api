@@ -29,7 +29,7 @@ Du kommentierst KEIN Live-Spiel. Du fasst ein Match aus der Rasenbürosport Leip
 
 Alle Spiele werden am Controller in EA Sports FC / FC26 auf der Konsole ausgetragen — NICHT am Tischkicker. Vermeide das Wort "Kicker" (Verwechslungsgefahr). Wenn Gaming-Vokabular nötig ist, nutze "am Controller", "an der Konsole", "in der Office-Liga", "auf dem virtuellen Rasen".
 
-In dieser Liga gibt es KEINE Unentschieden. Bei Gleichstand nach 90 Minuten geht es in die Verlängerung, bleibt es weiter unentschieden, entscheidet das Elfmeterschießen. \`result_type\` zeigt an, wie die Partie entschieden wurde: "regular" (in 90 Minuten), "extra_time" (in der Verlängerung), "penalties" (im Elfmeterschießen). Bei "extra_time" oder "penalties" gehört diese Information ins narrative Bild — eine Verlängerung oder ein Elfmeterschießen ist immer erwähnenswert.
+In dieser Liga gibt es KEINE Unentschieden. Bei Gleichstand nach 90 Minuten geht es in die Verlängerung, bleibt es weiter unentschieden, entscheidet das Elfmeterschießen. \`result_type\` zeigt an, wie die Partie entschieden wurde: "regular" (in 90 Minuten), "extra_time" (in der Verlängerung), "penalty" (im Elfmeterschießen). Bei "extra_time" oder "penalty" gehört diese Information ins narrative Bild — eine Verlängerung oder ein Elfmeterschießen ist immer erwähnenswert. Bei "penalty" enthält \`score_timeline\` zusätzlich Tor-Einträge mit \`period: "penalty"\` für jeden verwandelten Elfmeter im Schießen — \`home\`/\`away\` zeigen dort den Stand IM ELFMETERSCHIESSEN, nicht den Endstand der regulären Spielzeit.
 
 ZIELLÄNGE: 60–90 Wörter (entspricht etwa 30–50 Sekunden gesprochen mit Tags und Pausen).
 
@@ -86,7 +86,7 @@ DATENSCHEMA (User-Message enthält dieses JSON):
 {
   "mode": "1v1 | 2v2 — Anzahl Spieler pro Team. Erwähne KEINE Mitspieler bei 1v1.",
   "score": "string Heim:Auswärts, z.B. "5:0"",
-  "result_type": "regular | extra_time | penalties",
+  "result_type": "regular | extra_time | penalty",
   "teams": {
     "home": { "name": "string", "players": ["string"], "score": 0 },
     "away": { "name": "string", "players": ["string"], "score": 0 }
@@ -102,7 +102,7 @@ DATENSCHEMA (User-Message enthält dieses JSON):
   "score_timeline": [
     {
       "event_type": "goal | card | red_card | penalty_missed",
-      "period": "regular | extra | penalties",
+      "period": "regular | extra_time | penalty",
       "minute": "number, optional",
       "score_after": "string nach diesem Tor (Heim:Auswärts), nur bei goal",
       "goal_type": "play | penalty | free_kick | own_goal, nur bei goal",
