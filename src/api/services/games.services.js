@@ -4,6 +4,7 @@ import { query, queryOne } from "../helpers/database.helpers.js";
 import { validateScoreTimeline } from "../helpers/timeline.helpers.js";
 import { stripAudioTags } from "../utils/audioTags.utils.js";
 import { applyEloToMatch } from "./elo/eloPersistence.services.js";
+import { applyPenaltyShotEloDeltas } from "./elo/penaltyShotElo.services.js";
 import { invalidateProfileCache } from "./playerProfile/playerProfile.services.js";
 import { notifyMatchCreated } from "./pushSender.services.js";
 
@@ -79,6 +80,18 @@ export async function createGame({
 		// in `profiles.current_rating` without a matching `elo_snapshot`
 		// on the game row.
 		await applyEloToMatch({ client, game, gamePlayers });
+
+		// Penalty-shootout overlay: applied AFTER the team-level engine
+		// so a missed penalty at 2:2 doesn't get lost in the zero-sum.
+		// Patches the last history entry instead of pushing a new one,
+		// keeping the rule "one match → one rating point".
+		if (penalty_shootout?.shots?.length) {
+			await applyPenaltyShotEloDeltas({
+				client,
+				shots: penalty_shootout.shots,
+				playedAt: game.played_at,
+			});
+		}
 
 		// Invalidate cached player profiles for everyone who appeared in
 		// this match — their match history just grew by one, so the

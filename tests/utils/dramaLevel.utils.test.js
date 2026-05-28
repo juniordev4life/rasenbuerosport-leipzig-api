@@ -114,4 +114,18 @@ describe("determineDramaLevel", () => {
 			}),
 		).toBe("medium");
 	});
+
+	it("forces high drama when a penalty shootout decided the match", () => {
+		// Even a lopsided regular-time score is overridden — the shootout
+		// itself is the spectacle, so the reporter prompt should lean
+		// toward the Euphoriker weights.
+		expect(
+			determineDramaLevel({
+				score_home: 5,
+				score_away: 0,
+				score_timeline: [],
+				penalty_shootout: { winner_side: "away", shots: [] },
+			}),
+		).toBe("high");
+	});
 });
