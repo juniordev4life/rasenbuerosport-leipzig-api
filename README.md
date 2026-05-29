@@ -328,7 +328,7 @@ FEEDBACK_GITHUB_TOKEN=github_pat_...
 # Optional overrides — all have sensible defaults:
 # FEEDBACK_GITHUB_REPO=juniordev4life/rasenbuerosport-leipzig-app
 # FEEDBACK_RECIPIENT_EMAIL=marco.slusalek@redbulls.com
-# FEEDBACK_SENDER_EMAIL=feedback@onboarding.resend.dev
+# FEEDBACK_SENDER_EMAIL=onboarding@resend.dev (sandbox; verify a domain in Resend for arbitrary recipients)
 
 CORS_ORIGIN=http://localhost:5173
 ```
