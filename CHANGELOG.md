@@ -6,6 +6,22 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v1.2.0
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.1.0...v1.2.0)
+
+### 🚀 Enhancements
+
+- **trophies:** 64-trophy system + backfill (Etappe A) ([#52](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/52))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v1.1.0 ([abe8991](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/abe8991))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v1.1.0 (2026-05-29)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.0.0...v1.1.0)
