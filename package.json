@@ -16,7 +16,8 @@
 		"format:check": "biome format .",
 		"check": "biome check --write .",
 		"release": "node scripts/release.js",
-		"elo:recompute": "node scripts/recompute-all-elo.js"
+		"elo:recompute": "node scripts/recompute-all-elo.js",
+		"trophies:backfill": "node scripts/trophy-backfill.js"
 	},
 	"keywords": [
 		"rasenbuerosport",
