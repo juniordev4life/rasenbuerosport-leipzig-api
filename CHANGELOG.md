@@ -6,6 +6,27 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v1.2.1
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.2.0...v1.2.1)
+
+### 🩹 Fixes
+
+- **trophies:** Route import paths — five `../` not four ([#55](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/55))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v1.2.0 ([428cee7](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/428cee7))
+- **scripts:** Npm run db:proxy for Cloud SQL Auth Proxy ([#54](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/54))
+
+### ✅ Tests
+
+- **boot:** Smoke-test Fastify autoload to catch broken route imports ([#56](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/56))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v1.2.0 (2026-05-29)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.1.0...v1.2.0)
