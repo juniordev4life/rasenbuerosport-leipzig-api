@@ -29,9 +29,13 @@
  */
 
 import "dotenv/config";
-import { evaluateTrophiesForPlayer } from "../src/api/services/trophy/trophyCalculation.services.js";
+import {
+	evaluateDuoTrophies,
+	evaluateTrophiesForPlayer,
+} from "../src/api/services/trophy/trophyCalculation.services.js";
 import { normalizeMatch } from "../src/api/services/trophy/trophyMatchNormalizer.services.js";
 import { getPool } from "../src/config/database.config.js";
+import { TROPHIES_BY_ID } from "../src/constants/trophies.constants.js";
 
 const args = process.argv.slice(2);
 const COMMIT = args.includes("--commit");
@@ -147,11 +151,157 @@ async function processPlayer(pool, player) {
 			`${COMMIT ? "written" : "(dry-run, not written)"} ` +
 			`[matches: ${matches.length}]`,
 	);
+
+	// In single-player mode print every unlocked trophy so the operator
+	// can sanity-check WHICH 27 trophies the player would receive before
+	// running with --commit. Suppressed during full-league runs to keep
+	// the log readable.
+	if (SINGLE_PLAYER) {
+		for (const { trophyId, triggeredByMatchId } of unlocks) {
+			const def = TROPHIES_BY_ID.get(trophyId);
+			const newFlag = (player.trophies ?? {})[trophyId] ? "ALREADY" : "NEW";
+			const trigger = triggeredByMatchId
+				? `match ${triggeredByMatchId}`
+				: "lifetime aggregate";
+			log.info(
+				`  [${newFlag}] ${trophyId} · ${def?.name ?? "?"} ` +
+					`(${def?.rarity ?? "?"}/${def?.category ?? "?"}) — ${trigger}`,
+			);
+		}
+	}
+
 	return {
 		playerId: player.id,
 		evaluated: unlocks.length,
 		newTrophies: newCount,
 	};
+}
+
+/**
+ * Find every sorted duo pair that has played together in 2v2 matches.
+ * "Together" = both on the same side of the same game. When the script
+ * runs in single-player mode the result is restricted to pairs that
+ * include the focal player.
+ *
+ * @param {import('pg').Pool} pool
+ * @param {string | null} restrictToPlayer
+ * @returns {Promise<Array<[string, string]>>} Sorted pairs (a < b)
+ */
+async function loadAllDuoPairs(pool, restrictToPlayer) {
+	const baseSql = `
+		SELECT DISTINCT
+		       LEAST(gp1.player_id, gp2.player_id) AS player1,
+		       GREATEST(gp1.player_id, gp2.player_id) AS player2
+		  FROM game_players gp1
+		  JOIN game_players gp2
+		    ON gp1.game_id = gp2.game_id
+		   AND gp1.team = gp2.team
+		   AND gp1.player_id < gp2.player_id
+	`;
+	const sql = restrictToPlayer
+		? `${baseSql} WHERE gp1.player_id = $1 OR gp2.player_id = $1`
+		: baseSql;
+	const params = restrictToPlayer ? [restrictToPlayer] : [];
+	const { rows } = await pool.query(sql, params);
+	return rows.map((r) => [r.player1, r.player2]);
+}
+
+/**
+ * Load every match a duo played together — both players on the SAME
+ * side — chronologically. Used as the input to `evaluateDuoTrophies`.
+ *
+ * @param {import('pg').Pool} pool
+ * @param {[string, string]} pair
+ * @returns {Promise<Array<object>>}
+ */
+async function loadDuoMatches(pool, pair) {
+	const [a, b] = pair;
+	const { rows: gameRows } = await pool.query(
+		`SELECT g.*
+		   FROM games g
+		   JOIN game_players gp1 ON gp1.game_id = g.id AND gp1.player_id = $1
+		   JOIN game_players gp2 ON gp2.game_id = g.id AND gp2.player_id = $2
+		                         AND gp2.team = gp1.team
+		  ORDER BY g.played_at ASC, g.id ASC`,
+		[a, b],
+	);
+	if (gameRows.length === 0) return [];
+
+	const gameIds = gameRows.map((g) => g.id);
+	const { rows: playerRows } = await pool.query(
+		`SELECT game_id, player_id, team
+		   FROM game_players
+		  WHERE game_id = ANY($1::uuid[])`,
+		[gameIds],
+	);
+	const playersByGame = new Map();
+	for (const row of playerRows) {
+		let bucket = playersByGame.get(row.game_id);
+		if (!bucket) {
+			bucket = [];
+			playersByGame.set(row.game_id, bucket);
+		}
+		bucket.push({ player_id: row.player_id, team: row.team });
+	}
+	return gameRows.map((game) =>
+		normalizeMatch(game, playersByGame.get(game.id) ?? []),
+	);
+}
+
+/**
+ * Process one duo end-to-end. Same idempotency rule as the individual
+ * pass: existing trophy entries are never overwritten.
+ *
+ * @param {import('pg').Pool} pool
+ * @param {[string, string]} pair - sorted (a < b)
+ * @param {Map<string, string>} usernameById
+ * @returns {Promise<{ pair: [string, string], evaluated: number, newTrophies: number }>}
+ */
+async function processDuo(pool, pair, usernameById) {
+	const [a, b] = pair;
+	const matches = await loadDuoMatches(pool, pair);
+	if (matches.length === 0) {
+		return { pair, evaluated: 0, newTrophies: 0 };
+	}
+	const unlocks = evaluateDuoTrophies({ duoPlayers: pair, matches });
+
+	const { rows } = await pool.query(
+		"SELECT trophies FROM duo_trophies WHERE player1_id = $1 AND player2_id = $2",
+		[a, b],
+	);
+	const existing = rows[0]?.trophies ?? {};
+	const now = new Date().toISOString();
+	const { next, newCount } = mergeTrophies(existing, unlocks, now);
+
+	if (COMMIT && newCount > 0) {
+		await pool.query(
+			`INSERT INTO duo_trophies (player1_id, player2_id, trophies)
+			 VALUES ($1, $2, $3::jsonb)
+			 ON CONFLICT (player1_id, player2_id)
+			 DO UPDATE SET trophies = EXCLUDED.trophies`,
+			[a, b, JSON.stringify(next)],
+		);
+	}
+
+	const aName = usernameById.get(a) ?? a;
+	const bName = usernameById.get(b) ?? b;
+	log.result(
+		`Duo ${aName} + ${bName}: ${unlocks.length} trophies match, ${newCount} new ` +
+			`${COMMIT ? "written" : "(dry-run, not written)"} ` +
+			`[shared matches: ${matches.length}]`,
+	);
+	if (SINGLE_PLAYER) {
+		for (const { trophyId } of unlocks) {
+			const def = TROPHIES_BY_ID.get(trophyId);
+			const newFlag = existing[trophyId] ? "ALREADY" : "NEW";
+			log.info(
+				`  [${newFlag}] ${trophyId} · ${def?.name ?? "?"} ` +
+					`(${def?.rarity ?? "?"}/${def?.category ?? "?"})`,
+			);
+		}
+	}
+
+	return { pair, evaluated: unlocks.length, newTrophies: newCount };
 }
 
 async function main() {
@@ -194,13 +344,41 @@ async function main() {
 		totalEvaluated += result.evaluated;
 	}
 
+	// Duo pass — every distinct sorted pair that ever shared a team.
+	// Pre-build a username lookup so the per-duo log lines stay
+	// human-readable (player ids look like Firebase uids and aren't fun
+	// to read in a status report).
+	log.info("=================================================");
+	log.info("Duo pass");
+	const usernameById = new Map(players.map((p) => [p.id, p.username]));
+	// In single-player mode the individual pass only loaded one row, but
+	// we want every duo that player is part of. Re-resolve names so the
+	// log line isn't just bare uids.
+	if (SINGLE_PLAYER) {
+		const { rows: nameRows } = await pool.query(
+			"SELECT id, username FROM profiles",
+		);
+		for (const row of nameRows) usernameById.set(row.id, row.username);
+	}
+	const duoPairs = await loadAllDuoPairs(pool, SINGLE_PLAYER);
+	log.info(`${duoPairs.length} duo pair(s) to process`);
+
+	let duoTotalNew = 0;
+	let duoTotalEvaluated = 0;
+	for (const pair of duoPairs) {
+		const result = await processDuo(pool, pair, usernameById);
+		duoTotalNew += result.newTrophies;
+		duoTotalEvaluated += result.evaluated;
+	}
+
 	log.info("=================================================");
 	log.result(
-		`Done. ${totalEvaluated} trophies satisfied across all players, ` +
+		`Individuals: ${totalEvaluated} trophies satisfied, ` +
 			`${totalNew} ${COMMIT ? "newly written" : "would be written (dry-run)"}`,
 	);
-	log.warn(
-		"Duo trophies are NOT covered by this script yet — separate pass needed.",
+	log.result(
+		`Duos:        ${duoTotalEvaluated} trophies satisfied, ` +
+			`${duoTotalNew} ${COMMIT ? "newly written" : "would be written (dry-run)"}`,
 	);
 	log.info("=================================================");
 
