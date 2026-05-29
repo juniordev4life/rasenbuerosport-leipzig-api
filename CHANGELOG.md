@@ -6,6 +6,27 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v0.1.10
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.9...v0.1.10)
+
+### 🚀 Enhancements
+
+- **games:** Persist penalty shootout on game creation ([#47](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/47))
+- **elo:** Overlay penalty-shot deltas on top of team ELO ([#48](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/48))
+
+### 🩹 Fixes
+
+- **feedback:** Correct Resend sandbox sender default ([#50](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/50))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v0.1.9 ([8b7ec53](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/8b7ec53))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v0.1.9 (2026-05-27)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.8...v0.1.9)
