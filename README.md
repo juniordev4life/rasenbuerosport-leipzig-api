@@ -93,6 +93,7 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | `GET` | `/api/v1/wrapped/latest` | Bearer | Latest weekly wrapped for the user |
 | `POST` | `/api/v1/wrapped/generate` | Scheduler | Trigger weekly wrapped generation (Cloud Scheduler only) |
 | `POST` | `/api/v1/feedback` | Bearer | Submit in-app feedback (general → email via Resend, bug/feature → GitHub issue) |
+| `GET` | `/api/v1/players/:playerId/trophies` | Bearer | Player trophy room — all 64 trophies with unlocked-state, progress on threshold trophies, hidden trophies masked until unlocked |
 
 > User registration and login happen client-side via Firebase Authentication in the frontend. The API never issues credentials — it only verifies Firebase ID tokens supplied as `Authorization: Bearer <id-token>`.
 
