@@ -1,7 +1,13 @@
 import { getAnthropicClient } from "../../config/anthropic.config.js";
+import { getPool } from "../../config/database.config.js";
 import { getStorageBucket } from "../../config/firebase.config.js";
-import { queryOne } from "../helpers/database.helpers.js";
+import { logger } from "../../config/logger.config.js";
+import { query, queryOne } from "../helpers/database.helpers.js";
 import { normalisePassNetwork } from "../utils/passNetwork.utils.js";
+import {
+	applyCardEloDeltas,
+	computeCardEloDeltas,
+} from "./elo/cardElo.services.js";
 
 const OVERVIEW_EXTRACTION_PROMPT = `You are analyzing a post-match statistics screen from EA Sports FC (FC25/FC26).
 
@@ -340,7 +346,78 @@ export async function saveMatchStats(
 		throw err;
 	}
 
+	// Defense-stage card-ELO overlay. Runs at most once per game, on
+	// the first defense-screenshot upload — the screenshot is where
+	// yellow + red card counts come from, and the league agreed that
+	// fouling should cost ELO (especially yellows, which never get
+	// live-tracked). Idempotent via the `card_elo_applied` flag on
+	// match_stats; subsequent re-uploads or other-stage uploads skip.
+	if (type === "defense" && !existing?.match_stats?.card_elo_applied) {
+		await applyCardEloOverlay({ gameId, mergedStats, game: data });
+		// Reflect the flag on the returned row so callers don't see
+		// stale "not yet applied" state.
+		data.match_stats = { ...mergedStats, card_elo_applied: true };
+	}
+
 	return data;
+}
+
+/**
+ * One-shot card-ELO application after the first defense-screenshot
+ * upload. Loads game_players, computes per-player deltas, applies
+ * them inside a transaction and flips the `card_elo_applied` flag.
+ *
+ * Errors are caught + logged rather than thrown — the match_stats
+ * UPDATE has already succeeded; a flaky profiles write shouldn't
+ * fail the whole stats upload. The flag flip lives inside the same
+ * transaction as the rating writes, so a half-applied state isn't
+ * possible: either both happen or neither does, and the next defense
+ * upload will retry from a clean baseline.
+ *
+ * @param {object} args
+ * @param {string} args.gameId
+ * @param {object} args.mergedStats - The fresh match_stats merged with prior uploads.
+ * @param {object} args.game - The just-updated game row (has `score_timeline`, `played_at`).
+ * @returns {Promise<void>}
+ */
+async function applyCardEloOverlay({ gameId, mergedStats, game }) {
+	let client;
+	try {
+		const gamePlayers = await query(
+			"SELECT player_id, team FROM game_players WHERE game_id = $1",
+			[gameId],
+		);
+		const deltas = computeCardEloDeltas({
+			matchStats: mergedStats,
+			timeline: game?.score_timeline ?? [],
+			gamePlayers,
+		});
+
+		client = await getPool().connect();
+		await client.query("BEGIN");
+		await applyCardEloDeltas({
+			client,
+			deltas,
+			playedAt: game?.played_at,
+		});
+		await client.query(
+			`UPDATE games
+			    SET match_stats = jsonb_set(match_stats, '{card_elo_applied}', 'true'::jsonb)
+			  WHERE id = $1`,
+			[gameId],
+		);
+		await client.query("COMMIT");
+	} catch (error) {
+		if (client) {
+			await client.query("ROLLBACK").catch(() => {});
+		}
+		logger.warn(
+			{ err: error?.message, gameId },
+			"card-ELO overlay failed; will retry on next defense upload",
+		);
+	} finally {
+		if (client) client.release();
+	}
 }
 
 /**
