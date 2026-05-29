@@ -343,8 +343,10 @@ npm install
 To talk directly to PROD via the Cloud SQL Auth Proxy (read-only use cases like `pg_dump`):
 
 ```bash
-cloud-sql-proxy rasenbuerosport-leipzig-9d54f:europe-west3:rasenbuerosport-db --port=5433
+npm run db:proxy
 ```
+
+Equivalent to running `cloud-sql-proxy rasenbuerosport-leipzig-9d54f:europe-west3:rasenbuerosport-db --port=5433` directly. The proxy runs in the foreground — Ctrl+C to stop. It uses your `gcloud auth application-default login` credentials, so make sure the right account is active (`gcloud config get-value account`) before starting.
 
 ### Development
 
@@ -373,7 +375,7 @@ The recommended local setup is a Docker-based Postgres 16 with a one-off snapsho
 In one terminal, start the proxy on port 5433:
 
 ```bash
-cloud-sql-proxy rasenbuerosport-leipzig-9d54f:europe-west3:rasenbuerosport-db --port=5433
+npm run db:proxy
 ```
 
 In another terminal, dump (uses the PROD `DATABASE_URL` from `.env`):
