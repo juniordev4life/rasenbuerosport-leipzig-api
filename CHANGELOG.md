@@ -6,6 +6,14 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v1.0.0 (2026-05-29)
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.10...v1.0.0)
+
+### 🎉 Milestone
+
+Stable production release. The Playmaker has shipped the in-app feedback endpoint, the full penalty-shootout persistence + ELO overlay, and a corrected reporter prompt — promoting to v1.0.0 marks the API as the source of truth for the office-foosball stack. No code changes since v0.1.10; this tag exists to anchor the milestone.
+
 ## v0.1.10 (2026-05-29)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.9...v0.1.10)
