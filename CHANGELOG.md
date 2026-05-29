@@ -6,6 +6,18 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v1.1.0
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.0.0...v1.1.0)
+
+### 🚀 Enhancements
+
+- **elo:** Card-ELO overlay applied on defense screenshot upload ([#51](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/51))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v1.0.0 (2026-05-29)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v0.1.10...v1.0.0)
