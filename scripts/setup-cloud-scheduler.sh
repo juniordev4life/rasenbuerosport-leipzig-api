@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# One-shot Cloud Scheduler setup for the weekly Wrapped generation.
+# One-shot Cloud Scheduler setup for the weekly cron jobs that drive
+# `weekly_wrapped` and `talkshow_episodes`.
 #
-# Idempotent — re-running updates the existing job in place. Safe to
-# run after a secret rotation, region change, or schedule change.
+# Idempotent — re-running creates missing jobs and updates existing
+# ones in place. Safe to run after a secret rotation, region change,
+# or schedule change.
 #
 # See docs/cloud-scheduler-setup.md for the full runbook.
 
@@ -14,10 +16,17 @@ PROJECT_ID="${PROJECT_ID:-rasenbuerosport-leipzig-9d54f}"
 REGION="${REGION:-europe-west3}"
 SERVICE_NAME="${SERVICE_NAME:-rasenbuerosport-api}"
 SECRET_NAME="${SECRET_NAME:-WRAPPED_TRIGGER_SECRET}"
-JOB_NAME="${JOB_NAME:-wrapped-friday}"
-SCHEDULE="${SCHEDULE:-0 22 * * 5}"        # Friday 22:00
 TIME_ZONE="${TIME_ZONE:-Europe/Berlin}"
-ENDPOINT_PATH="/api/v1/wrapped/generate"
+
+# Job definitions — name, cron, endpoint path, description, deadline.
+# Talkshow fires one minute AFTER wrapped so it sees the same week's
+# wrapped data already persisted. Audio render can take ~3-5 minutes
+# (multi-speaker ElevenLabs + Firebase upload), hence the longer
+# attempt deadline for that one.
+JOBS=(
+    "wrapped-weekly|0 22 * * 5|/api/v1/wrapped/generate|Weekly Wrapped generation — Fridays 22:00 Berlin.|180s"
+    "talkshow-weekly|1 22 * * 5|/api/v1/talkshow/generate|Weekly Talkshow episode (script + multi-speaker mp3) — Fridays 22:01 Berlin.|540s"
+)
 
 # ---- Helpers ------------------------------------------------------------------
 
@@ -29,6 +38,50 @@ require_cmd() {
     command -v "$1" >/dev/null 2>&1 || fail "$1 is not installed or not in PATH"
 }
 
+# Create or update one Cloud Scheduler job idempotently.
+#
+# Args:
+#   $1 = JOB_NAME      (e.g. wrapped-weekly)
+#   $2 = SCHEDULE      (cron, e.g. "0 22 * * 5")
+#   $3 = ENDPOINT_PATH (starts with /)
+#   $4 = DESCRIPTION
+#   $5 = ATTEMPT_DEADLINE (e.g. 180s, 540s)
+ensure_job() {
+    local job_name="$1"
+    local schedule="$2"
+    local endpoint_path="$3"
+    local description="$4"
+    local deadline="$5"
+
+    local target_uri="${SERVICE_URL}${endpoint_path}"
+    local action
+
+    if gcloud scheduler jobs describe "$job_name" \
+            --location="$REGION" \
+            --project="$PROJECT_ID" >/dev/null 2>&1; then
+        log "Job $job_name exists — updating in place"
+        action="update"
+    else
+        log "Creating new job $job_name"
+        action="create"
+    fi
+
+    gcloud scheduler jobs "$action" http "$job_name" \
+        --location="$REGION" \
+        --project="$PROJECT_ID" \
+        --schedule="$schedule" \
+        --time-zone="$TIME_ZONE" \
+        --uri="$target_uri" \
+        --http-method=POST \
+        --headers="X-Trigger-Secret=${TRIGGER_SECRET},Content-Type=application/json" \
+        --message-body='{}' \
+        --description="$description Managed by scripts/setup-cloud-scheduler.sh." \
+        --attempt-deadline="$deadline" \
+        >/dev/null
+
+    log "  $job_name → $target_uri ($schedule $TIME_ZONE)"
+}
+
 # ---- Preflight ---------------------------------------------------------------
 
 require_cmd gcloud
@@ -36,8 +89,7 @@ require_cmd gcloud
 log "Project   = $PROJECT_ID"
 log "Region    = $REGION"
 log "Service   = $SERVICE_NAME"
-log "Job       = $JOB_NAME"
-log "Schedule  = $SCHEDULE ($TIME_ZONE)"
+log "Time zone = $TIME_ZONE"
 
 # Confirm the Cloud Scheduler API is enabled
 if ! gcloud services list --enabled --project="$PROJECT_ID" \
@@ -58,8 +110,6 @@ if [[ -z "$SERVICE_URL" ]]; then
 fi
 log "  → $SERVICE_URL"
 
-TARGET_URI="${SERVICE_URL}${ENDPOINT_PATH}"
-
 # Read the trigger secret
 log "Reading $SECRET_NAME (latest) from Secret Manager…"
 TRIGGER_SECRET=$(gcloud secrets versions access latest \
@@ -75,33 +125,19 @@ if [[ "${#TRIGGER_SECRET}" -lt 16 ]]; then
     warn "Secret value is shorter than 16 chars — proceeding, but you may want a stronger token."
 fi
 
-# ---- Create or update the job -----------------------------------------------
+# ---- Create or update each job ----------------------------------------------
 
-if gcloud scheduler jobs describe "$JOB_NAME" \
-        --location="$REGION" \
-        --project="$PROJECT_ID" >/dev/null 2>&1; then
-    log "Job $JOB_NAME exists — updating in place"
-    ACTION="update"
-else
-    log "Creating new job $JOB_NAME"
-    ACTION="create"
-fi
-
-gcloud scheduler jobs "$ACTION" http "$JOB_NAME" \
-    --location="$REGION" \
-    --project="$PROJECT_ID" \
-    --schedule="$SCHEDULE" \
-    --time-zone="$TIME_ZONE" \
-    --uri="$TARGET_URI" \
-    --http-method=POST \
-    --headers="X-Trigger-Secret=${TRIGGER_SECRET},Content-Type=application/json" \
-    --message-body='{}' \
-    --description="Weekly Wrapped generation — Fridays 22:00 Berlin. Managed by scripts/setup-cloud-scheduler.sh." \
-    --attempt-deadline=180s \
-    >/dev/null
+for spec in "${JOBS[@]}"; do
+    IFS="|" read -r job_name schedule endpoint description deadline <<< "$spec"
+    ensure_job "$job_name" "$schedule" "$endpoint" "$description" "$deadline"
+done
 
 log "Done. Inspect with:"
-echo "  gcloud scheduler jobs describe $JOB_NAME --location=$REGION --project=$PROJECT_ID"
+for spec in "${JOBS[@]}"; do
+    IFS="|" read -r job_name _ _ _ _ <<< "$spec"
+    echo "  gcloud scheduler jobs describe $job_name --location=$REGION --project=$PROJECT_ID"
+done
 echo
-log "Smoke-test the job once with:"
-echo "  gcloud scheduler jobs run $JOB_NAME --location=$REGION --project=$PROJECT_ID"
+log "Smoke-test a job once with:"
+echo "  gcloud scheduler jobs run wrapped-weekly --location=$REGION --project=$PROJECT_ID"
+echo "  gcloud scheduler jobs run talkshow-weekly --location=$REGION --project=$PROJECT_ID"

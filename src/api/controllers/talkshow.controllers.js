@@ -9,6 +9,80 @@ import {
 import { renderEpisodeAudio } from "../services/talkshowAudio.services.js";
 
 /**
+ * Scheduler-driven full-episode generator. Runs the two-step pipeline
+ * the per-feature endpoints (`/_preview` + `/audio`) expose
+ * separately, so Cloud Scheduler can fire one HTTP call per week
+ * (Friday 22:01 Berlin) and have both the persisted script and the
+ * rendered mp3 land in `talkshow_episodes`.
+ *
+ * Audio render is wrapped in its own try/catch so a TTS failure
+ * doesn't roll back the script — the row stays with `audio_url =
+ * NULL` and can be retried via `POST /talkshow/audio`. Same
+ * graceful-degradation pattern the wrapped pipeline uses.
+ *
+ * Body accepts an optional `reference` ISO date (any day inside the
+ * target week); defaults to "now" so the cron fires the current
+ * Berlin week.
+ */
+export const generateEpisodeController = {
+	schema: {
+		body: {
+			type: "object",
+			additionalProperties: false,
+			properties: {
+				reference: { type: "string", format: "date" },
+			},
+		},
+	},
+	handler: async (request, reply) => {
+		try {
+			const { reference } = request.body ?? {};
+			const refDate = reference ? new Date(reference) : new Date();
+
+			const episode = await generateAndPersistEpisode(refDate);
+			const weekStart =
+				typeof episode.week_start === "string"
+					? episode.week_start
+					: episode.week_start.toISOString().slice(0, 10);
+
+			let audioUrl = null;
+			let audioError = null;
+			try {
+				audioUrl = await renderEpisodeAudio(weekStart);
+			} catch (error) {
+				// Don't surface the TTS failure as a 5xx — the script is
+				// already persisted, the cron has done its main job. Log
+				// the reason so the next manual /talkshow/audio call (or
+				// a follow-up cron retry) can investigate.
+				audioError = error?.message ?? String(error);
+				request.log.error(
+					{ err: error, weekStart },
+					"Talkshow audio render failed; script persisted without audio_url",
+				);
+			}
+
+			return setGeneralResponse(
+				reply,
+				200,
+				"Success",
+				audioUrl
+					? "Talkshow episode generated and rendered"
+					: "Talkshow script persisted; audio render failed (see audio_error)",
+				{
+					week_start: weekStart,
+					week_end: episode.week_end,
+					generated_at: episode.generated_at,
+					audio_url: audioUrl,
+					audio_error: audioError,
+				},
+			);
+		} catch (error) {
+			return handleErrorResponse(reply, error, request);
+		}
+	},
+};
+
+/**
  * Debug-only endpoint that triggers a fresh talk-show script
  * generation for the current week (or the week containing the
  * optional `reference` date) and returns both the parsed turn list
