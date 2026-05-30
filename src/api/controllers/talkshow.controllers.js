@@ -9,6 +9,89 @@ import {
 import { renderEpisodeAudio } from "../services/talkshowAudio.services.js";
 
 /**
+ * Bearer-protected read: latest persisted talkshow episode. Used by
+ * the dashboard's Talkrunde card and the future Wrapped-detail page.
+ * Returns null if no episode has been generated yet (frontend renders
+ * the empty-state placeholder).
+ *
+ * Response shape is the trimmed UI projection — full `script_json` is
+ * intentionally not surfaced here to keep the dashboard payload
+ * small. A future detail endpoint can deliver the full drehbuch.
+ */
+export const getLatestTalkshowController = {
+	schema: {
+		response: {
+			200: {
+				type: "object",
+				properties: {
+					code: { type: "integer" },
+					title: { type: "string" },
+					message: { type: "string" },
+					error: { type: "array" },
+					data: {
+						type: ["object", "null"],
+						additionalProperties: false,
+						properties: {
+							week_start: { type: "string" },
+							week_end: { type: "string" },
+							generated_at: { type: "string" },
+							audio_url: { type: ["string", "null"] },
+							turn_count: { type: ["integer", "null"] },
+							summary: {
+								type: ["object", "null"],
+								additionalProperties: true,
+							},
+						},
+						required: ["week_start", "week_end", "generated_at"],
+					},
+				},
+			},
+		},
+	},
+	handler: async (request, reply) => {
+		try {
+			const row = await getLatestEpisode();
+			if (!row) {
+				return setGeneralResponse(
+					reply,
+					200,
+					"Success",
+					"No talkshow episode yet",
+					null,
+				);
+			}
+
+			const weekStart =
+				typeof row.week_start === "string"
+					? row.week_start
+					: row.week_start.toISOString().slice(0, 10);
+			const weekEnd =
+				typeof row.week_end === "string"
+					? row.week_end
+					: row.week_end.toISOString().slice(0, 10);
+			const generatedAt =
+				typeof row.generated_at === "string"
+					? row.generated_at
+					: row.generated_at.toISOString();
+
+			const script = row.script_json ?? {};
+			const turns = Array.isArray(script.turns) ? script.turns : null;
+
+			return setGeneralResponse(reply, 200, "Success", "Latest talkshow", {
+				week_start: weekStart,
+				week_end: weekEnd,
+				generated_at: generatedAt,
+				audio_url: row.audio_url ?? null,
+				turn_count: turns?.length ?? null,
+				summary: script.summary ?? null,
+			});
+		} catch (error) {
+			return handleErrorResponse(reply, error, request);
+		}
+	},
+};
+
+/**
  * Scheduler-driven full-episode generator. Runs the two-step pipeline
  * the per-feature endpoints (`/_preview` + `/audio`) expose
  * separately, so Cloud Scheduler can fire one HTTP call per week

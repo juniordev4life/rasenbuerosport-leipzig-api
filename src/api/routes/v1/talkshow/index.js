@@ -1,5 +1,6 @@
 import {
 	generateEpisodeController,
+	getLatestTalkshowController,
 	previewTalkshowController,
 	renderTalkshowAudioController,
 } from "../../../controllers/talkshow.controllers.js";
@@ -17,6 +18,12 @@ export default async function (fastify) {
 		preHandler: requireSchedulerSecret,
 		schema: generateEpisodeController.schema,
 		handler: generateEpisodeController.handler,
+	});
+
+	fastify.get("/latest", {
+		preHandler: requireAuth,
+		schema: getLatestTalkshowController.schema,
+		handler: getLatestTalkshowController.handler,
 	});
 
 	fastify.post("/_preview", {
