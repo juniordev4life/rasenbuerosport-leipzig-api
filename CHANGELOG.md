@@ -6,6 +6,26 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v1.4.0
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.3.0...v1.4.0)
+
+### 🚀 Enhancements
+
+- **talkshow:** GET /talkshow/latest for the dashboard card ([#59](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/59))
+
+### 🩹 Fixes
+
+- **scheduler:** Use --update-headers when updating an existing job ([#58](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/58))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v1.3.0 ([7158ed3](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/7158ed3))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v1.3.0 (2026-05-30)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.2.1...v1.3.0)
