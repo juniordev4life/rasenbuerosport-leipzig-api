@@ -93,6 +93,7 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | `GET` | `/api/v1/wrapped/latest` | Bearer | Latest weekly wrapped for the user |
 | `POST` | `/api/v1/wrapped/generate` | Scheduler | Trigger weekly wrapped generation (Cloud Scheduler only) |
 | `POST` | `/api/v1/talkshow/generate` | Scheduler | Generate weekly talkshow episode — Claude script + multi-speaker ElevenLabs mp3 (Cloud Scheduler only) |
+| `GET` | `/api/v1/talkshow/latest` | Bearer | Latest persisted talkshow episode (week, audio URL, turn count, summary) — feeds the dashboard Talkrunde card |
 | `POST` | `/api/v1/talkshow/_preview` | Bearer | Debug: regenerate the current week's drehbuch (optionally without persisting) |
 | `POST` | `/api/v1/talkshow/audio` | Bearer | Re-render the audio for a persisted episode (idempotent — returns cached `audio_url` if already rendered) |
 | `POST` | `/api/v1/feedback` | Bearer | Submit in-app feedback (general → email via Resend, bug/feature → GitHub issue) |
