@@ -56,14 +56,22 @@ ensure_job() {
     local target_uri="${SERVICE_URL}${endpoint_path}"
     local action
 
+    # `gcloud scheduler jobs create http` and `… update http` accept the
+    # same set of flags EXCEPT for headers: create takes `--headers`,
+    # update takes `--update-headers`. Passing `--headers` to update
+    # errors out with "unrecognized arguments". Same quirk for
+    # `--message-body` (kept as-is — both subcommands accept it).
+    local headers_flag
     if gcloud scheduler jobs describe "$job_name" \
             --location="$REGION" \
             --project="$PROJECT_ID" >/dev/null 2>&1; then
         log "Job $job_name exists — updating in place"
         action="update"
+        headers_flag="--update-headers"
     else
         log "Creating new job $job_name"
         action="create"
+        headers_flag="--headers"
     fi
 
     gcloud scheduler jobs "$action" http "$job_name" \
@@ -73,7 +81,7 @@ ensure_job() {
         --time-zone="$TIME_ZONE" \
         --uri="$target_uri" \
         --http-method=POST \
-        --headers="X-Trigger-Secret=${TRIGGER_SECRET},Content-Type=application/json" \
+        "$headers_flag=X-Trigger-Secret=${TRIGGER_SECRET},Content-Type=application/json" \
         --message-body='{}' \
         --description="$description Managed by scripts/setup-cloud-scheduler.sh." \
         --attempt-deadline="$deadline" \
