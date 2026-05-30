@@ -1,19 +1,27 @@
-# Cloud Scheduler Setup — Weekly Wrapped
+# Cloud Scheduler Setup — Weekly Wrapped + Talkshow
 
-This doc covers the one-shot GCP setup for the Friday-evening Wrapped
-generation. **Production only** — local dev runs everything lazily on
-demand and does not need scheduler jobs.
+This doc covers the one-shot GCP setup for the Friday-evening cron jobs
+that drive the Wrapped recap and the multi-speaker Talkshow episode.
+**Production only** — local dev runs everything lazily on demand and
+does not need scheduler jobs.
 
 ## Why
 
-The API exposes `POST /api/v1/wrapped/generate` (protected by
-`requireSchedulerSecret` middleware). The endpoint computes the wrapped
-payload for the current Berlin week and writes it to `weekly_wrapped`,
-overwriting any prior snapshot for the same `week_start`.
+Two scheduler-protected endpoints kick off the Friday-evening pipeline:
 
-Without something calling that endpoint, `weekly_wrapped` stays empty
-and `/app/wrapped` shows the empty state. Cloud Scheduler is the
-one-line cron that calls it every Friday at 22:00 Berlin time.
+| Endpoint | Job | Schedule (Europe/Berlin) | What it does |
+|---|---|---|---|
+| `POST /api/v1/wrapped/generate` | `wrapped-weekly` | Fr 22:00 | Computes the wrapped payload for the current week, writes to `weekly_wrapped` (idempotent on `week_start`). |
+| `POST /api/v1/talkshow/generate` | `talkshow-weekly` | Fr 22:01 | Generates the 3-reporter talk-show drehbuch via Claude, renders the multi-speaker mp3 via ElevenLabs, persists both to `talkshow_episodes`. |
+
+Both are protected by `requireSchedulerSecret` middleware — the static
+shared secret in `WRAPPED_TRIGGER_SECRET` (one secret, both endpoints).
+
+Without something calling those endpoints, `weekly_wrapped` /
+`talkshow_episodes` stay empty and the matching frontend cards show the
+empty state. Cloud Scheduler is the one-line cron that calls them. The
+talkshow fires one minute after wrapped so the show context can read
+the freshly-written wrapped row for the same week.
 
 ## Prerequisites
 
@@ -43,16 +51,25 @@ The script:
    describe`. No hardcoded URLs in source.
 2. Reads the latest version of `WRAPPED_TRIGGER_SECRET` from Secret
    Manager.
-3. Creates or updates the `wrapped-friday` Cloud Scheduler job with
-   schedule `0 22 * * 5` Europe/Berlin, HTTP POST to
-   `<service-url>/api/v1/wrapped/generate`, header
-   `X-Trigger-Secret: <secret>`.
-4. Idempotent — re-running updates the existing job in place.
+3. Creates or updates **two** Cloud Scheduler jobs (both
+   Europe/Berlin, both `--http-method=POST`, both with the
+   `X-Trigger-Secret: <secret>` header):
+   - `wrapped-weekly` — `0 22 * * 5` → `/api/v1/wrapped/generate`
+     (180s deadline, fast pure-SQL aggregation)
+   - `talkshow-weekly` — `1 22 * * 5` → `/api/v1/talkshow/generate`
+     (540s deadline because the audio-render step does ~30 ElevenLabs
+     TTS calls + concat + Firebase Storage upload)
+4. Idempotent — re-running updates existing jobs in place and creates
+   any that are missing.
 
 Verify:
 
 ```bash
-gcloud scheduler jobs describe wrapped-friday \
+gcloud scheduler jobs describe wrapped-weekly \
+    --location=europe-west3 \
+    --project=rasenbuerosport-leipzig-9d54f
+
+gcloud scheduler jobs describe talkshow-weekly \
     --location=europe-west3 \
     --project=rasenbuerosport-leipzig-9d54f
 ```
@@ -62,7 +79,7 @@ gcloud scheduler jobs describe wrapped-friday \
 To trigger the job once without waiting for Friday 22:00:
 
 ```bash
-gcloud scheduler jobs run wrapped-friday \
+gcloud scheduler jobs run wrapped-weekly \
     --location=europe-west3 \
     --project=rasenbuerosport-leipzig-9d54f
 ```
@@ -128,7 +145,7 @@ to `scripts/setup-cloud-scheduler.sh`.
 If the project ever changes name or the Friday cadence stops:
 
 ```bash
-gcloud scheduler jobs delete wrapped-friday \
+gcloud scheduler jobs delete wrapped-weekly \
     --location=europe-west3 \
     --project=rasenbuerosport-leipzig-9d54f
 ```

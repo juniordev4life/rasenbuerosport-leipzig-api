@@ -92,6 +92,9 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | `GET` | `/api/v1/wrapped` | Bearer | List user's weekly wrapped entries |
 | `GET` | `/api/v1/wrapped/latest` | Bearer | Latest weekly wrapped for the user |
 | `POST` | `/api/v1/wrapped/generate` | Scheduler | Trigger weekly wrapped generation (Cloud Scheduler only) |
+| `POST` | `/api/v1/talkshow/generate` | Scheduler | Generate weekly talkshow episode — Claude script + multi-speaker ElevenLabs mp3 (Cloud Scheduler only) |
+| `POST` | `/api/v1/talkshow/_preview` | Bearer | Debug: regenerate the current week's drehbuch (optionally without persisting) |
+| `POST` | `/api/v1/talkshow/audio` | Bearer | Re-render the audio for a persisted episode (idempotent — returns cached `audio_url` if already rendered) |
 | `POST` | `/api/v1/feedback` | Bearer | Submit in-app feedback (general → email via Resend, bug/feature → GitHub issue) |
 | `GET` | `/api/v1/players/:playerId/trophies` | Bearer | Player trophy room — all 64 trophies with unlocked-state, progress on threshold trophies, hidden trophies masked until unlocked |
 
@@ -197,7 +200,7 @@ The API uses **Firebase Authentication** with ID-token verification:
 - **Local dev:** `gcloud auth application-default login` is sufficient — no service account JSON needed. As a fallback, set `GOOGLE_APPLICATION_CREDENTIALS=./service-account.json`
 - The `FIREBASE_PROJECT_ID` env var pins the project the Admin SDK validates tokens against
 
-**Public endpoints:** `/health`, `/api/v1/leaderboard`, `/api/v1/seasons*`. Everything else requires a Bearer token. The internal `/api/v1/wrapped/generate` endpoint uses a separate scheduler-secret middleware for Cloud Scheduler.
+**Public endpoints:** `/health`, `/api/v1/leaderboard`, `/api/v1/seasons*`. Everything else requires a Bearer token. The internal `/api/v1/wrapped/generate` and `/api/v1/talkshow/generate` endpoints use a separate scheduler-secret middleware for Cloud Scheduler.
 
 [Full Auth Documentation →](docs/features/AUTHENTICATION.md)
 
