@@ -1,108 +1,30 @@
-const playerSchema = {
-	type: ["object", "null"],
-	properties: {
-		id: { type: "string" },
-		username: { type: "string" },
-		avatar_url: { type: ["string", "null"] },
-	},
-};
+/**
+ * Schemas for the wrapped endpoints.
+ *
+ * Only request-side validation is enforced (the `limit` querystring on
+ * the archive listing). The response is deliberately NOT pinned with a
+ * JSON schema: Fastify's response-side schema is run through
+ * `fast-json-stringify`, which silently strips any field not declared
+ * in `properties`. The wrapped payload is a JSONB blob that grows
+ * regularly (riser / loser / streak / trophies / talkrunde …) and the
+ * `embedTalkrunde` helper adds a top-level field too — pinning the
+ * shape there means every payload extension also needs a schema edit,
+ * and missing the edit ships an invisible bug where new fields just
+ * vanish on the wire. `setGeneralResponse()` already enforces the
+ * outer envelope shape on every endpoint, so the trade-off here is
+ * "leak any future field through" vs "drop new fields silently". The
+ * former is the safer default for a payload that's still evolving.
+ */
 
-const wrappedPayloadSchema = {
-	type: "object",
-	properties: {
-		total_games: { type: "integer" },
-		total_goals: { type: "integer" },
-		mvp: {
-			...playerSchema,
-			properties: {
-				...playerSchema.properties,
-				wins: { type: "integer" },
-			},
-		},
-		topscorer: {
-			...playerSchema,
-			properties: {
-				...playerSchema.properties,
-				goals: { type: "integer" },
-			},
-		},
-		most_active: {
-			...playerSchema,
-			properties: {
-				...playerSchema.properties,
-				games_played: { type: "integer" },
-			},
-		},
-		top_duo: {
-			type: ["object", "null"],
-			properties: {
-				players: { type: "array", items: playerSchema },
-				games: { type: "integer" },
-				wins: { type: "integer" },
-				win_rate: { type: "number" },
-			},
-		},
-	},
-};
+export const generateWrappedSchema = {};
 
-const wrappedRowSchema = {
-	type: ["object", "null"],
-	properties: {
-		id: { type: "string" },
-		week_start: { type: "string" },
-		week_end: { type: "string" },
-		generated_at: { type: "string" },
-		payload: wrappedPayloadSchema,
-	},
-};
-
-export const generateWrappedSchema = {
-	response: {
-		200: {
-			type: "object",
-			properties: {
-				code: { type: "integer" },
-				title: { type: "string" },
-				message: { type: "string" },
-				data: wrappedRowSchema,
-				error: { type: "array" },
-			},
-		},
-	},
-};
-
-export const getLatestWrappedSchema = {
-	response: {
-		200: {
-			type: "object",
-			properties: {
-				code: { type: "integer" },
-				title: { type: "string" },
-				message: { type: "string" },
-				data: wrappedRowSchema,
-				error: { type: "array" },
-			},
-		},
-	},
-};
+export const getLatestWrappedSchema = {};
 
 export const listWrappedSchema = {
 	querystring: {
 		type: "object",
 		properties: {
 			limit: { type: "integer", minimum: 1, maximum: 100, default: 20 },
-		},
-	},
-	response: {
-		200: {
-			type: "object",
-			properties: {
-				code: { type: "integer" },
-				title: { type: "string" },
-				message: { type: "string" },
-				data: { type: "array", items: wrappedRowSchema },
-				error: { type: "array" },
-			},
 		},
 	},
 };
