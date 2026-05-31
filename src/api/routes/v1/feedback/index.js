@@ -21,6 +21,12 @@ export default async function (fastify) {
 
 	fastify.post("/", {
 		schema: submitFeedbackController.schema,
+		// Fastify's default body limit is 1 MB; bug reports can include
+		// a base64-encoded screenshot of up to ~5 MB, plus the JSON
+		// wrapper and the data-url prefix. The route-level ceiling here
+		// is the network gate; the schema's `screenshot.maxLength`
+		// (~8 MB string) is the inner gate.
+		bodyLimit: 10 * 1024 * 1024,
 		config: {
 			rateLimit: {
 				max: 5,

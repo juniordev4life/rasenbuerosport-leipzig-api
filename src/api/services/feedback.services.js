@@ -11,6 +11,7 @@
  * request will then fail with a clean 500 + log entry).
  */
 
+import { getStorageBucket } from "../../config/firebase.config.js";
 import {
 	FEEDBACK_GITHUB_REPO,
 	FEEDBACK_ISSUE_LABELS,
@@ -19,6 +20,68 @@ import {
 	FEEDBACK_SENDER_EMAIL,
 } from "../../constants/feedback.constants.js";
 import { queryOne } from "../helpers/database.helpers.js";
+
+const SCREENSHOT_STORAGE_PREFIX = "feedback-screenshots";
+const SCREENSHOT_ALLOWED_MIME = new Set([
+	"image/png",
+	"image/jpeg",
+	"image/webp",
+	"image/heic",
+]);
+
+/**
+ * Decode a frontend screenshot payload — either a full
+ * `data:image/...;base64,...` URL (what `FileReader.readAsDataURL`
+ * produces) or the bare base64 string — into `{ buffer, mimeType,
+ * extension }`. Returns null when the input is empty, malformed, or
+ * the MIME type isn't in the allow-list.
+ *
+ * @param {string|null|undefined} input
+ * @returns {{ buffer: Buffer, mimeType: string, extension: string }|null}
+ */
+function decodeScreenshot(input) {
+	if (!input || typeof input !== "string") return null;
+	const match = input.match(/^data:(image\/[a-z+.-]+);base64,(.+)$/);
+	if (!match) return null;
+	const [, mimeType, payload] = match;
+	if (!SCREENSHOT_ALLOWED_MIME.has(mimeType)) return null;
+	let buffer;
+	try {
+		buffer = Buffer.from(payload, "base64");
+	} catch {
+		return null;
+	}
+	if (buffer.byteLength === 0) return null;
+	const extension = mimeType === "image/jpeg" ? "jpg" : mimeType.split("/")[1];
+	return { buffer, mimeType, extension };
+}
+
+/**
+ * Upload a screenshot to Firebase Storage under
+ * `feedback-screenshots/{uuid}.{ext}`, return the public URL. The
+ * object is made public-readable so GitHub's image renderer can pull
+ * it without auth — the URL itself is treated as the access token
+ * (long, random, not enumerated).
+ *
+ * @param {Buffer} buffer
+ * @param {string} mimeType
+ * @param {string} extension
+ * @returns {Promise<string>}
+ */
+async function uploadScreenshot(buffer, mimeType, extension) {
+	const bucket = getStorageBucket();
+	const objectPath = `${SCREENSHOT_STORAGE_PREFIX}/${crypto.randomUUID()}.${extension}`;
+	const file = bucket.file(objectPath);
+	await file.save(buffer, {
+		contentType: mimeType,
+		resumable: false,
+		metadata: {
+			cacheControl: "public, max-age=2592000, immutable",
+		},
+	});
+	await file.makePublic();
+	return `https://storage.googleapis.com/${bucket.name}/${objectPath}`;
+}
 
 /**
  * Resolves the username for a Firebase uid by joining the local
@@ -191,6 +254,7 @@ export async function submitFeedback({
 	description,
 	route,
 	userAgent,
+	screenshot,
 }) {
 	const trimmedTitle = title?.trim() ?? "";
 	const trimmedDescription = description.trim();
@@ -208,7 +272,35 @@ export async function submitFeedback({
 		route,
 		userAgent,
 	});
-	const bodyText = `${trimmedDescription}\n\n${contextBlock}`;
+
+	// Screenshots only flow into the GitHub bug pipeline. For "general"
+	// (email) and "feature" we ignore the field — V1 scope keeps the
+	// attachment off the feature-request channel since those are
+	// usually text-driven, and the email recipient has the user's
+	// address to ask follow-ups.
+	let screenshotUrl = null;
+	if (kind === "bug" && screenshot) {
+		const decoded = decodeScreenshot(screenshot);
+		if (decoded) {
+			try {
+				screenshotUrl = await uploadScreenshot(
+					decoded.buffer,
+					decoded.mimeType,
+					decoded.extension,
+				);
+			} catch (err) {
+				// Don't fail the whole submission if the storage upload
+				// breaks — the bug report is more valuable than the
+				// image. Surface the upload failure inline in the issue
+				// so triage knows a screenshot was attempted.
+				console.warn("[feedback] screenshot upload failed:", err.message);
+			}
+		}
+	}
+
+	const bodyText = screenshotUrl
+		? `${trimmedDescription}\n\n${contextBlock}\n\n![Screenshot](${screenshotUrl})`
+		: `${trimmedDescription}\n\n${contextBlock}`;
 
 	if (kind === "general") {
 		const subjectText = trimmedTitle || `Feedback from ${username}`;
@@ -227,5 +319,9 @@ export async function submitFeedback({
 		body: bodyText,
 		label,
 	});
-	return { channel: "github", reference: issue.url };
+	return {
+		channel: "github",
+		reference: issue.url,
+		screenshot_url: screenshotUrl,
+	};
 }
