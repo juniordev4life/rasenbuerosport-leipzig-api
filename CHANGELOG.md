@@ -6,6 +6,22 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v1.5.1
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.5.0...v1.5.1)
+
+### 🩹 Fixes
+
+- **wrapped:** Drop response schemas so new payload fields don't get stripped ([#61](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/61))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v1.5.0 ([82c726f](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/82c726f))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v1.5.0 (2026-05-31)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.4.0...v1.5.0)
