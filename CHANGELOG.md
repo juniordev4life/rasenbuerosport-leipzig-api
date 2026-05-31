@@ -6,6 +6,22 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v1.6.0
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.5.1...v1.6.0)
+
+### 🚀 Enhancements
+
+- **wrapped:** Match-of-the-week carries lineup data, drops the long report ([#62](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/62))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v1.5.1 ([6012367](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/6012367))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v1.5.1 (2026-05-31)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.5.0...v1.5.1)

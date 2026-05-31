@@ -1,6 +1,6 @@
 {
 	"name": "rasenbuerosport-playmaker",
-	"version": "1.5.1",
+	"version": "1.6.0",
 	"description": "RasenBürosport Leipzig - Backend API",
 	"type": "module",
 	"main": "src/index.js",
