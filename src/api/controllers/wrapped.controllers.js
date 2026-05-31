@@ -61,3 +61,52 @@ export const listWrappedController = {
 		}
 	},
 };
+
+/**
+ * `GET /api/v1/wrapped/:weekStart` — deep link to a specific week's
+ * wrapped snapshot. `weekStart` must be the Monday of the target
+ * week in `YYYY-MM-DD` format (the same value persisted on
+ * `weekly_wrapped.week_start`).
+ *
+ * Returns the same enriched shape as `/wrapped/latest` — the
+ * frontend's WrappedWeekNav uses this to navigate older weeks
+ * without dragging the whole archive into memory.
+ */
+export const getWrappedByWeekStartController = {
+	schema: {
+		params: {
+			type: "object",
+			required: ["weekStart"],
+			properties: {
+				weekStart: {
+					type: "string",
+					pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+				},
+			},
+		},
+	},
+	handler: async (request, reply) => {
+		try {
+			const { weekStart } = request.params;
+			const row = await wrappedService.getWrappedByWeekStart(weekStart);
+			if (!row) {
+				return setGeneralResponse(
+					reply,
+					404,
+					"Not Found",
+					"No wrapped for that week",
+					null,
+				);
+			}
+			return setGeneralResponse(
+				reply,
+				200,
+				"Success",
+				"Wrapped retrieved",
+				row,
+			);
+		} catch (error) {
+			return handleErrorResponse(reply, error, request);
+		}
+	},
+};

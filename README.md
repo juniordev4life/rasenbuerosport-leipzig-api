@@ -90,7 +90,8 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | `GET` | `/api/v1/seasons/archive` | — | Season archive |
 | `GET` | `/api/v1/teams` | Bearer | Get all available teams |
 | `GET` | `/api/v1/wrapped` | Bearer | List user's weekly wrapped entries |
-| `GET` | `/api/v1/wrapped/latest` | Bearer | Latest weekly wrapped for the user |
+| `GET` | `/api/v1/wrapped/latest` | Bearer | Latest weekly wrapped (totals, highlights, embedded talkrunde status) |
+| `GET` | `/api/v1/wrapped/:weekStart` | Bearer | Deep-link to a specific week (YYYY-MM-DD, Monday of the target week) |
 | `POST` | `/api/v1/wrapped/generate` | Scheduler | Trigger weekly wrapped generation (Cloud Scheduler only) |
 | `POST` | `/api/v1/talkshow/generate` | Scheduler | Generate weekly talkshow episode — Claude script + multi-speaker ElevenLabs mp3 (Cloud Scheduler only) |
 | `GET` | `/api/v1/talkshow/latest` | Bearer | Latest persisted talkshow episode (week, audio URL, turn count, summary) — feeds the dashboard Talkrunde card |

@@ -2,6 +2,7 @@ import { getMyWeeklyRecapController } from "../../../controllers/weeklyRecap.con
 import {
 	generateWrappedController,
 	getLatestWrappedController,
+	getWrappedByWeekStartController,
 	listWrappedController,
 } from "../../../controllers/wrapped.controllers.js";
 import { requireAuth } from "../../../middlewares/auth.middlewares.js";
@@ -31,5 +32,17 @@ export default async function (fastify) {
 		preHandler: requireAuth,
 		schema: listWrappedController.schema,
 		handler: listWrappedController.handler,
+	});
+
+	// Deep link to a specific week's wrapped — order matters: this
+	// must register AFTER the static `/latest` + `/recap/me` so
+	// Fastify's router prefers those for literal-path matches. The
+	// `:weekStart` is regex-gated in the controller schema to only
+	// accept `YYYY-MM-DD`, so a typo on the static paths returns 400
+	// rather than swallowing the request here.
+	fastify.get("/:weekStart", {
+		preHandler: requireAuth,
+		schema: getWrappedByWeekStartController.schema,
+		handler: getWrappedByWeekStartController.handler,
 	});
 }
