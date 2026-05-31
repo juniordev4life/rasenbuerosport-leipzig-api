@@ -1,8 +1,5 @@
 import { query, queryOne } from "../helpers/database.helpers.js";
-import {
-	generateMatchOfTheWeekReport,
-	pickMatchOfTheWeek,
-} from "./matchOfTheWeek.services.js";
+import { pickMatchOfTheWeek } from "./matchOfTheWeek.services.js";
 
 /**
  * Computes the date range of a given week (Mon 00:00 to Sun 23:59:59) for the
@@ -135,18 +132,31 @@ export async function computeWrapped(weekStart, weekEnd) {
 	// Match of the Week — best-effort, fail-soft. The wrapped payload is
 	// still useful without it, and the AI call is the only thing that can
 	// realistically fail here.
+	//
+	// The persisted shape carries enough lineup metadata for the frontend
+	// to render a hero card (team names, per-side player avatars, result
+	// type) without a second `/games/:id` round-trip. The narrative
+	// report is intentionally NOT embedded — it lives on the match-
+	// detail page where it has the room it needs; here we only link to
+	// it.
 	let matchOfTheWeek = null;
 	try {
 		const picked = await pickMatchOfTheWeek(weekStart, weekEnd);
 		if (picked) {
-			const report = await generateMatchOfTheWeekReport(picked);
+			const lineup = await loadMatchLineup(picked.id);
 			matchOfTheWeek = {
 				game_id: picked.id,
+				mode: picked.mode,
 				score: `${picked.score_home}:${picked.score_away}`,
+				score_home: picked.score_home,
+				score_away: picked.score_away,
 				result_type: picked.result_type,
 				played_at: picked.played_at,
 				drama_score: picked._drama_score,
-				report,
+				home_team_name: lineup.home.team_name,
+				away_team_name: lineup.away.team_name,
+				home_players: lineup.home.players,
+				away_players: lineup.away.players,
 			};
 		}
 	} catch (err) {
@@ -386,6 +396,53 @@ export async function generateWrapped(reference = new Date()) {
 	);
 
 	return row;
+}
+
+/**
+ * Lineup snapshot for the Match-of-the-Week card. Loads each
+ * participant's profile + the per-side team name (the FC26 club /
+ * label the players selected when the match was created) and groups
+ * the players by side.
+ *
+ * Designed for the card UI: the frontend renders home + away side
+ * by side with player avatars and team names, then linkst to the
+ * full match detail page. The shape is deliberately flat — id,
+ * username, avatar_url — so a tap on a player can navigate to the
+ * profile without an extra fetch.
+ *
+ * @param {string} gameId
+ * @returns {Promise<{
+ *   home: { team_name: string|null, players: Array<{id, username, avatar_url}> },
+ *   away: { team_name: string|null, players: Array<{id, username, avatar_url}> }
+ * }>}
+ * @example
+ *   const lineup = await loadMatchLineup("game-uuid-123");
+ *   // → { home: { team_name: "Galatasaray", players: [...] }, away: {...} }
+ */
+async function loadMatchLineup(gameId) {
+	const rows = await query(
+		`SELECT gp.player_id, gp.team, gp.team_name,
+		        p.username, p.avatar_url
+		FROM game_players gp
+		LEFT JOIN profiles p ON p.id = gp.player_id
+		WHERE gp.game_id = $1
+		ORDER BY gp.team, p.username`,
+		[gameId],
+	);
+	const home = { team_name: null, players: [] };
+	const away = { team_name: null, players: [] };
+	for (const row of rows) {
+		const bucket = row.team === "away" ? away : home;
+		bucket.team_name = bucket.team_name ?? row.team_name;
+		if (row.player_id) {
+			bucket.players.push({
+				id: row.player_id,
+				username: row.username,
+				avatar_url: row.avatar_url,
+			});
+		}
+	}
+	return { home, away };
 }
 
 /**
