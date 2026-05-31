@@ -23,6 +23,7 @@ export const submitFeedbackController = {
 				description: request.body.description,
 				route: request.body.route,
 				userAgent: request.headers["user-agent"] ?? null,
+				screenshot: request.body.screenshot,
 			});
 			return setGeneralResponse(
 				reply,
