@@ -16,9 +16,11 @@
 		"format:check": "biome format .",
 		"check": "biome check --write .",
 		"release": "node scripts/release.js",
+		"teams:update": "node scripts/update-teams.js",
 		"elo:recompute": "node scripts/recompute-all-elo.js",
 		"trophies:backfill": "node scripts/trophy-backfill.js",
-		"db:proxy": "cloud-sql-proxy rasenbuerosport-leipzig-9d54f:europe-west3:rasenbuerosport-db --port=5433"
+		"db:local": "bash scripts/db-local.sh",
+		"db:proxy": "bash scripts/db-proxy.sh"
 	},
 	"keywords": [
 		"rasenbuerosport",

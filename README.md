@@ -263,6 +263,25 @@ The app includes ~400 real football clubs from **25 European top leagues** (cura
 | 24 | Switzerland | Super League | 12 |
 | 25 | Croatia | SuperSport HNL | 10 |
 
+### Updating Teams
+
+Team data is sourced from SoFIFA (FC 26 ratings) and refreshed with a single command:
+
+```bash
+DATABASE_URL="postgresql://postgres:PASSWORD@127.0.0.1:5433/rasenbuerosport" npm run teams:update
+```
+
+This runs the two-stage pipeline in order:
+
+1. `scripts/parse-sofifa-leagues.js` — parses the saved SoFIFA league RTF files in `ligen/` and regenerates `scripts/scraped-teams.json`.
+2. `scripts/import-teams.js` — upserts every team into Cloud SQL via `INSERT … ON CONFLICT (name) DO UPDATE`. Existing teams are matched by name, so **UUIDs are preserved**; `logo_url`, `sofifa_id`, `overall_rating`, `star_rating`, `league_name`, and `country_code` are refreshed.
+
+`DATABASE_URL` is required and checked **up front** — a missing connection string aborts before any parsing. Point it at the Cloud SQL Auth Proxy (`npm run db:proxy`, port 5433) for PROD, or at your local Docker Postgres (port 5434).
+
+Logos are handled separately by `scripts/download-logos.js` and `scripts/update-logo-urls.js`.
+
+> `migrations/migrate-teams.js` is the original one-off bootstrap (CSV-based, `DELETE FROM teams` first, then downloads + uploads logos). It is **destructive** — do not use it for incremental updates.
+
 ---
 
 ## Security
@@ -351,7 +370,7 @@ To talk directly to PROD via the Cloud SQL Auth Proxy (read-only use cases like 
 npm run db:proxy
 ```
 
-Equivalent to running `cloud-sql-proxy rasenbuerosport-leipzig-9d54f:europe-west3:rasenbuerosport-db --port=5433` directly. The proxy runs in the foreground — Ctrl+C to stop. It uses your `gcloud auth application-default login` credentials, so make sure the right account is active (`gcloud config get-value account`) before starting.
+Runs `scripts/db-proxy.sh`, which pre-flights your gcloud auth (prints the active account/project and reminds you to run `gcloud auth application-default login` if ADC is missing), then starts `cloud-sql-proxy …:rasenbuerosport-db` on port 5433. The proxy runs in the foreground — Ctrl+C to stop. It authenticates via IAM (ADC), not a DB password. Instance and port can be overridden with `CLOUD_SQL_INSTANCE` / `CLOUD_SQL_PROXY_PORT`.
 
 ### Development
 
@@ -395,6 +414,8 @@ Stop the proxy once the dump finishes (`Ctrl+C` in its terminal).
 **2. Start a local Postgres 16 in Docker on port 5434**
 
 Port 5434 avoids clashing with the proxy on 5433.
+
+Quick path — `npm run db:local` creates the container (or resumes it if it already exists) and waits until Postgres is ready. The manual equivalent:
 
 ```bash
 docker run -d \
