@@ -33,7 +33,7 @@ export const updateGameVideoSchema = {
 		properties: {
 			video_status: {
 				type: "string",
-				enum: ["recording", "uploaded", "ready"],
+				enum: ["recording", "uploaded", "processing", "ready", "failed"],
 			},
 			highlight_url: { type: "string", minLength: 1, maxLength: 2048 },
 		},
