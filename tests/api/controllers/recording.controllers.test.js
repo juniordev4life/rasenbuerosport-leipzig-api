@@ -2,17 +2,23 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../../../src/api/services/recording.services.js", () => ({
 	getNextRecordingCommand: vi.fn(),
+	getRecordingStatus: vi.fn(),
+	reportRecordingStatus: vi.fn(),
 	setRecordingCommand: vi.fn(),
 	updateGameVideo: vi.fn(),
 }));
 
 import {
 	getNextRecordingCommandController,
+	getRecordingStatusController,
+	reportRecordingStatusController,
 	setRecordingCommandController,
 	updateGameVideoController,
 } from "../../../src/api/controllers/recording.controllers.js";
 import {
 	getNextRecordingCommand,
+	getRecordingStatus,
+	reportRecordingStatus,
 	setRecordingCommand,
 	updateGameVideo,
 } from "../../../src/api/services/recording.services.js";
@@ -95,5 +101,47 @@ describe("updateGameVideoController", () => {
 
 		expect(getStatus()).toBe(404);
 		expect(getPayload().title).toBe("Not Found");
+	});
+});
+
+describe("reportRecordingStatusController", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("forwards recording_id and status to the service", async () => {
+		reportRecordingStatus.mockResolvedValueOnce({
+			recording_id: "rec-123",
+			status: "recording",
+		});
+		const { reply, getStatus, getPayload } = buildMockReply();
+		const request = { body: { recording_id: "rec-123", status: "recording" } };
+
+		await reportRecordingStatusController.handler(request, reply);
+
+		expect(reportRecordingStatus).toHaveBeenCalledWith("rec-123", "recording");
+		expect(getStatus()).toBe(200);
+		expect(getPayload().data.status).toBe("recording");
+	});
+});
+
+describe("getRecordingStatusController", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("returns the status for the queried recording id", async () => {
+		getRecordingStatus.mockResolvedValueOnce({
+			recording_id: "rec-123",
+			status: "failed",
+		});
+		const { reply, getStatus, getPayload } = buildMockReply();
+		const request = { query: { recording_id: "rec-123" } };
+
+		await getRecordingStatusController.handler(request, reply);
+
+		expect(getRecordingStatus).toHaveBeenCalledWith("rec-123");
+		expect(getStatus()).toBe(200);
+		expect(getPayload().data.status).toBe("failed");
 	});
 });

@@ -1,6 +1,8 @@
 import { handleErrorResponse } from "../helpers/error.helpers.js";
 import { setGeneralResponse } from "../helpers/response.helpers.js";
 import {
+	getRecordingStatusSchema,
+	reportRecordingStatusSchema,
 	setRecordingCommandSchema,
 	updateGameVideoSchema,
 } from "../schemas/recording.schemas.js";
@@ -71,6 +73,48 @@ export const updateGameVideoController = {
 				"Success",
 				"Game video status updated",
 				game,
+			);
+		} catch (error) {
+			return handleErrorResponse(reply, error, request);
+		}
+	},
+};
+
+export const reportRecordingStatusController = {
+	schema: reportRecordingStatusSchema,
+	handler: async (request, reply) => {
+		try {
+			const { recording_id, status } = request.body;
+			const result = await recordingService.reportRecordingStatus(
+				recording_id,
+				status,
+			);
+			return setGeneralResponse(
+				reply,
+				200,
+				"Success",
+				"Recording status reported",
+				result,
+			);
+		} catch (error) {
+			return handleErrorResponse(reply, error, request);
+		}
+	},
+};
+
+export const getRecordingStatusController = {
+	schema: getRecordingStatusSchema,
+	handler: async (request, reply) => {
+		try {
+			const status = await recordingService.getRecordingStatus(
+				request.query.recording_id,
+			);
+			return setGeneralResponse(
+				reply,
+				200,
+				"Success",
+				"Recording status retrieved",
+				status,
 			);
 		} catch (error) {
 			return handleErrorResponse(reply, error, request);

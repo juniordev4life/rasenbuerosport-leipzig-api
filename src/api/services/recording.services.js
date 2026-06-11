@@ -11,7 +11,7 @@ const START_COMMAND_MAX_AGE_MS = 3 * 60 * 60 * 1000;
 /**
  * Overwrites the single recording command slot the office agent polls.
  *
- * @param {"start"|"stop"} action - Command for the agent
+ * @param {"start"|"stop"|"abort"} action - Command for the agent
  * @param {string} gameId - Provisional recording id on "start", real game id on "stop"
  * @returns {Promise<object>} The stored command row
  * @example
@@ -72,4 +72,46 @@ export async function updateGameVideo(gameId, { video_status, highlight_url }) {
 		RETURNING id, recording_id, video_status, highlight_url`,
 		[gameId, video_status, highlight_url ?? null],
 	);
+}
+
+/**
+ * Records what the office agent reports about the current capture, into the
+ * single-row status slot the app polls. Mirror of setRecordingCommand: the
+ * agent writes here, the app reads via getRecordingStatus.
+ *
+ * @param {string} recordingId - Provisional recording id the capture belongs to
+ * @param {"recording"|"failed"|"stopped"|"aborted"} status - Reported state
+ * @returns {Promise<object>} The stored status row
+ * @example
+ * await reportRecordingStatus("0d9f...-uuid", "recording");
+ */
+export async function reportRecordingStatus(recordingId, status) {
+	return queryOne(
+		`INSERT INTO recording_status (id, recording_id, status, updated_at)
+		VALUES (1, $1, $2, now())
+		ON CONFLICT (id) DO UPDATE SET recording_id = $1, status = $2, updated_at = now()
+		RETURNING recording_id, status, updated_at`,
+		[recordingId, status],
+	);
+}
+
+/**
+ * Returns the agent-reported status for a given recording id. When the slot
+ * holds no entry, or one for a different (older) recording, status is null —
+ * the app treats that as "still pending" and relies on its own timeout to
+ * detect an offline agent.
+ *
+ * @param {string} recordingId - The app's provisional recording id
+ * @returns {Promise<{recording_id: string, status: string|null}>}
+ * @example
+ * const s = await getRecordingStatus("0d9f...-uuid"); // { recording_id, status: "recording" }
+ */
+export async function getRecordingStatus(recordingId) {
+	const row = await queryOne(
+		"SELECT recording_id, status FROM recording_status WHERE id = 1",
+	);
+	if (!row || row.recording_id !== recordingId) {
+		return { recording_id: recordingId, status: null };
+	}
+	return { recording_id: row.recording_id, status: row.status };
 }

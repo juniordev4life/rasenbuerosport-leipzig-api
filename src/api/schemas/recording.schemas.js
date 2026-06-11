@@ -13,7 +13,7 @@ export const setRecordingCommandSchema = {
 		type: "object",
 		required: ["action", "game_id"],
 		properties: {
-			action: { type: "string", enum: ["start", "stop"] },
+			action: { type: "string", enum: ["start", "stop", "abort"] },
 			game_id: { type: "string", minLength: 1, maxLength: 100 },
 		},
 	},
@@ -36,6 +36,30 @@ export const updateGameVideoSchema = {
 				enum: ["recording", "uploaded", "ready"],
 			},
 			highlight_url: { type: "string", minLength: 1, maxLength: 2048 },
+		},
+	},
+};
+
+export const reportRecordingStatusSchema = {
+	body: {
+		type: "object",
+		required: ["recording_id", "status"],
+		properties: {
+			recording_id: { type: "string", minLength: 1, maxLength: 100 },
+			status: {
+				type: "string",
+				enum: ["recording", "failed", "stopped", "aborted"],
+			},
+		},
+	},
+};
+
+export const getRecordingStatusSchema = {
+	querystring: {
+		type: "object",
+		required: ["recording_id"],
+		properties: {
+			recording_id: { type: "string", minLength: 1, maxLength: 100 },
 		},
 	},
 };
