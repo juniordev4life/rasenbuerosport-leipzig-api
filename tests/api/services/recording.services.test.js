@@ -8,6 +8,8 @@ vi.mock("../../../src/api/helpers/database.helpers.js", () => ({
 import { queryOne } from "../../../src/api/helpers/database.helpers.js";
 import {
 	getNextRecordingCommand,
+	getRecordingStatus,
+	reportRecordingStatus,
 	setRecordingCommand,
 	updateGameVideo,
 } from "../../../src/api/services/recording.services.js";
@@ -136,5 +138,66 @@ describe("updateGameVideo", () => {
 		});
 
 		expect(result).toBeNull();
+	});
+});
+
+describe("reportRecordingStatus", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("upserts the single status slot and returns the stored row", async () => {
+		const stored = {
+			recording_id: "rec-123",
+			status: "recording",
+			updated_at: new Date().toISOString(),
+		};
+		queryOne.mockResolvedValueOnce(stored);
+
+		const result = await reportRecordingStatus("rec-123", "recording");
+
+		expect(result).toEqual(stored);
+		expect(queryOne).toHaveBeenCalledWith(expect.stringContaining("ON CONFLICT"), [
+			"rec-123",
+			"recording",
+		]);
+	});
+});
+
+describe("getRecordingStatus", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("returns the status when the slot matches the recording id", async () => {
+		queryOne.mockResolvedValueOnce({ recording_id: "rec-123", status: "recording" });
+
+		const result = await getRecordingStatus("rec-123");
+
+		expect(result).toEqual({ recording_id: "rec-123", status: "recording" });
+	});
+
+	it("returns null status when the slot is empty (agent has not reported)", async () => {
+		queryOne.mockResolvedValueOnce(null);
+
+		const result = await getRecordingStatus("rec-123");
+
+		expect(result).toEqual({ recording_id: "rec-123", status: null });
+	});
+
+	it("returns null status when the slot holds a different (older) recording", async () => {
+		queryOne.mockResolvedValueOnce({ recording_id: "rec-OLD", status: "recording" });
+
+		const result = await getRecordingStatus("rec-123");
+
+		expect(result).toEqual({ recording_id: "rec-123", status: null });
+	});
+
+	it("surfaces 'failed' for the matching recording", async () => {
+		queryOne.mockResolvedValueOnce({ recording_id: "rec-123", status: "failed" });
+
+		const result = await getRecordingStatus("rec-123");
+
+		expect(result).toEqual({ recording_id: "rec-123", status: "failed" });
 	});
 });

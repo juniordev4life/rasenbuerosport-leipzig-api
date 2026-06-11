@@ -81,7 +81,9 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | `POST` | `/api/v1/games/prediction` | Bearer | Generate AI match prediction |
 | `PATCH` | `/api/v1/games/:gameId` | Agent | Office agent / highlight pipeline reports `video_status` (+ optional `highlight_url`) |
 | `GET` | `/api/v1/recording/next` | Agent | Office agent polls the next recording command (`start` / `stop` / `idle`) |
-| `POST` | `/api/v1/recording/command` | Bearer | App sets the next command — `start` on kickoff (provisional recording id), `stop` after saving (real game id) |
+| `POST` | `/api/v1/recording/command` | Bearer | App sets the next command — `start` on kickoff (provisional recording id), `stop` after saving (real game id), `abort` on cancel |
+| `POST` | `/api/v1/recording/report` | Agent | Office agent reports capture state (`recording` / `failed` / `stopped` / `aborted`) for the provisional recording id |
+| `GET` | `/api/v1/recording/status` | Bearer | App polls the agent-reported capture state for its recording id during the live step |
 | `GET` | `/api/v1/leaderboard` | — | Get leaderboard standings |
 | `GET` | `/api/v1/players` | Bearer | Get all player profiles |
 | `GET` | `/api/v1/stats` | Bearer | Get comprehensive user stats |
@@ -207,7 +209,9 @@ The API uses **Firebase Authentication** with ID-token verification:
 
 **Public endpoints:** `/health`, `/api/v1/leaderboard`, `/api/v1/seasons*`. Everything else requires a Bearer token. The internal `/api/v1/wrapped/generate` and `/api/v1/talkshow/generate` endpoints use a separate scheduler-secret middleware for Cloud Scheduler.
 
-**Agent endpoints:** `GET /api/v1/recording/next` and `PATCH /api/v1/games/:gameId` authenticate via the `X-Agent-Secret` header (`AGENT_SECRET` env var, `requireAgentSecret` middleware) — machine auth for the office recording agent (`rasenbuerosport-leipzig-capture`), same pattern as the scheduler secret. The flow: the app POSTs `start` to `/v1/recording/command` on kickoff with a client-generated provisional recording id (the game row does not exist until after the final whistle), the agent polls `/v1/recording/next` and records; after saving, the app POSTs `stop` with the real game id, and the agent uploads and PATCHes `video_status` (later `highlight_url`) onto the game row. The app only ever renders `highlight_url` from the game response — no file lookups. A leftover `start` older than 3 h is served as `idle` (stale-start guard).
+**Agent endpoints:** `GET /api/v1/recording/next`, `POST /api/v1/recording/report` and `PATCH /api/v1/games/:gameId` authenticate via the `X-Agent-Secret` header (`AGENT_SECRET` env var, `requireAgentSecret` middleware) — machine auth for the office recording agent (`rasenbuerosport-leipzig-capture`), same pattern as the scheduler secret. The flow: the app POSTs `start` to `/v1/recording/command` on kickoff with a client-generated provisional recording id (the game row does not exist until after the final whistle), the agent polls `/v1/recording/next` and records; after saving, the app POSTs `stop` with the real game id, and the agent uploads and PATCHes `video_status` (later `highlight_url`) onto the game row. The app only ever renders `highlight_url` from the game response — no file lookups. A leftover `start` older than 3 h is served as `idle` (stale-start guard).
+
+**Recording status back-channel:** `recording_command` is one-way (app → agent), so a second single-row slot, `recording_status`, carries the reverse direction (agent → app). The agent POSTs `/v1/recording/report` with the provisional recording id and a state — `recording` once ffmpeg is confirmed alive, `failed` if it died on launch, `stopped`/`aborted` when capture ends. The app polls `GET /v1/recording/status?recording_id=…` during the live step: on `failed` (or its own timeout, when the agent is offline and never reports) it shows an error dialog offering retry or play-without-recording. `abort` (vs. `stop`) tells the agent to stop ffmpeg and **delete** the file — sent when the user backs out of the live step or dismisses the error dialog; the recording is discarded, not linked to a game.
 
 [Full Auth Documentation →](docs/features/AUTHENTICATION.md)
 
