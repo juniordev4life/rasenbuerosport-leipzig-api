@@ -42,6 +42,20 @@ function ensureVapidConfigured() {
 }
 
 /**
+ * Master on/off switch for actually delivering push notifications. Push is on
+ * unless PUSH_ENABLED is explicitly "false". Lets a local/dev environment
+ * silence web-push — which would otherwise reach colleagues' real devices when
+ * the API runs against a PROD-snapshot DB holding their live subscriptions.
+ *
+ * @returns {boolean}
+ * @example
+ * if (!pushEnabled()) return; // local dev: never deliver
+ */
+function pushEnabled() {
+	return process.env.PUSH_ENABLED !== "false";
+}
+
+/**
  * @typedef {object} PushPayload
  * @property {string} title
  * @property {string} body
@@ -66,6 +80,7 @@ function ensureVapidConfigured() {
  *   });
  */
 export async function sendPushNotification(sub, payload) {
+	if (!pushEnabled()) return { success: false };
 	if (!ensureVapidConfigured()) return { success: false, statusCode: 500 };
 
 	try {
@@ -120,6 +135,13 @@ export async function notifyMatchCreated({
 	players,
 	resolveDisplayName,
 }) {
+	if (!pushEnabled()) {
+		logger.info(
+			"Push disabled (PUSH_ENABLED=false) — skipping match notification.",
+		);
+		return { recipients: 0 };
+	}
+
 	const involvedIds = players.map((p) => p.player_id);
 	const subs = await getSubscriptionsExcludingUsers({
 		excludeUserIds: involvedIds,
