@@ -23,6 +23,8 @@ import { notifyMatchCreated } from "./pushSender.services.js";
  *   shape (validated via JSON schema before this fn runs):
  *   `{ score_before, final_score, winner_side, shots: [...] }`.
  *   Stored verbatim in the `penalty_shootout` JSONB column.
+ * @param {string} [params.recording_id] - Provisional capture id from the
+ *   office recording agent flow; links the recorded video to this game.
  * @returns {Promise<object>}
  */
 export async function createGame({
@@ -35,6 +37,7 @@ export async function createGame({
 	score_timeline,
 	result_type,
 	penalty_shootout,
+	recording_id,
 }) {
 	// Defense in depth: reject timelines whose events are not strictly
 	// chronological within their period before opening a DB transaction. The
@@ -50,8 +53,8 @@ export async function createGame({
 		const {
 			rows: [game],
 		} = await client.query(
-			`INSERT INTO games (mode, score_home, score_away, played_at, created_by, score_timeline, result_type, penalty_shootout)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+			`INSERT INTO games (mode, score_home, score_away, played_at, created_by, score_timeline, result_type, penalty_shootout, recording_id)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 			RETURNING *`,
 			[
 				mode,
@@ -62,6 +65,7 @@ export async function createGame({
 				score_timeline ? JSON.stringify(score_timeline) : null,
 				result_type || "regular",
 				penalty_shootout ? JSON.stringify(penalty_shootout) : null,
+				recording_id || null,
 			],
 		);
 
