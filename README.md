@@ -79,6 +79,9 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | `POST` | `/api/v1/games/:gameId/match-report` | Bearer | Generate reporter-style AI match report (Buschmann/Reif tone) |
 | `POST` | `/api/v1/games/:gameId/match-report/audio` | Bearer | Render the report as mp3 via ElevenLabs TTS (cached on Firebase Storage) |
 | `POST` | `/api/v1/games/prediction` | Bearer | Generate AI match prediction |
+| `PATCH` | `/api/v1/games/:gameId` | Agent | Office agent / highlight pipeline reports `video_status` (+ optional `highlight_url`) |
+| `GET` | `/api/v1/recording/next` | Agent | Office agent polls the next recording command (`start` / `stop` / `idle`) |
+| `POST` | `/api/v1/recording/command` | Bearer | App sets the next command — `start` on kickoff (provisional recording id), `stop` after saving (real game id) |
 | `GET` | `/api/v1/leaderboard` | — | Get leaderboard standings |
 | `GET` | `/api/v1/players` | Bearer | Get all player profiles |
 | `GET` | `/api/v1/stats` | Bearer | Get comprehensive user stats |
@@ -203,6 +206,8 @@ The API uses **Firebase Authentication** with ID-token verification:
 - The `FIREBASE_PROJECT_ID` env var pins the project the Admin SDK validates tokens against
 
 **Public endpoints:** `/health`, `/api/v1/leaderboard`, `/api/v1/seasons*`. Everything else requires a Bearer token. The internal `/api/v1/wrapped/generate` and `/api/v1/talkshow/generate` endpoints use a separate scheduler-secret middleware for Cloud Scheduler.
+
+**Agent endpoints:** `GET /api/v1/recording/next` and `PATCH /api/v1/games/:gameId` authenticate via the `X-Agent-Secret` header (`AGENT_SECRET` env var, `requireAgentSecret` middleware) — machine auth for the office recording agent (`rasenbuerosport-leipzig-capture`), same pattern as the scheduler secret. The flow: the app POSTs `start` to `/v1/recording/command` on kickoff with a client-generated provisional recording id (the game row does not exist until after the final whistle), the agent polls `/v1/recording/next` and records; after saving, the app POSTs `stop` with the real game id, and the agent uploads and PATCHes `video_status` (later `highlight_url`) onto the game row. The app only ever renders `highlight_url` from the game response — no file lookups. A leftover `start` older than 3 h is served as `idle` (stale-start guard).
 
 [Full Auth Documentation →](docs/features/AUTHENTICATION.md)
 

@@ -178,6 +178,7 @@ export const createGameSchema = {
 				default: "regular",
 			},
 			penalty_shootout: penaltyShootoutSchema,
+			recording_id: { type: "string", minLength: 1, maxLength: 100 },
 		},
 	},
 };
