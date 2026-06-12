@@ -1,4 +1,4 @@
-import { queryOne } from "../helpers/database.helpers.js";
+import { query, queryOne } from "../helpers/database.helpers.js";
 
 /**
  * A leftover "start" older than this is reported as idle. Protects against
@@ -129,15 +129,27 @@ export async function getRecordingStatus(recordingId) {
  */
 export async function getRecordingTimeline(gameId) {
 	const row = await queryOne(
-		"SELECT id, result_type, score_timeline FROM games WHERE id = $1",
+		"SELECT id, result_type, pending, score_timeline FROM games WHERE id = $1",
 		[gameId],
 	);
 	if (!row) {
 		return null;
 	}
+	// Lineup with usernames: lets the pipeline attribute goals to office
+	// players when the events screen only yields the side — with exactly one
+	// player per side (1v1), side == scorer.
+	const players = await query(
+		`SELECT gp.player_id, gp.team, p.username
+		   FROM game_players gp
+		   LEFT JOIN profiles p ON p.id = gp.player_id
+		  WHERE gp.game_id = $1`,
+		[gameId],
+	);
 	return {
 		game_id: row.id,
 		result_type: row.result_type ?? null,
+		pending: Boolean(row.pending),
 		score_timeline: row.score_timeline ?? [],
+		players,
 	};
 }

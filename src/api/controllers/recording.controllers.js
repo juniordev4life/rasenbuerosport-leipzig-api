@@ -1,12 +1,19 @@
 import { handleErrorResponse } from "../helpers/error.helpers.js";
 import { setGeneralResponse } from "../helpers/response.helpers.js";
 import {
+	finalizeGameSchema,
 	getRecordingStatusSchema,
 	getRecordingTimelineSchema,
+	recordingStatsSchema,
 	reportRecordingStatusSchema,
 	setRecordingCommandSchema,
 	updateGameVideoSchema,
 } from "../schemas/recording.schemas.js";
+import { finalizeGame } from "../services/games.services.js";
+import {
+	extractStatsFromImage,
+	saveMatchStats,
+} from "../services/matchStats.services.js";
 import * as recordingService from "../services/recording.services.js";
 
 export const getNextRecordingCommandController = {
@@ -117,6 +124,67 @@ export const getRecordingStatusController = {
 				"Recording status retrieved",
 				status,
 			);
+		} catch (error) {
+			return handleErrorResponse(reply, error, request);
+		}
+	},
+};
+
+export const finalizeGameController = {
+	schema: finalizeGameSchema,
+	handler: async (request, reply) => {
+		try {
+			const { game_id, score_timeline } = request.body;
+			const game = await finalizeGame(game_id, score_timeline);
+
+			if (!game) {
+				return setGeneralResponse(
+					reply,
+					404,
+					"Not Found",
+					"Game not found",
+					null,
+				);
+			}
+
+			return setGeneralResponse(reply, 200, "Success", "Game finalized", game);
+		} catch (error) {
+			return handleErrorResponse(reply, error, request);
+		}
+	},
+};
+
+export const recordingStatsController = {
+	schema: recordingStatsSchema,
+	handler: async (request, reply) => {
+		try {
+			const { game_id, images } = request.body;
+			const applied = [];
+			let game = null;
+			for (const type of ["overview", "passes", "defense"]) {
+				const imageUrl = images[type];
+				if (!imageUrl) {
+					continue;
+				}
+				const stats = await extractStatsFromImage(imageUrl, type);
+				game = await saveMatchStats(game_id, stats, imageUrl, type);
+				applied.push(type);
+			}
+
+			if (!game) {
+				return setGeneralResponse(
+					reply,
+					404,
+					"Not Found",
+					"Game not found",
+					null,
+				);
+			}
+
+			return setGeneralResponse(reply, 200, "Success", "Match stats applied", {
+				game_id,
+				applied,
+			});
 		} catch (error) {
 			return handleErrorResponse(reply, error, request);
 		}

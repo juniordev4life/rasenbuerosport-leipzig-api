@@ -8,15 +8,29 @@ vi.mock("../../../src/api/services/recording.services.js", () => ({
 	setRecordingCommand: vi.fn(),
 	updateGameVideo: vi.fn(),
 }));
+vi.mock("../../../src/api/services/games.services.js", () => ({
+	finalizeGame: vi.fn(),
+}));
+vi.mock("../../../src/api/services/matchStats.services.js", () => ({
+	extractStatsFromImage: vi.fn(),
+	saveMatchStats: vi.fn(),
+}));
 
 import {
+	finalizeGameController,
 	getNextRecordingCommandController,
 	getRecordingStatusController,
 	getRecordingTimelineController,
+	recordingStatsController,
 	reportRecordingStatusController,
 	setRecordingCommandController,
 	updateGameVideoController,
 } from "../../../src/api/controllers/recording.controllers.js";
+import { finalizeGame } from "../../../src/api/services/games.services.js";
+import {
+	extractStatsFromImage,
+	saveMatchStats,
+} from "../../../src/api/services/matchStats.services.js";
 import {
 	getNextRecordingCommand,
 	getRecordingStatus,
@@ -146,6 +160,81 @@ describe("getRecordingStatusController", () => {
 		expect(getRecordingStatus).toHaveBeenCalledWith("rec-123");
 		expect(getStatus()).toBe(200);
 		expect(getPayload().data.status).toBe("failed");
+	});
+});
+
+describe("finalizeGameController", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("finalizes a pending game", async () => {
+		finalizeGame.mockResolvedValueOnce({ id: "game-uuid", pending: false });
+		const { reply, getStatus, getPayload } = buildMockReply();
+		const request = {
+			body: {
+				game_id: "game-uuid",
+				score_timeline: [{ home: 1, away: 0, team: "home", minute: 5 }],
+			},
+		};
+
+		await finalizeGameController.handler(request, reply);
+
+		expect(finalizeGame).toHaveBeenCalledWith("game-uuid", request.body.score_timeline);
+		expect(getStatus()).toBe(200);
+		expect(getPayload().data.pending).toBe(false);
+	});
+
+	it("returns 404 when the game does not exist", async () => {
+		finalizeGame.mockResolvedValueOnce(null);
+		const { reply, getStatus } = buildMockReply();
+		const request = {
+			body: {
+				game_id: "00000000-0000-0000-0000-000000000000",
+				score_timeline: [{ home: 1, away: 0 }],
+			},
+		};
+
+		await finalizeGameController.handler(request, reply);
+
+		expect(getStatus()).toBe(404);
+	});
+});
+
+describe("recordingStatsController", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("extracts and applies each provided image in order", async () => {
+		extractStatsFromImage.mockResolvedValue({ some: "stats" });
+		saveMatchStats.mockResolvedValue({ id: "game-uuid" });
+		const { reply, getStatus, getPayload } = buildMockReply();
+		const request = {
+			body: {
+				game_id: "game-uuid",
+				images: {
+					overview: "https://example.com/o.png",
+					defense: "https://example.com/d.png",
+				},
+			},
+		};
+
+		await recordingStatsController.handler(request, reply);
+
+		expect(extractStatsFromImage).toHaveBeenCalledTimes(2);
+		expect(extractStatsFromImage).toHaveBeenCalledWith(
+			"https://example.com/o.png",
+			"overview",
+		);
+		expect(saveMatchStats).toHaveBeenCalledWith(
+			"game-uuid",
+			{ some: "stats" },
+			"https://example.com/d.png",
+			"defense",
+		);
+		expect(getStatus()).toBe(200);
+		expect(getPayload().data.applied).toEqual(["overview", "defense"]);
 	});
 });
 
