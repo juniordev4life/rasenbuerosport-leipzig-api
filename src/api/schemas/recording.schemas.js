@@ -73,3 +73,41 @@ export const getRecordingTimelineSchema = {
 		},
 	},
 };
+
+export const finalizeGameSchema = {
+	body: {
+		type: "object",
+		required: ["game_id", "score_timeline"],
+		properties: {
+			game_id: { type: "string", format: "uuid" },
+			// Deep validation (chronology, running score) happens in
+			// validateScoreTimeline inside the service — the entries come from
+			// the vision pipeline in app format.
+			score_timeline: {
+				type: "array",
+				minItems: 1,
+				items: { type: "object" },
+			},
+		},
+	},
+};
+
+export const recordingStatsSchema = {
+	body: {
+		type: "object",
+		required: ["game_id", "images"],
+		properties: {
+			game_id: { type: "string", format: "uuid" },
+			images: {
+				type: "object",
+				minProperties: 1,
+				properties: {
+					overview: { type: "string", minLength: 1, maxLength: 2048 },
+					passes: { type: "string", minLength: 1, maxLength: 2048 },
+					defense: { type: "string", minLength: 1, maxLength: 2048 },
+				},
+				additionalProperties: false,
+			},
+		},
+	},
+};

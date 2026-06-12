@@ -5,7 +5,7 @@ vi.mock("../../../src/api/helpers/database.helpers.js", () => ({
 	queryOne: vi.fn(),
 }));
 
-import { queryOne } from "../../../src/api/helpers/database.helpers.js";
+import { query, queryOne } from "../../../src/api/helpers/database.helpers.js";
 import {
 	getNextRecordingCommand,
 	getRecordingStatus,
@@ -208,22 +208,30 @@ describe("getRecordingTimeline", () => {
 		vi.clearAllMocks();
 	});
 
-	it("returns game id, result type and timeline", async () => {
+	it("returns game id, result type, pending, timeline and lineup", async () => {
 		const timeline = [
 			{ home: 1, away: 0, team: "home", minute: 12, event_type: "goal" },
+		];
+		const players = [
+			{ player_id: "p1", team: "home", username: "Marco" },
+			{ player_id: "p2", team: "away", username: "Tobi" },
 		];
 		queryOne.mockResolvedValueOnce({
 			id: "game-uuid",
 			result_type: "regular",
+			pending: false,
 			score_timeline: timeline,
 		});
+		query.mockResolvedValueOnce(players);
 
 		const result = await getRecordingTimeline("game-uuid");
 
 		expect(result).toEqual({
 			game_id: "game-uuid",
 			result_type: "regular",
+			pending: false,
 			score_timeline: timeline,
+			players,
 		});
 	});
 
@@ -231,13 +239,16 @@ describe("getRecordingTimeline", () => {
 		queryOne.mockResolvedValueOnce({
 			id: "game-uuid",
 			result_type: null,
+			pending: true,
 			score_timeline: null,
 		});
+		query.mockResolvedValueOnce([]);
 
 		const result = await getRecordingTimeline("game-uuid");
 
 		expect(result.score_timeline).toEqual([]);
 		expect(result.result_type).toBeNull();
+		expect(result.pending).toBe(true);
 	});
 
 	it("returns null when the game does not exist", async () => {
