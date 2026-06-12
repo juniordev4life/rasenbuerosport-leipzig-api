@@ -115,3 +115,29 @@ export async function getRecordingStatus(recordingId) {
 	}
 	return { recording_id: row.recording_id, status: row.status };
 }
+
+/**
+ * Returns a game's tap timeline for the highlight pipeline's anchor mode:
+ * the office agent fetches it to know WHICH goals fell (side + minute +
+ * scorer); the kickoff boards in the video then provide WHERE they are.
+ *
+ * @param {string} gameId - UUID of the games row
+ * @returns {Promise<{game_id: string, result_type: string|null, score_timeline: object[]}|null>}
+ *   Timeline payload, or null when the game does not exist
+ * @example
+ * const t = await getRecordingTimeline(gameId); // { game_id, result_type, score_timeline: [...] }
+ */
+export async function getRecordingTimeline(gameId) {
+	const row = await queryOne(
+		"SELECT id, result_type, score_timeline FROM games WHERE id = $1",
+		[gameId],
+	);
+	if (!row) {
+		return null;
+	}
+	return {
+		game_id: row.id,
+		result_type: row.result_type ?? null,
+		score_timeline: row.score_timeline ?? [],
+	};
+}

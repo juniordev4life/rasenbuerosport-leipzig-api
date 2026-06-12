@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("../../../src/api/services/recording.services.js", () => ({
 	getNextRecordingCommand: vi.fn(),
 	getRecordingStatus: vi.fn(),
+	getRecordingTimeline: vi.fn(),
 	reportRecordingStatus: vi.fn(),
 	setRecordingCommand: vi.fn(),
 	updateGameVideo: vi.fn(),
@@ -11,6 +12,7 @@ vi.mock("../../../src/api/services/recording.services.js", () => ({
 import {
 	getNextRecordingCommandController,
 	getRecordingStatusController,
+	getRecordingTimelineController,
 	reportRecordingStatusController,
 	setRecordingCommandController,
 	updateGameVideoController,
@@ -18,6 +20,7 @@ import {
 import {
 	getNextRecordingCommand,
 	getRecordingStatus,
+	getRecordingTimeline,
 	reportRecordingStatus,
 	setRecordingCommand,
 	updateGameVideo,
@@ -143,5 +146,40 @@ describe("getRecordingStatusController", () => {
 		expect(getRecordingStatus).toHaveBeenCalledWith("rec-123");
 		expect(getStatus()).toBe(200);
 		expect(getPayload().data.status).toBe("failed");
+	});
+});
+
+describe("getRecordingTimelineController", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("returns the timeline payload for an existing game", async () => {
+		getRecordingTimeline.mockResolvedValueOnce({
+			game_id: "game-uuid",
+			result_type: "regular",
+			score_timeline: [{ home: 1, away: 0, team: "home", minute: 12 }],
+		});
+		const { reply, getStatus, getPayload } = buildMockReply();
+		const request = { query: { game_id: "game-uuid" } };
+
+		await getRecordingTimelineController.handler(request, reply);
+
+		expect(getRecordingTimeline).toHaveBeenCalledWith("game-uuid");
+		expect(getStatus()).toBe(200);
+		expect(getPayload().data.score_timeline).toHaveLength(1);
+	});
+
+	it("returns 404 when the game does not exist", async () => {
+		getRecordingTimeline.mockResolvedValueOnce(null);
+		const { reply, getStatus, getPayload } = buildMockReply();
+		const request = {
+			query: { game_id: "00000000-0000-0000-0000-000000000000" },
+		};
+
+		await getRecordingTimelineController.handler(request, reply);
+
+		expect(getStatus()).toBe(404);
+		expect(getPayload().title).toBe("Not Found");
 	});
 });

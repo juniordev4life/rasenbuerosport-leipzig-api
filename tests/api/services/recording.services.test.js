@@ -9,6 +9,7 @@ import { queryOne } from "../../../src/api/helpers/database.helpers.js";
 import {
 	getNextRecordingCommand,
 	getRecordingStatus,
+	getRecordingTimeline,
 	reportRecordingStatus,
 	setRecordingCommand,
 	updateGameVideo,
@@ -199,5 +200,51 @@ describe("getRecordingStatus", () => {
 		const result = await getRecordingStatus("rec-123");
 
 		expect(result).toEqual({ recording_id: "rec-123", status: "failed" });
+	});
+});
+
+describe("getRecordingTimeline", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("returns game id, result type and timeline", async () => {
+		const timeline = [
+			{ home: 1, away: 0, team: "home", minute: 12, event_type: "goal" },
+		];
+		queryOne.mockResolvedValueOnce({
+			id: "game-uuid",
+			result_type: "regular",
+			score_timeline: timeline,
+		});
+
+		const result = await getRecordingTimeline("game-uuid");
+
+		expect(result).toEqual({
+			game_id: "game-uuid",
+			result_type: "regular",
+			score_timeline: timeline,
+		});
+	});
+
+	it("normalizes a missing timeline to an empty array", async () => {
+		queryOne.mockResolvedValueOnce({
+			id: "game-uuid",
+			result_type: null,
+			score_timeline: null,
+		});
+
+		const result = await getRecordingTimeline("game-uuid");
+
+		expect(result.score_timeline).toEqual([]);
+		expect(result.result_type).toBeNull();
+	});
+
+	it("returns null when the game does not exist", async () => {
+		queryOne.mockResolvedValueOnce(null);
+
+		const result = await getRecordingTimeline("missing-uuid");
+
+		expect(result).toBeNull();
 	});
 });
