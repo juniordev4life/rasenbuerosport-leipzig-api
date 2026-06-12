@@ -180,6 +180,8 @@ export const createGameSchema = {
 			penalty_shootout: penaltyShootoutSchema,
 			recording_id: { type: "string", minLength: 1, maxLength: 100 },
 			pending: { type: "boolean", default: false },
+			home_team_name: { type: "string", minLength: 1, maxLength: 100 },
+			away_team_name: { type: "string", minLength: 1, maxLength: 100 },
 		},
 	},
 };

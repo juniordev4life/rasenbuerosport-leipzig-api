@@ -29,6 +29,10 @@ import { notifyMatchCreated } from "./pushSender.services.js";
  *   0:0 and an empty timeline; the capture pipeline backfills score +
  *   timeline via finalizeGame. Skips ELO, profile-cache invalidation and the
  *   match push — those run at finalize time, once the real result exists.
+ * @param {string} [params.home_team_name] - In-game team picked in the poster
+ *   step. Fallback carrier for sides without players (CPU opponents) —
+ *   game_players.team_name stays the primary source for sides with players.
+ * @param {string} [params.away_team_name] - See home_team_name.
  * @returns {Promise<object>}
  */
 export async function createGame({
@@ -43,6 +47,8 @@ export async function createGame({
 	penalty_shootout,
 	recording_id,
 	pending,
+	home_team_name,
+	away_team_name,
 }) {
 	// Defense in depth: reject timelines whose events are not strictly
 	// chronological within their period before opening a DB transaction. The
@@ -58,8 +64,8 @@ export async function createGame({
 		const {
 			rows: [game],
 		} = await client.query(
-			`INSERT INTO games (mode, score_home, score_away, played_at, created_by, score_timeline, result_type, penalty_shootout, recording_id, pending)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+			`INSERT INTO games (mode, score_home, score_away, played_at, created_by, score_timeline, result_type, penalty_shootout, recording_id, pending, home_team_name, away_team_name)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 			RETURNING *`,
 			[
 				mode,
@@ -72,6 +78,8 @@ export async function createGame({
 				penalty_shootout ? JSON.stringify(penalty_shootout) : null,
 				recording_id || null,
 				Boolean(pending),
+				home_team_name || null,
+				away_team_name || null,
 			],
 		);
 
