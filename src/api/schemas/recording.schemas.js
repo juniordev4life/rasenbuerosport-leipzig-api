@@ -63,3 +63,13 @@ export const getRecordingStatusSchema = {
 		},
 	},
 };
+
+export const getRecordingTimelineSchema = {
+	querystring: {
+		type: "object",
+		required: ["game_id"],
+		properties: {
+			game_id: { type: "string", format: "uuid" },
+		},
+	},
+};

@@ -2,6 +2,7 @@ import { handleErrorResponse } from "../helpers/error.helpers.js";
 import { setGeneralResponse } from "../helpers/response.helpers.js";
 import {
 	getRecordingStatusSchema,
+	getRecordingTimelineSchema,
 	reportRecordingStatusSchema,
 	setRecordingCommandSchema,
 	updateGameVideoSchema,
@@ -115,6 +116,37 @@ export const getRecordingStatusController = {
 				"Success",
 				"Recording status retrieved",
 				status,
+			);
+		} catch (error) {
+			return handleErrorResponse(reply, error, request);
+		}
+	},
+};
+
+export const getRecordingTimelineController = {
+	schema: getRecordingTimelineSchema,
+	handler: async (request, reply) => {
+		try {
+			const timeline = await recordingService.getRecordingTimeline(
+				request.query.game_id,
+			);
+
+			if (!timeline) {
+				return setGeneralResponse(
+					reply,
+					404,
+					"Not Found",
+					"Game not found",
+					null,
+				);
+			}
+
+			return setGeneralResponse(
+				reply,
+				200,
+				"Success",
+				"Recording timeline retrieved",
+				timeline,
 			);
 		} catch (error) {
 			return handleErrorResponse(reply, error, request);
