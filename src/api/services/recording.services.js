@@ -1,3 +1,4 @@
+import { logger } from "../../config/logger.config.js";
 import { query, queryOne } from "../helpers/database.helpers.js";
 
 /**
@@ -65,13 +66,39 @@ export async function getNextRecordingCommand() {
  * await updateGameVideo(gameId, { video_status: "ready", highlight_url: "https://..." });
  */
 export async function updateGameVideo(gameId, { video_status, highlight_url }) {
-	return queryOne(
+	const game = await queryOne(
 		`UPDATE games
 		SET video_status = $2, highlight_url = COALESCE($3, highlight_url)
 		WHERE id = $1
-		RETURNING id, recording_id, video_status, highlight_url`,
+		RETURNING id, recording_id, video_status, highlight_url, pending`,
 		[gameId, video_status, highlight_url ?? null],
 	);
+
+	// This PATCH is the analysis pipeline's LAST step. Once it lands "ready"
+	// (or "failed" — the game is still finalized; the reporter narrates from
+	// data, not the reel video), the result, scorers and stats are all in
+	// place — so this is the moment to generate the reporter text: exactly
+	// once, with final data. Fire-and-forget so the agent's PATCH returns
+	// immediately; the app's auto-refresh picks the text up. Skipped while
+	// pending (finalize has not run yet — nothing real to narrate; that early
+	// state is also why generateMatchReport refuses pending games). Lazy import
+	// avoids a service<->service import cycle.
+	if (
+		game &&
+		!game.pending &&
+		(video_status === "ready" || video_status === "failed")
+	) {
+		import("./matchReport.services.js")
+			.then(({ generateMatchReport }) => generateMatchReport(gameId))
+			.catch((err) =>
+				logger.warn(
+					{ err: err?.message, gameId },
+					"post-analysis match report generation failed",
+				),
+			);
+	}
+
+	return game;
 }
 
 /**

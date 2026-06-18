@@ -475,6 +475,18 @@ export async function generateMatchReport(gameId) {
 		throw err;
 	}
 
+	// Refuse pending (zero-tracking) games: their score is still 0:0 with an
+	// empty timeline until the analysis pipeline finalizes them. Generating here
+	// would persist a wrong "0:0" report that never gets corrected. The report
+	// is (re)generated once the pipeline completes — see updateGameVideo.
+	if (game.pending) {
+		const err = new Error(
+			"Game not finalized yet — the match report is generated after the analysis pipeline completes",
+		);
+		err.statusCode = 409;
+		throw err;
+	}
+
 	const players = await query(
 		`SELECT gp.player_id, gp.team, gp.team_name,
 			json_build_object('username', p.username, 'avatar_url', p.avatar_url) AS profiles
