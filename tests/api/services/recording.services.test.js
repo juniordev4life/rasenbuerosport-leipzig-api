@@ -116,6 +116,8 @@ describe("updateGameVideo", () => {
 			"game-uuid",
 			"ready",
 			"https://example.com/reel.mp4",
+			null,
+			null,
 		]);
 	});
 
@@ -128,7 +130,36 @@ describe("updateGameVideo", () => {
 			"game-uuid",
 			"uploaded",
 			null,
+			null,
+			null,
 		]);
+	});
+
+	it("persists result_type + penalty_shootout when the pipeline reports a shootout", async () => {
+		queryOne.mockResolvedValueOnce({ id: "game-uuid" });
+		const penaltyShootout = {
+			score_before: { home: 0, away: 0 },
+			final_score: { home: 6, away: 7 },
+			winner_side: "away",
+			source: "auto",
+		};
+
+		await updateGameVideo("game-uuid", {
+			video_status: "ready",
+			result_type: "penalty",
+			penalty_shootout: penaltyShootout,
+		});
+
+		expect(queryOne).toHaveBeenCalledWith(
+			expect.stringContaining("penalty_shootout = COALESCE"),
+			[
+				"game-uuid",
+				"ready",
+				null,
+				"penalty",
+				JSON.stringify(penaltyShootout),
+			],
+		);
 	});
 
 	it("returns null when the game does not exist", async () => {
