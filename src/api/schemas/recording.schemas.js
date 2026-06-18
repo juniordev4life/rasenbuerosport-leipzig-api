@@ -36,6 +36,38 @@ export const updateGameVideoSchema = {
 				enum: ["recording", "uploaded", "processing", "ready", "failed"],
 			},
 			highlight_url: { type: "string", minLength: 1, maxLength: 2048 },
+			// Optional: vom Highlight-Pipeline erkanntes Elfmeterschiessen.
+			// result_type wechselt auf "penalty"; penalty_shootout ist hier die
+			// ergebnis-only-Form ohne shots[] (automatisch erkannt -> source "auto").
+			result_type: {
+				type: "string",
+				enum: ["regular", "extra_time", "penalty"],
+			},
+			penalty_shootout: {
+				type: "object",
+				required: ["final_score", "winner_side"],
+				additionalProperties: false,
+				properties: {
+					score_before: {
+						type: "object",
+						required: ["home", "away"],
+						properties: {
+							home: { type: "integer", minimum: 0 },
+							away: { type: "integer", minimum: 0 },
+						},
+					},
+					final_score: {
+						type: "object",
+						required: ["home", "away"],
+						properties: {
+							home: { type: "integer", minimum: 0 },
+							away: { type: "integer", minimum: 0 },
+						},
+					},
+					winner_side: { type: "string", enum: ["home", "away"] },
+					source: { type: "string" },
+				},
+			},
 		},
 	},
 };

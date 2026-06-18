@@ -57,21 +57,40 @@ export async function getNextRecordingCommand() {
  * game. `highlight_url` is only overwritten when provided, so a plain
  * status update never clears an existing link.
  *
+ * `result_type` / `penalty_shootout` are only written when provided (the
+ * pipeline sends them once it detects a penalty shootout from the post-match
+ * screen) — COALESCE keeps the existing value otherwise.
+ *
  * @param {string} gameId - UUID of the games row
  * @param {object} fields
  * @param {"recording"|"uploaded"|"ready"} fields.video_status - New status
  * @param {string} [fields.highlight_url] - Public URL of the highlight reel
+ * @param {"regular"|"extra_time"|"penalty"} [fields.result_type] - How the match was decided
+ * @param {object} [fields.penalty_shootout] - Result-only shootout {score_before, final_score, winner_side, source}
  * @returns {Promise<object|null>} Updated row, or null when the game does not exist
  * @example
  * await updateGameVideo(gameId, { video_status: "ready", highlight_url: "https://..." });
+ * await updateGameVideo(gameId, { video_status: "ready", result_type: "penalty", penalty_shootout: {...} });
  */
-export async function updateGameVideo(gameId, { video_status, highlight_url }) {
+export async function updateGameVideo(
+	gameId,
+	{ video_status, highlight_url, result_type, penalty_shootout },
+) {
 	const game = await queryOne(
 		`UPDATE games
-		SET video_status = $2, highlight_url = COALESCE($3, highlight_url)
+		SET video_status = $2,
+		    highlight_url = COALESCE($3, highlight_url),
+		    result_type = COALESCE($4, result_type),
+		    penalty_shootout = COALESCE($5, penalty_shootout)
 		WHERE id = $1
 		RETURNING id, recording_id, video_status, highlight_url, pending`,
-		[gameId, video_status, highlight_url ?? null],
+		[
+			gameId,
+			video_status,
+			highlight_url ?? null,
+			result_type ?? null,
+			penalty_shootout ? JSON.stringify(penalty_shootout) : null,
+		],
 	);
 
 	// This PATCH is the analysis pipeline's LAST step. Once it lands "ready"
