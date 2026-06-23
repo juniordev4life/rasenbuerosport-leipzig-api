@@ -285,14 +285,15 @@ Team data is sourced from SoFIFA (FC 26 ratings) and refreshed with a single com
 DATABASE_URL="postgresql://postgres:PASSWORD@127.0.0.1:5433/rasenbuerosport" npm run teams:update
 ```
 
-This runs the two-stage pipeline in order:
+This runs the three-stage pipeline in order:
 
 1. `scripts/parse-sofifa-leagues.js` — parses the saved SoFIFA league RTF files in `ligen/` and regenerates `scripts/scraped-teams.json`.
-2. `scripts/import-teams.js` — upserts every team into Cloud SQL via `INSERT … ON CONFLICT (name) DO UPDATE`. Existing teams are matched by name, so **UUIDs are preserved**; `logo_url`, `sofifa_id`, `overall_rating`, `star_rating`, `league_name`, and `country_code` are refreshed.
+2. `scripts/import-teams.js` — upserts every team into Cloud SQL via `INSERT … ON CONFLICT (name) DO UPDATE`. Existing teams are matched by name, so **UUIDs are preserved**; `logo_url`, `sofifa_id`, `overall_rating`, `star_rating`, `league_name`, and `country_code` are refreshed. This step writes SoFIFA-CDN logo URLs.
+3. `scripts/update-logo-urls.js` — rewrites `logo_url` from the SoFIFA CDN back to the Firebase Storage bucket, so logos stay self-hosted. Bundling this in means the re-hosting can't be forgotten.
 
-`DATABASE_URL` is required and checked **up front** — a missing connection string aborts before any parsing. Point it at the Cloud SQL Auth Proxy (`npm run db:proxy`, port 5433) for PROD, or at your local Docker Postgres (port 5434).
+`DATABASE_URL` is required and checked **up front** — a missing connection string aborts before any parsing. Point it at the Cloud SQL Auth Proxy (`npm run db:proxy`, port 5433) for PROD, or at your local Docker Postgres (port 5434). Each step is transactional; a non-zero exit aborts the run before the next step.
 
-Logos are handled separately by `scripts/download-logos.js` and `scripts/update-logo-urls.js`.
+A brand-new club added during a run gets a Firebase URL whose image may not be in the bucket yet (404). Fetch and upload missing logos with `scripts/download-logos.js`.
 
 > `migrations/migrate-teams.js` is the original one-off bootstrap (CSV-based, `DELETE FROM teams` first, then downloads + uploads logos). It is **destructive** — do not use it for incremental updates.
 
