@@ -6,7 +6,7 @@
 	"main": "src/index.js",
 	"scripts": {
 		"start": "node src/index.js",
-		"dev": "node --watch src/index.js",
+		"dev": "node --watch src/index.js | pino-pretty --colorize --translateTime \"HH:MM:ss\" --ignore pid,hostname",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage",
