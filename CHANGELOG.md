@@ -6,6 +6,42 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v1.8.0
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.7.0...v1.8.0)
+
+### 🚀 Enhancements
+
+- **chore:** Update script for db and teams ([5c3429b](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/5c3429b))
+- **recording:** Add office agent endpoints and recording command flow ([#64](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/64))
+- **recording:** Add status back-channel and abort command ([#65](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/65))
+- **push:** Add PUSH_ENABLED master switch to silence delivery locally ([#66](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/66))
+- **recording:** Allow processing/failed video_status for highlights ([#67](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/67))
+- **recording:** Timeline endpoint for the highlight anchor mode ([#68](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/68))
+- **recording:** Pending games with deferred ELO + agent finalize/stats endpoints ([#69](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/69))
+- **games:** Persist both team names on the game row ([#70](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/70))
+- **games:** Persist both team names on the game row ([#71](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/71))
+- **recording:** Accept penalty-shootout result on the video PATCH ([#73](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/73))
+- **scripts:** Re-host logos as step 3 of teams:update ([#74](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/74))
+
+### 🩹 Fixes
+
+- **report:** Generate the match report after analysis, not at 0:0 ([#72](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/72))
+- **dev:** Pipe logs to pino-pretty instead of the in-process transport ([#77](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/77))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v1.7.0 ([9872caa](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/9872caa))
+- Sync package-lock, remove stray pnpm-lock.yaml ([#76](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/76))
+
+### 🤖 CI
+
+- **deploy:** Wire AGENT_SECRET into the Cloud Run deploy ([#78](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/78))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v1.7.0 (2026-05-31)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.6.0...v1.7.0)
