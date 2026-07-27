@@ -11,9 +11,16 @@
  *   1. Optionally dump the current ELO state to a JSON backup file.
  *   2. Reset every profile to 1500 / 0 matches / empty history.
  *   3. Clear `games.elo_snapshot` on every row.
- *   4. Walk all games ASC by `played_at` and call `applyEloToMatch` —
- *      it reads the current rating, computes the delta, writes back
- *      the snapshot and the new rating.
+ *   4. Walk all finalized games ASC by `played_at` and call
+ *      `replayGameElo` — the team engine plus the penalty-shootout and
+ *      card overlays, in the same order the live save path applies
+ *      them. Each pass reads the current rating, computes the delta and
+ *      writes back the snapshot and the new rating.
+ *
+ * Pending games (zero-tracking flow, saved 0:0 until the capture
+ * pipeline finalizes them) are excluded — the live path defers their
+ * ELO to finalize time, so replaying them would invent ratings for
+ * results that do not exist yet.
  *
  * Suggested workflow:
  *   node scripts/recompute-all-elo.js --dry-run
@@ -31,13 +38,21 @@
  *   --skip-reset    Don't reset profiles first (resume a partial run).
  *   --limit=N       Only process the oldest N games. Spot-check helper.
  *   --since=ISO     Only recompute games played on/after this ISO date.
+ *
+ * A note on --since: ELO is path-dependent, so it is NOT a "recompute
+ * just the recent games" switch. The reset in step 2 has no WHERE
+ * clause — it wipes every profile and every snapshot — so combining
+ * --since with --apply would leave everything before that date blank.
+ * The combination is refused unless --skip-reset is passed too, which
+ * is the resume-a-crashed-run case. To correct one old game, replay
+ * the full history.
  */
 
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import "dotenv/config";
-import { applyEloToMatch } from "../src/api/services/elo/eloPersistence.services.js";
+import { replayGameElo } from "../src/api/services/elo/eloReplay.services.js";
 import { getPool } from "../src/config/database.config.js";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
@@ -52,8 +67,35 @@ if (!args.restore && !args.dryRun && !args.apply) {
 	process.exit(1);
 }
 
+// --since looks like a partial recompute but the reset it runs first is
+// global: every profile back to 1500, every snapshot cleared. Replaying
+// only the tail on top of that blanks all earlier history. Refuse the
+// combination rather than let it look like it worked.
+if (args.apply && args.since && !args.skipReset) {
+	console.error(
+		"\n--since cannot be combined with --apply: the reset clears ALL\n" +
+			"profiles and snapshots, so only the games after the cutoff would\n" +
+			"be rebuilt and everything before it would stay empty.\n\n" +
+			"ELO is path-dependent — correcting one old game means replaying\n" +
+			"the full history:\n" +
+			"  node scripts/recompute-all-elo.js --apply --backup\n\n" +
+			"If you are resuming a run that crashed part-way, opt out of the\n" +
+			"reset explicitly:\n" +
+			`  node scripts/recompute-all-elo.js --apply --skip-reset --since=${args.since}\n`,
+	);
+	process.exit(1);
+}
+
 const pool = getPool();
-const stats = { processed: 0, skipped: 0, profilesReset: 0, restored: 0 };
+const stats = {
+	processed: 0,
+	skipped: 0,
+	profilesReset: 0,
+	restored: 0,
+	penaltyOverlays: 0,
+	cardOverlays: 0,
+	pendingExcluded: 0,
+};
 
 try {
 	if (args.restore) {
@@ -83,9 +125,15 @@ try {
 	}
 
 	const games = await loadGames(pool, args);
+	stats.pendingExcluded = await countPendingGames(pool, args);
 	console.log(
-		`Found ${games.length} games to replay${args.limit ? ` (limited to ${args.limit})` : ""}.`,
+		`Found ${games.length} finalized game(s) to replay${args.limit ? ` (limited to ${args.limit})` : ""}.`,
 	);
+	if (stats.pendingExcluded > 0) {
+		console.log(
+			`Skipping ${stats.pendingExcluded} pending game(s) — their ELO runs at finalize time.`,
+		);
+	}
 
 	for (const game of games) {
 		const { rows: gamePlayers } = await pool.query(
@@ -99,6 +147,10 @@ try {
 		}
 
 		if (args.dryRun) {
+			// Same conditions replayGameElo uses, so the dry run reports the
+			// overlay count an --apply run would actually produce.
+			if (game.penalty_shootout?.shots?.length) stats.penaltyOverlays += 1;
+			if (game.match_stats?.card_elo_applied) stats.cardOverlays += 1;
 			stats.processed += 1;
 			if (stats.processed % 25 === 0) {
 				console.log(`[dry-run] ${stats.processed}/${games.length}`);
@@ -109,8 +161,14 @@ try {
 		const client = await pool.connect();
 		try {
 			await client.query("BEGIN");
-			await applyEloToMatch({ client, game, gamePlayers });
+			const { penaltyDeltas, cardDeltas } = await replayGameElo({
+				client,
+				game,
+				gamePlayers,
+			});
 			await client.query("COMMIT");
+			if (penaltyDeltas) stats.penaltyOverlays += 1;
+			if (cardDeltas) stats.cardOverlays += 1;
 			stats.processed += 1;
 		} catch (err) {
 			await client.query("ROLLBACK");
@@ -132,7 +190,10 @@ try {
 	console.log(`mode:              ${args.dryRun ? "dry-run" : "apply"}`);
 	console.log(`profiles reset:    ${stats.profilesReset}`);
 	console.log(`games processed:   ${stats.processed}`);
+	console.log(`  penalty overlay: ${stats.penaltyOverlays}`);
+	console.log(`  card overlay:    ${stats.cardOverlays}`);
 	console.log(`games skipped:     ${stats.skipped}`);
+	console.log(`pending excluded:  ${stats.pendingExcluded}`);
 
 	if (!args.dryRun) {
 		const ranked = await pool.query(
@@ -328,31 +389,58 @@ async function clearSnapshots(pool) {
 }
 
 /**
- * Loads the games to replay, oldest first. Order matters because each
- * call to `applyEloToMatch` reads each player's current rating from
- * the profile — that rating is the cumulative result of every
- * previous game's outcome.
+ * Loads the finalized games to replay, oldest first. Order matters
+ * because each call to `replayGameElo` reads each player's current
+ * rating from the profile — that rating is the cumulative result of
+ * every previous game's outcome.
  *
  * @param {import("pg").Pool} pool
  * @param {{ limit: number|null, since: string|null }} opts
  */
 async function loadGames(pool, opts) {
-	const where = [];
+	// `pending` games are 0:0 placeholders whose real result has not been
+	// extracted yet. createGame deliberately skips ELO for them and
+	// finalizeGame applies it later; replaying them here would rate a
+	// result that does not exist.
+	const where = ["pending = false"];
 	const params = [];
 	if (opts.since) {
 		params.push(opts.since);
 		where.push(`played_at >= $${params.length}::timestamptz`);
 	}
-	const whereClause = where.length ? `WHERE ${where.join(" AND ")}` : "";
 	const limitClause = opts.limit ? `LIMIT ${Number(opts.limit)}` : "";
 
 	const { rows } = await pool.query(
 		`SELECT *
 		   FROM games
-		  ${whereClause}
+		  WHERE ${where.join(" AND ")}
 		  ORDER BY played_at ASC, id ASC
 		  ${limitClause}`,
 		params,
 	);
 	return rows;
+}
+
+/**
+ * Counts the pending games `loadGames` filtered out, so the run reports
+ * what it left alone instead of silently narrowing the set.
+ *
+ * @param {import("pg").Pool} pool
+ * @param {{ since: string|null }} opts
+ * @returns {Promise<number>}
+ * @example
+ *   await countPendingGames(pool, { since: null }); // → 2
+ */
+async function countPendingGames(pool, opts) {
+	const params = [];
+	let sinceClause = "";
+	if (opts.since) {
+		params.push(opts.since);
+		sinceClause = ` AND played_at >= $${params.length}::timestamptz`;
+	}
+	const { rows } = await pool.query(
+		`SELECT COUNT(*)::int AS n FROM games WHERE pending = true${sinceClause}`,
+		params,
+	);
+	return rows[0].n;
 }
