@@ -43,8 +43,11 @@ export async function applyEloToMatch({ client, game, gamePlayers }) {
 	}
 
 	// 1. Load current ratings + match counts for every player in the game.
+	//    `rating_history` has to come along: step 4 appends to it, and a
+	//    missing column would silently reset every player's series to a
+	//    single entry on every match.
 	const { rows: profiles } = await client.query(
-		`SELECT id, current_rating, matches_played
+		`SELECT id, current_rating, matches_played, rating_history
 		   FROM profiles
 		  WHERE id = ANY($1::text[])`,
 		[playerIds],
@@ -101,6 +104,16 @@ export async function applyEloToMatch({ client, game, gamePlayers }) {
  * stale. Reads the game + game_players from the DB, then runs
  * `applyEloToMatch` on a fresh transaction. Intended for backfill
  * scripts and admin recomputation — NOT for the regular save flow.
+ *
+ * Currently unused. Two caveats before wiring it up anywhere:
+ *   - It runs the team engine ONLY. The penalty-shootout and card
+ *     overlays are skipped, so a game that had either would come out
+ *     with a rating the live path would never have produced. Use
+ *     `replayGameElo` from `eloReplay.services.js` for the full
+ *     sequence.
+ *   - Recomputing one game in isolation does not fix the games after
+ *     it. ELO is path-dependent, so a correction to an old match has
+ *     to be followed by a full replay.
  *
  * @param {object} args
  * @param {import("pg").Pool} args.pool

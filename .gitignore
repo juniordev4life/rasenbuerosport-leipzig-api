@@ -7,3 +7,7 @@ dist/
 
 # ELO recompute backups (see scripts/recompute-all-elo.js)
 scripts/.elo-backup-*.json
+
+# Lineup-swap backups (see scripts/swap-game-player.js) — these hold a
+# verbatim copy of a PROD game row and its lineup, player ids included.
+scripts/.swap-backup-*.json

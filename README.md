@@ -299,6 +299,72 @@ A brand-new club added during a run gets a Firebase URL whose image may not be i
 
 ---
 
+## Correcting a Recorded Match
+
+Swapping a player in an already-recorded game is not a one-row update. The player id is denormalized into the game's JSONB blobs, and it is spelled differently in each:
+
+| Location | Fields |
+|----------|--------|
+| `game_players` | `player_id` |
+| `score_timeline` → goal | `scored_by`, `assist_by` |
+| `score_timeline` → `red_card` / `card` | `player_id` |
+| `score_timeline` → `penalty_missed` | `shooter_id`, `keeper_id` |
+| `penalty_shootout.shots[]` | `shooter_id`, `keeper_id`, **`elo_deltas` keys** |
+| `games.elo_snapshot` | player-keyed (rebuilt by the recompute) |
+
+The `elo_deltas` keys are the trap. Swap only the lineup row and a replay hands the shootout deltas straight back to the player who was just removed — silently undoing the correction.
+
+`scripts/swap-game-player.js` rewrites all of them in one transaction:
+
+```bash
+npm run game:swap-player -- --game=<uuid> --from=Hendrik --to=Alex --dry-run
+npm run game:swap-player -- --game=<uuid> --from=Hendrik --to=Alex --apply --backup
+```
+
+`--from` and `--to` accept a profile id or a username (case-insensitive, ambiguity is an error). The script also clears `elo_snapshot`, nulls `profile_cache` for both players, and clears `match_report` plus its audio — the report narrates the old lineup by name, so leaving it would display a stale, wrong text. Keep it with `--keep-report`. Regenerate afterwards with `POST /api/v1/games/<id>/match-report`.
+
+Left alone on purpose: `match_stats` (team-level counts), the pass networks (jersey numbers), `reporter_id` (AI persona), `created_by` (who recorded it), and `game_players.rating` (the slot's performance rating, carried over).
+
+Two players who **both** already played cannot be swapped this way — `UNIQUE(game_id, player_id)` forbids it, and exchanging their teams is a different operation. The script refuses with that explanation rather than failing on the constraint.
+
+Roll back by running the same command with `--from` and `--to` reversed.
+
+**Full runbook for a lineup correction:**
+
+1. `npm run game:swap-player -- --game=… --from=… --to=… --dry-run` — check the change set
+2. Same command with `--apply --backup`
+3. `npm run elo:recompute -- --apply --backup` — see below; a pending game skips this step
+4. `POST /api/v1/games/<id>/match-report` — regenerate the report
+5. Fix trophies by hand if the match unlocked any (see below)
+
+---
+
+## Recomputing ELO
+
+When a recorded match has to be corrected after the fact — a wrong player in the lineup, a mis-tapped goal — the rating that came out of it is wrong too, and so is every rating computed after it. ELO is path-dependent: each match starts from the rating the previous one left behind. There is no way to patch a single match in place.
+
+`scripts/recompute-all-elo.js` replays the full history:
+
+```bash
+npm run elo:recompute -- --dry-run
+npm run elo:recompute -- --apply --backup
+```
+
+`--dry-run` reports what would happen and touches nothing. `--apply` resets every profile to 1500 and then walks all finalized games oldest-first. `--backup` writes a JSON dump of all ratings and snapshots beforehand; restore it with `--restore=scripts/.elo-backup-<ts>.json` if the result looks wrong.
+
+Each game goes through the same three passes the live save path applies, in the same order — team engine, penalty-shootout overlay, card overlay. That sequence lives in `src/api/services/elo/eloReplay.services.js` and is shared by both paths, so a new pass added to one cannot be forgotten in the other. The overlays are re-applied only where the stored row proves they ran the first time: `penalty_shootout.shots[]` carries its per-shot deltas verbatim, and `match_stats.card_elo_applied` records that a defense screenshot was charged. That flag is read, never written — the live path owns it, so a later re-upload still correctly skips.
+
+Pending games are excluded. Their real result does not exist yet, and `finalizeGame` applies their ELO once the capture pipeline delivers it.
+
+**`--since` is not a partial recompute.** The reset has no `WHERE` clause, so it clears every profile and every snapshot regardless of the cutoff — replaying only the tail would leave all earlier history blank. The script refuses `--apply --since=…` for that reason. It is allowed together with `--skip-reset`, which is the resume-a-crashed-run case.
+
+Two things the replay does **not** fix, because they are not derived from the games table:
+
+- **Trophies are append-only.** `mergeTrophies` in `scripts/trophy-backfill.js` skips entries that already exist and never revokes one. A badge earned through a match that later changed stays awarded, and `duo_trophies` is keyed on the player pair, so a changed lineup means a different row. Both need manual JSONB edits.
+- **Anything already delivered.** Push notifications name the players in their body and are long gone from the server. Generated match-report audio is uploaded `immutable` with a one-year max-age, so CDN and browser copies keep serving the old narration for a while even after a regeneration.
+
+---
+
 ## Security
 
 | Layer | Implementation |

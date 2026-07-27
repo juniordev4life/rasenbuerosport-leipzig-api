@@ -18,6 +18,7 @@
 		"release": "node scripts/release.js",
 		"teams:update": "node scripts/update-teams.js",
 		"elo:recompute": "node scripts/recompute-all-elo.js",
+		"game:swap-player": "node scripts/swap-game-player.js",
 		"trophies:backfill": "node scripts/trophy-backfill.js",
 		"db:local": "bash scripts/db-local.sh",
 		"db:proxy": "bash scripts/db-proxy.sh"
