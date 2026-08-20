@@ -134,8 +134,12 @@ export const finalizeGameController = {
 	schema: finalizeGameSchema,
 	handler: async (request, reply) => {
 		try {
-			const { game_id, score_timeline } = request.body;
-			const game = await finalizeGame(game_id, score_timeline);
+			const { game_id, score_timeline, result_type, penalty_shootout } =
+				request.body;
+			const game = await finalizeGame(game_id, score_timeline, {
+				result_type,
+				penalty_shootout,
+			});
 
 			if (!game) {
 				return setGeneralResponse(

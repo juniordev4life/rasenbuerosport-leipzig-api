@@ -15,7 +15,8 @@ describe("matchMinutesForResultType", () => {
 	});
 
 	it("returns 120 for penalty shootouts", () => {
-		expect(matchMinutesForResultType("penalties")).toBe(120);
+		// The column stores the singular "penalty" (games.result_type enum).
+		expect(matchMinutesForResultType("penalty")).toBe(120);
 	});
 
 	it("defaults to 90 for missing or unknown types", () => {
@@ -196,5 +197,52 @@ describe("buildMatchInputFromGame", () => {
 			profilesById: {},
 		});
 		expect(input.matchMinutes).toBe(120);
+	});
+});
+
+describe("buildMatchInputFromGame — Elfmeter-Sieger", () => {
+	const game = (penalty_shootout) => ({
+		score_home: 2,
+		score_away: 2,
+		result_type: penalty_shootout ? "penalty" : "regular",
+		score_timeline: [],
+		penalty_shootout,
+	});
+	const players = [
+		{ player_id: "home-1", team: "home" },
+		{ player_id: "away-1", team: "away" },
+	];
+	const build = (penalty_shootout) =>
+		buildMatchInputFromGame({
+			game: game(penalty_shootout),
+			gamePlayers: players,
+			profilesById: new Map(),
+		});
+
+	it("bildet home auf Team A ab", () => {
+		expect(build({ winner_side: "home" }).penaltyWinner).toBe("A");
+	});
+
+	it("bildet away auf Team B ab", () => {
+		expect(build({ winner_side: "away" }).penaltyWinner).toBe("B");
+	});
+
+	it("funktioniert auch ohne shots[] — die Capture-Pipeline liefert nur das Ergebnis", () => {
+		const resultOnly = {
+			winner_side: "away",
+			final_score: { home: 1, away: 4 },
+			score_before: { home: 2, away: 2 },
+			source: "auto",
+		};
+		expect(build(resultOnly).penaltyWinner).toBe("B");
+	});
+
+	it("liefert null ohne Elfmeterschießen", () => {
+		expect(build(null).penaltyWinner).toBeNull();
+		expect(build(undefined).penaltyWinner).toBeNull();
+	});
+
+	it("liefert null bei unbekannter Seite", () => {
+		expect(build({ winner_side: "nobody" }).penaltyWinner).toBeNull();
 	});
 });

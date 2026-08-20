@@ -323,3 +323,104 @@ describe("computeMatchElo — Sanity-Checks", () => {
 		expect(result.version).toMatch(/^v\d+\.\d+$/);
 	});
 });
+
+describe("computeMatchElo — Elfmeterschießen entscheidet das Spiel", () => {
+	// Bei uns gibt es keine Unentschieden: gespielt wird mit Verlängerung und
+	// Elfmeterschießen. Ein 2:2 mit Elfmeter-Sieger ist deshalb ein Sieg, kein
+	// Remis. Vorher fiel das doppelt durch: actualScore war 0.5 UND der
+	// marginFactor bei Tordifferenz 0 ist 0, was jeden Delta wegmultipliziert.
+	const level2v2 = (penaltyWinner) =>
+		computeMatchElo({
+			teamA: {
+				goals: 2,
+				players: [
+					equalPlayer("florain", { goals: 1, assists: 0, redCards: [] }),
+					equalPlayer("jay", { goals: 1, assists: 0, redCards: [] }),
+				],
+			},
+			teamB: {
+				goals: 2,
+				players: [
+					equalPlayer("nikinho", { goals: 1, assists: 0, redCards: [] }),
+					equalPlayer("blackivmaniac", { goals: 1, assists: 0, redCards: [] }),
+				],
+			},
+			matchMinutes: 10,
+			penaltyWinner,
+		});
+
+	it("ohne Elfmeterschießen bleibt das 2:2 ein Remis ohne Bewegung", () => {
+		const result = level2v2(undefined);
+
+		for (const player of [...result.teamA, ...result.teamB]) {
+			expect(player.delta).toBe(0);
+		}
+		expect(result.matchMeta.decidedByShootout).toBe(false);
+	});
+
+	it("Heimsieg im Elfmeterschießen bewegt beide Seiten", () => {
+		const result = level2v2("A");
+
+		expect(result.matchMeta.decidedByShootout).toBe(true);
+		expect(result.matchMeta.actualA).toBe(1);
+		for (const player of result.teamA) expect(player.delta).toBeGreaterThan(0);
+		for (const player of result.teamB) expect(player.delta).toBeLessThan(0);
+	});
+
+	it("Auswärtssieg im Elfmeterschießen dreht die Vorzeichen", () => {
+		const result = level2v2("B");
+
+		expect(result.matchMeta.actualA).toBe(0);
+		for (const player of result.teamA) expect(player.delta).toBeLessThan(0);
+		for (const player of result.teamB) expect(player.delta).toBeGreaterThan(0);
+	});
+
+	it("bewegt weniger als ein Ein-Tor-Sieg in regulärer Zeit", () => {
+		// Ein Elfmeter-Sieg leiht sich die Marge eines Ein-Tor-Sieges, verteilt
+		// aber ohne Torschützen-Bonus aus der Verlängerung — er darf einen
+		// echten Sieg nicht übertreffen.
+		const shootout = level2v2("A");
+		const oneGoal = computeMatchElo({
+			teamA: {
+				goals: 3,
+				players: [
+					equalPlayer("florain", { goals: 2, assists: 0, redCards: [] }),
+					equalPlayer("jay", { goals: 1, assists: 0, redCards: [] }),
+				],
+			},
+			teamB: {
+				goals: 2,
+				players: [
+					equalPlayer("nikinho", { goals: 1, assists: 0, redCards: [] }),
+					equalPlayer("blackivmaniac", { goals: 1, assists: 0, redCards: [] }),
+				],
+			},
+			matchMinutes: 10,
+		});
+
+		expect(shootout.matchMeta.teamDeltaA).toBeLessThanOrEqual(
+			oneGoal.matchMeta.teamDeltaA,
+		);
+	});
+
+	it("überschreibt einen echten Sieg NICHT, wenn die Tore nicht gleich stehen", () => {
+		// Verteidigung gegen widersprüchliche Daten: ein 3:1 mit gesetztem
+		// Elfmeter-Sieger bleibt ein 3:1 für die Heimseite.
+		const result = computeMatchElo({
+			teamA: {
+				goals: 3,
+				players: [equalPlayer("solo_a", { goals: 3, assists: 0, redCards: [] })],
+			},
+			teamB: {
+				goals: 1,
+				players: [equalPlayer("solo_b", { goals: 1, assists: 0, redCards: [] })],
+			},
+			matchMinutes: 10,
+			penaltyWinner: "B",
+		});
+
+		expect(result.matchMeta.decidedByShootout).toBe(false);
+		expect(result.matchMeta.actualA).toBe(1);
+		expect(result.teamA[0].delta).toBeGreaterThan(0);
+	});
+});

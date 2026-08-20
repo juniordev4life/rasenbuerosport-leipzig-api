@@ -19,6 +19,44 @@ export const setRecordingCommandSchema = {
 	},
 };
 
+/**
+ * Result-only shootout, as the capture pipeline detects it: winner and final
+ * score, no per-shot data (that only exists when a human tapped it in the app).
+ * Shared by the finalize and the video-status endpoints so the agent can report
+ * the same shape on either — see games.services.finalizeGame for why finalize
+ * needs it at all (ELO runs there, and it must know the match was decided).
+ */
+export const autoPenaltyShootoutSchema = {
+	type: "object",
+	required: ["final_score", "winner_side"],
+	additionalProperties: false,
+	properties: {
+		score_before: {
+			type: "object",
+			required: ["home", "away"],
+			properties: {
+				home: { type: "integer", minimum: 0 },
+				away: { type: "integer", minimum: 0 },
+			},
+		},
+		final_score: {
+			type: "object",
+			required: ["home", "away"],
+			properties: {
+				home: { type: "integer", minimum: 0 },
+				away: { type: "integer", minimum: 0 },
+			},
+		},
+		winner_side: { type: "string", enum: ["home", "away"] },
+		source: { type: "string" },
+	},
+};
+
+export const resultTypeSchema = {
+	type: "string",
+	enum: ["regular", "extra_time", "penalty"],
+};
+
 export const updateGameVideoSchema = {
 	params: {
 		type: "object",
@@ -39,35 +77,8 @@ export const updateGameVideoSchema = {
 			// Optional: vom Highlight-Pipeline erkanntes Elfmeterschiessen.
 			// result_type wechselt auf "penalty"; penalty_shootout ist hier die
 			// ergebnis-only-Form ohne shots[] (automatisch erkannt -> source "auto").
-			result_type: {
-				type: "string",
-				enum: ["regular", "extra_time", "penalty"],
-			},
-			penalty_shootout: {
-				type: "object",
-				required: ["final_score", "winner_side"],
-				additionalProperties: false,
-				properties: {
-					score_before: {
-						type: "object",
-						required: ["home", "away"],
-						properties: {
-							home: { type: "integer", minimum: 0 },
-							away: { type: "integer", minimum: 0 },
-						},
-					},
-					final_score: {
-						type: "object",
-						required: ["home", "away"],
-						properties: {
-							home: { type: "integer", minimum: 0 },
-							away: { type: "integer", minimum: 0 },
-						},
-					},
-					winner_side: { type: "string", enum: ["home", "away"] },
-					source: { type: "string" },
-				},
-			},
+			result_type: resultTypeSchema,
+			penalty_shootout: autoPenaltyShootoutSchema,
 		},
 	},
 };
@@ -120,6 +131,12 @@ export const finalizeGameSchema = {
 				minItems: 1,
 				items: { type: "object" },
 			},
+			// A detected shootout has to arrive HERE, not only on the later
+			// video-status PATCH: finalize is where ELO runs, and the engine
+			// rates a shootout as a win instead of a draw. Reported after the
+			// PATCH it would come too late and the match would stay a draw.
+			result_type: resultTypeSchema,
+			penalty_shootout: autoPenaltyShootoutSchema,
 		},
 	},
 };

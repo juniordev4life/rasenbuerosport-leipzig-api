@@ -199,7 +199,7 @@ export async function createGame({
  * @example
  * await finalizeGame(gameId, [{ home: 1, away: 0, team: "home", minute: 12, ... }]);
  */
-export async function finalizeGame(gameId, scoreTimeline) {
+export async function finalizeGame(gameId, scoreTimeline, decision = {}) {
 	if (!Array.isArray(scoreTimeline) || scoreTimeline.length === 0) {
 		const err = new Error("score_timeline must contain at least one goal");
 		err.statusCode = 400;
@@ -231,15 +231,31 @@ export async function finalizeGame(gameId, scoreTimeline) {
 			throw err;
 		}
 
+		// How the match was decided is written in the SAME statement, so the row
+		// handed to applyEloToMatch below already carries it. A shootout is rated
+		// as a win, not a draw — arriving later (on the video-status PATCH) it
+		// would miss ELO entirely and the win would score zero. COALESCE keeps a
+		// value the game already had when the caller reports nothing.
 		const {
 			rows: [game],
 		} = await client.query(
 			`UPDATE games
 			    SET score_home = $1, score_away = $2, score_timeline = $3,
-			        pending = false
+			        pending = false,
+			        result_type = COALESCE($5, result_type),
+			        penalty_shootout = COALESCE($6::jsonb, penalty_shootout)
 			  WHERE id = $4
 			RETURNING *`,
-			[scoreHome, scoreAway, JSON.stringify(scoreTimeline), gameId],
+			[
+				scoreHome,
+				scoreAway,
+				JSON.stringify(scoreTimeline),
+				gameId,
+				decision.result_type ?? null,
+				decision.penalty_shootout
+					? JSON.stringify(decision.penalty_shootout)
+					: null,
+			],
 		);
 
 		const { rows: gamePlayers } = await client.query(
