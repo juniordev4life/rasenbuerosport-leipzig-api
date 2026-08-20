@@ -6,6 +6,23 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v1.8.4
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.8.3...v1.8.4)
+
+### 🩹 Fixes
+
+- **trophies:** Unlock trophies when they are earned ([#83](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/83))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v1.8.3 ([bfa3e8f](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/bfa3e8f))
+- **scripts:** Make prod DB runs explicit instead of accidental ([#82](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/82))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v1.8.3 (2026-08-20)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.8.2...v1.8.3)
