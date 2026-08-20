@@ -382,8 +382,35 @@ Because ELO is path-dependent, games finalized **before** this rule existed stil
 
 Two things the replay does **not** fix, because they are not derived from the games table:
 
-- **Trophies are append-only.** `mergeTrophies` in `scripts/trophy-backfill.js` skips entries that already exist and never revokes one. A badge earned through a match that later changed stays awarded, and `duo_trophies` is keyed on the player pair, so a changed lineup means a different row. Both need manual JSONB edits.
+- **Trophies are append-only.** `mergeTrophies` (in `src/api/services/trophy/trophySync.services.js`, shared with `scripts/trophy-backfill.js`) skips entries that already exist and never revokes one. A badge earned through a match that later changed stays awarded, and `duo_trophies` is keyed on the player pair, so a changed lineup means a different row. Both need manual JSONB edits.
 - **Anything already delivered.** Push notifications name the players in their body and are long gone from the server. Generated match-report audio is uploaded `immutable` with a one-year max-age, so CDN and browser copies keep serving the old narration for a while even after a regeneration.
+
+---
+
+## Trophies
+
+Progress and unlocks come from two different places, and keeping them in step is the whole point of the sync step:
+
+| | Source | Freshness |
+|---|---|---|
+| Progress (`27 / 10`) | aggregated live from the player's match history on every request | always current |
+| Unlocked badge | `profiles.trophies` (individual) + `duo_trophies` (per pair) | persisted, add-only |
+
+`GET /api/v1/players/:playerId/trophies` therefore calls `syncPlayerTrophies` before rendering: it evaluates the conditions against the freshly aggregated stats, persists whatever is newly earned, and merges in the duo unlocks of every pair the player belongs to. A duo trophy counts for a player as soon as **any** of their pairs earned it, and the earliest unlock wins so the date reflects the first time.
+
+Why persisted instead of derived on the fly: two conditions are not monotonic (`winRate`, `duoWinRate` — an 80% rate can fall back below the threshold), so deriving would let an earned badge disappear. `wrapped.services.js` also reads the stored map for its "trophies this week" section, which needs stable timestamps.
+
+This used to be broken in two independent ways, both reported as "Trophäen werden trotz Erreichen nicht freigeschaltet":
+
+1. **Nothing evaluated trophies at runtime.** `evaluateTrophiesForPlayer` / `evaluateDuoTrophies` were called only from the backfill script, so anything achieved after the last manual run stayed locked while the progress bar next to it kept counting up.
+2. **`duo_trophies` was written but never read.** No code in `src/` touched the table, so the profile reported "0 von 5 erreicht" regardless of what was stored.
+
+`scripts/trophy-backfill.js` is still useful as a one-shot catch-up for players who never open their profile — it walks every player and pair rather than waiting for a request:
+
+```bash
+node scripts/trophy-backfill.js                    # dry-run
+bash scripts/with-prod-db.sh node scripts/trophy-backfill.js --commit
+```
 
 ---
 

@@ -24,6 +24,7 @@ import { playerIdParamsSchema } from "../schemas/trophies.schemas.js";
 import { aggregatePlayerForTrophies } from "../services/trophy/trophyAggregation.services.js";
 import { buildTrophyResponse } from "../services/trophy/trophyDisplay.services.js";
 import { loadPlayerMatches } from "../services/trophy/trophyMatchLoader.services.js";
+import { syncPlayerTrophies } from "../services/trophy/trophySync.services.js";
 
 export const getTrophiesController = {
 	schema: {
@@ -49,11 +50,18 @@ export const getTrophiesController = {
 
 			const matches = await loadPlayerMatches(playerId);
 			const stats = aggregatePlayerForTrophies(playerId, matches);
-			const data = buildTrophyResponse({
+			// Grant what the player has earned since the last sync and pull in the
+			// duo unlocks from their pairs. Without this the progress bars are live
+			// while the badges are frozen at the last manual backfill — the exact
+			// contradiction reported as "Trophäen werden trotz Erreichen nicht
+			// freigeschaltet". Add-only, so unlock dates never move.
+			const trophiesMap = await syncPlayerTrophies({
 				playerId,
-				trophiesMap: profile.trophies ?? null,
+				matches,
 				stats,
+				trophiesMap: profile.trophies ?? null,
 			});
+			const data = buildTrophyResponse({ playerId, trophiesMap, stats });
 
 			return setGeneralResponse(
 				reply,

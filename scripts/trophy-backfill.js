@@ -34,6 +34,7 @@ import {
 	evaluateTrophiesForPlayer,
 } from "../src/api/services/trophy/trophyCalculation.services.js";
 import { normalizeMatch } from "../src/api/services/trophy/trophyMatchNormalizer.services.js";
+import { mergeTrophies as mergeTrophiesShared } from "../src/api/services/trophy/trophySync.services.js";
 import { getPool } from "../src/config/database.config.js";
 import { TROPHIES_BY_ID } from "../src/constants/trophies.constants.js";
 
@@ -103,20 +104,11 @@ async function loadPlayerMatches(pool, playerId) {
  * @param {string} now - ISO timestamp for unlockedAt
  * @returns {{ next: object, newCount: number }}
  */
-function mergeTrophies(existing, unlocks, now) {
-	const next = { ...(existing ?? {}) };
-	let newCount = 0;
-	for (const { trophyId, triggeredByMatchId } of unlocks) {
-		if (next[trophyId]) continue;
-		next[trophyId] = {
-			unlocked_at: now,
-			triggered_by_match_id: triggeredByMatchId,
-			backfilled: true,
-		};
-		newCount += 1;
-	}
-	return { next, newCount };
-}
+// mergeTrophies now lives in src/api/services/trophy/trophySync.services.js so
+// the script and the live sync can only add trophies the same way. Passing
+// backfilled=true keeps this run distinguishable from a live unlock.
+const mergeTrophies = (existing, unlocks, now) =>
+	mergeTrophiesShared(existing, unlocks, now, true);
 
 /**
  * Process one player end-to-end: load matches, evaluate trophies,
