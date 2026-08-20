@@ -132,13 +132,69 @@ export async function updateGameVideo(
  * await reportRecordingStatus("0d9f...-uuid", "recording");
  */
 export async function reportRecordingStatus(recordingId, status) {
-	return queryOne(
+	const row = await queryOne(
 		`INSERT INTO recording_status (id, recording_id, status, updated_at)
 		VALUES (1, $1, $2, now())
 		ON CONFLICT (id) DO UPDATE SET recording_id = $1, status = $2, updated_at = now()
 		RETURNING recording_id, status, updated_at`,
 		[recordingId, status],
 	);
+
+	// A dead capture must also reach the games row, not just the status slot
+	// the app polls during the live step. Without this, video_status stays NULL
+	// and the game detail page blocks the match report forever (it reads
+	// "recording_id set + no terminal status" as "pipeline still running").
+	// Only fills an empty status, so a finished pipeline is never overwritten.
+	if (isCaptureFailure(status)) {
+		const updated = await query(
+			`UPDATE games SET video_status = 'failed'
+			WHERE recording_id = $1 AND video_status IS NULL
+			RETURNING id`,
+			[recordingId],
+		);
+		if (updated.length > 0) {
+			logger.info(
+				{ recordingId, status, gameIds: updated.map((g) => g.id) },
+				"capture failure carried over to game video_status",
+			);
+		}
+	}
+	return row;
+}
+
+/**
+ * Whether an agent-reported capture status means the recording is unusable.
+ *
+ * @param {string} status - Status reported by the office agent
+ * @returns {boolean} True for a failed or aborted capture
+ * @example
+ * isCaptureFailure("failed");   // true
+ * isCaptureFailure("recording"); // false
+ */
+export function isCaptureFailure(status) {
+	return status === "failed" || status === "aborted";
+}
+
+/**
+ * Whether the capture for this recording id has already been reported as
+ * failed. Needed because the agent reports an instantly dying ffmpeg (full
+ * disk, blocked capture device) BEFORE the game row exists — at that moment
+ * there is nothing to update, so the game has to adopt the failure when it is
+ * created. The slot holds only the most recent recording, which is exactly the
+ * one a game being created now belongs to.
+ *
+ * @param {string} recordingId - Provisional recording id of the capture
+ * @returns {Promise<boolean>} True when that capture reported failed/aborted
+ * @example
+ * await hasFailedCapture("0d9f...-uuid"); // true -> create the game as failed
+ */
+export async function hasFailedCapture(recordingId) {
+	if (!recordingId) return false;
+	const row = await queryOne(
+		"SELECT status FROM recording_status WHERE id = 1 AND recording_id = $1",
+		[recordingId],
+	);
+	return isCaptureFailure(row?.status);
 }
 
 /**

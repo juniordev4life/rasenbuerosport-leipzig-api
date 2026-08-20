@@ -218,6 +218,8 @@ The API uses **Firebase Authentication** with ID-token verification:
 
 **Recording status back-channel:** `recording_command` is one-way (app → agent), so a second single-row slot, `recording_status`, carries the reverse direction (agent → app). The agent POSTs `/v1/recording/report` with the provisional recording id and a state — `recording` once ffmpeg is confirmed alive, `failed` if it died on launch, `stopped`/`aborted` when capture ends. The app polls `GET /v1/recording/status?recording_id=…` during the live step: on `failed` (or its own timeout, when the agent is offline and never reports) it shows an error dialog offering retry or play-without-recording. `abort` (vs. `stop`) tells the agent to stop ffmpeg and **delete** the file — sent when the user backs out of the live step or dismisses the error dialog; the recording is discarded, not linked to a game.
 
+A reported `failed`/`aborted` capture is also carried onto the **game row**, not just the status slot: `reportRecordingStatus` sets `video_status = 'failed'` on any game with that `recording_id` whose status is still empty, and `createGame` adopts the failure for a game created *after* the report (the usual case — ffmpeg dying on launch is reported before the game row exists, so there is nothing to update at that moment). Without this the game keeps `video_status = NULL`, and the app blocks the match report indefinitely: its game detail page treats "`recording_id` set + status neither `ready` nor `failed`" as "pipeline still running" and shows a preparing spinner. That happened to six games in August 2026 when a full disk made ffmpeg die instantly on every start.
+
 [Full Auth Documentation →](docs/features/AUTHENTICATION.md)
 
 ---

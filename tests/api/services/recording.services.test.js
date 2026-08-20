@@ -8,6 +8,7 @@ vi.mock("../../../src/api/helpers/database.helpers.js", () => ({
 import { query, queryOne } from "../../../src/api/helpers/database.helpers.js";
 import {
 	getNextRecordingCommand,
+	hasFailedCapture,
 	getRecordingStatus,
 	getRecordingTimeline,
 	reportRecordingStatus,
@@ -193,6 +194,69 @@ describe("reportRecordingStatus", () => {
 			"rec-123",
 			"recording",
 		]);
+	});
+
+	it("leaves the games row alone for a healthy capture", async () => {
+		queryOne.mockResolvedValueOnce({ recording_id: "rec-123", status: "recording" });
+
+		await reportRecordingStatus("rec-123", "recording");
+
+		expect(query).not.toHaveBeenCalled();
+	});
+
+	it("marks the matching game failed when the capture dies", async () => {
+		// Without this the game keeps video_status NULL and the app blocks the
+		// match report forever ("preparing" spinner that never resolves).
+		queryOne.mockResolvedValueOnce({ recording_id: "rec-123", status: "failed" });
+		query.mockResolvedValueOnce([{ id: "game-1" }]);
+
+		await reportRecordingStatus("rec-123", "failed");
+
+		expect(query).toHaveBeenCalledWith(
+			expect.stringContaining("UPDATE games SET video_status = 'failed'"),
+			["rec-123"],
+		);
+		expect(query.mock.calls[0][0]).toContain("video_status IS NULL");
+	});
+
+	it("treats an aborted capture the same way", async () => {
+		queryOne.mockResolvedValueOnce({ recording_id: "rec-9", status: "aborted" });
+		query.mockResolvedValueOnce([]);
+
+		await reportRecordingStatus("rec-9", "aborted");
+
+		expect(query).toHaveBeenCalledWith(expect.stringContaining("UPDATE games"), [
+			"rec-9",
+		]);
+	});
+});
+
+describe("hasFailedCapture", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it.each(["failed", "aborted"])("is true for a %s capture", async (status) => {
+		queryOne.mockResolvedValueOnce({ status });
+
+		await expect(hasFailedCapture("rec-123")).resolves.toBe(true);
+	});
+
+	it("is false while the capture is healthy", async () => {
+		queryOne.mockResolvedValueOnce({ status: "recording" });
+
+		await expect(hasFailedCapture("rec-123")).resolves.toBe(false);
+	});
+
+	it("is false when the slot holds another recording", async () => {
+		queryOne.mockResolvedValueOnce(null);
+
+		await expect(hasFailedCapture("rec-123")).resolves.toBe(false);
+	});
+
+	it("does not query at all without a recording id", async () => {
+		await expect(hasFailedCapture(null)).resolves.toBe(false);
+		expect(queryOne).not.toHaveBeenCalled();
 	});
 });
 
