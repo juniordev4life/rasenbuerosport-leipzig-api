@@ -180,9 +180,43 @@ describe("finalizeGameController", () => {
 
 		await finalizeGameController.handler(request, reply);
 
-		expect(finalizeGame).toHaveBeenCalledWith("game-uuid", request.body.score_timeline);
+		expect(finalizeGame).toHaveBeenCalledWith(
+			"game-uuid",
+			request.body.score_timeline,
+			{ result_type: undefined, penalty_shootout: undefined },
+		);
 		expect(getStatus()).toBe(200);
 		expect(getPayload().data.pending).toBe(false);
+	});
+
+	it("passes a detected shootout through so ELO can rate it as a win", async () => {
+		// The agent reports the shootout HERE and not only on the later
+		// video-status PATCH, because finalize is where ELO runs.
+		finalizeGame.mockResolvedValueOnce({ id: "game-uuid", pending: false });
+		const { reply, getStatus } = buildMockReply();
+		const penalty_shootout = {
+			score_before: { home: 2, away: 2 },
+			final_score: { home: 4, away: 1 },
+			winner_side: "home",
+			source: "auto",
+		};
+		const request = {
+			body: {
+				game_id: "game-uuid",
+				score_timeline: [{ home: 1, away: 0, team: "home", minute: 5 }],
+				result_type: "penalty",
+				penalty_shootout,
+			},
+		};
+
+		await finalizeGameController.handler(request, reply);
+
+		expect(finalizeGame).toHaveBeenCalledWith(
+			"game-uuid",
+			request.body.score_timeline,
+			{ result_type: "penalty", penalty_shootout },
+		);
+		expect(getStatus()).toBe(200);
 	});
 
 	it("returns 404 when the game does not exist", async () => {

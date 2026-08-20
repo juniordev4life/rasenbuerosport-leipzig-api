@@ -101,6 +101,13 @@ import {
  *   //   result.teamB[0].delta ≈ -7   (Jonas — at least scored)
  *   //   result.teamB[1].delta ≈ -28  (Nik   — no contribution)
  */
+/**
+ * Goal margin a shootout win borrows for computeMarginFactor. A shootout is
+ * the narrowest possible win, so it is rated like a one-goal win — the real
+ * goal difference is 0, which the margin function maps to 'no movement'.
+ */
+const SHOOTOUT_MARGIN_GOALS = 1;
+
 export function computeMatchElo(match) {
 	const matchMinutes = match.matchMinutes ?? 10;
 	const teamA = match.teamA;
@@ -112,10 +119,26 @@ export function computeMatchElo(match) {
 	const expectedA = computeExpectedScore(ratingA, ratingB);
 	const expectedB = 1 - expectedA;
 
-	const actualA = scoreFromGoals(teamA.goals, teamB.goals);
+	// The league plays extra time and penalties — there are no draws. A
+	// shootout therefore DECIDES the match, even though regular time ended
+	// level, so it must not be rated as a draw. Both halves of that matter:
+	// actualScore alone is not enough, because computeMarginFactor(0, …) is 0
+	// and would multiply the whole delta away. A shootout win is the narrowest
+	// win there is, so it borrows the margin of a one-goal win.
+	const decidedByShootout =
+		(match.penaltyWinner === "A" || match.penaltyWinner === "B") &&
+		teamA.goals === teamB.goals;
+
+	const actualA = decidedByShootout
+		? match.penaltyWinner === "A"
+			? 1
+			: 0
+		: scoreFromGoals(teamA.goals, teamB.goals);
 	const actualB = 1 - actualA;
 
-	const goalDiff = Math.abs(teamA.goals - teamB.goals);
+	const goalDiff = decidedByShootout
+		? SHOOTOUT_MARGIN_GOALS
+		: Math.abs(teamA.goals - teamB.goals);
 	const marginA = computeMarginFactor(goalDiff, ratingA - ratingB);
 	const marginB = computeMarginFactor(goalDiff, ratingB - ratingA);
 
@@ -158,6 +181,7 @@ export function computeMatchElo(match) {
 			kFactorB,
 			actualA,
 			actualB,
+			decidedByShootout,
 		},
 	};
 }

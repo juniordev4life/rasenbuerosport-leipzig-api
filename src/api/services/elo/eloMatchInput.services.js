@@ -27,7 +27,10 @@ import { ELO_CONSTANTS } from "../../../constants/elo.constants.js";
  * @returns {number}
  */
 export function matchMinutesForResultType(resultType) {
-	if (resultType === "extra_time" || resultType === "penalties") return 120;
+	// "penalty" is the value the games.result_type enum actually stores — the
+	// plural "penalties" never reaches the column, so matching it meant every
+	// shootout game was rated as a 90-minute match.
+	if (resultType === "extra_time" || resultType === "penalty") return 120;
 	return 90;
 }
 
@@ -126,5 +129,27 @@ export function buildMatchInputFromGame({ game, gamePlayers, profilesById }) {
 		teamA: buildTeam("home", Number(game.score_home ?? 0)),
 		teamB: buildTeam("away", Number(game.score_away ?? 0)),
 		matchMinutes: matchMinutesForResultType(game.result_type),
+		penaltyWinner: penaltyWinnerSide(game),
 	};
+}
+
+/**
+ * Which engine side won the shootout, or null when the match was not decided
+ * there. The stored row speaks home/away, the engine speaks A/B.
+ *
+ * Works for BOTH shapes of `penalty_shootout`: the manual one with `shots[]`
+ * and the result-only one the capture pipeline writes (winner + final score,
+ * no per-shot data) — only `winner_side` is needed.
+ *
+ * @param {object} game - `games` row
+ * @returns {"A"|"B"|null}
+ * @example
+ * penaltyWinnerSide({ penalty_shootout: { winner_side: "away" } }); // "B"
+ * penaltyWinnerSide({ penalty_shootout: null });                   // null
+ */
+function penaltyWinnerSide(game) {
+	const side = game?.penalty_shootout?.winner_side;
+	if (side === "home") return "A";
+	if (side === "away") return "B";
+	return null;
 }
