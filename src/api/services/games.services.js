@@ -7,6 +7,7 @@ import { applyEloToMatch } from "./elo/eloPersistence.services.js";
 import { applyPenaltyShotEloDeltas } from "./elo/penaltyShotElo.services.js";
 import { invalidateProfileCache } from "./playerProfile/playerProfile.services.js";
 import { notifyMatchCreated } from "./pushSender.services.js";
+import { hasFailedCapture } from "./recording.services.js";
 
 /**
  * Creates a new game with players
@@ -56,6 +57,20 @@ export async function createGame({
 	// other clients would otherwise persist undetected.
 	validateScoreTimeline(score_timeline);
 
+	// A capture that died instantly (full disk, capture device blocked) reported
+	// "failed" on the provisional recording channel BEFORE this row existed, so
+	// there was nothing to mark at the time. Adopt it now: leaving video_status
+	// NULL makes the game detail page block the match report indefinitely,
+	// because it reads "recording_id set + no terminal status" as "pipeline
+	// still running" — an eternal "preparing" spinner.
+	const captureAlreadyFailed = await hasFailedCapture(recording_id);
+	if (captureAlreadyFailed) {
+		logger.info(
+			{ recording_id },
+			"capture already reported failed — creating game with video_status=failed",
+		);
+	}
+
 	const client = await getPool().connect();
 
 	try {
@@ -64,8 +79,8 @@ export async function createGame({
 		const {
 			rows: [game],
 		} = await client.query(
-			`INSERT INTO games (mode, score_home, score_away, played_at, created_by, score_timeline, result_type, penalty_shootout, recording_id, pending, home_team_name, away_team_name)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+			`INSERT INTO games (mode, score_home, score_away, played_at, created_by, score_timeline, result_type, penalty_shootout, recording_id, pending, home_team_name, away_team_name, video_status)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 			RETURNING *`,
 			[
 				mode,
@@ -80,6 +95,7 @@ export async function createGame({
 				Boolean(pending),
 				home_team_name || null,
 				away_team_name || null,
+				captureAlreadyFailed ? "failed" : null,
 			],
 		);
 
