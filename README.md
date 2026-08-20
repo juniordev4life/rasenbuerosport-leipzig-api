@@ -356,6 +356,16 @@ npm run elo:recompute -- --apply --backup
 
 `--dry-run` reports what would happen and touches nothing. `--apply` resets every profile to 1500 and then walks all finalized games oldest-first. `--backup` writes a JSON dump of all ratings and snapshots beforehand; restore it with `--restore=scripts/.elo-backup-<ts>.json` if the result looks wrong.
 
+**Which database?** `.env` holds the LOCAL dev `DATABASE_URL` (Docker Postgres on `:5434`), so running the script bare targets local — even with the Cloud SQL proxy up. To run against production, wrap it:
+
+```bash
+npm run db:proxy                                                   # terminal 1, keep open
+bash scripts/with-prod-db.sh npm run elo:recompute -- --dry-run    # terminal 2
+bash scripts/with-prod-db.sh npm run elo:recompute -- --apply --backup
+```
+
+The wrapper reads the prod credentials from Secret Manager (never printing them), rewrites the Cloud Run socket host to the proxy, and refuses to start when the proxy is down. Every run — wrapped or not — now prints `target database:` first, so the destination is visible before anything is written.
+
 Each game goes through the same three passes the live save path applies, in the same order — team engine, penalty-shootout overlay, card overlay. That sequence lives in `src/api/services/elo/eloReplay.services.js` and is shared by both paths, so a new pass added to one cannot be forgotten in the other. The overlays are re-applied only where the stored row proves they ran the first time: `penalty_shootout.shots[]` carries its per-shot deltas verbatim, and `match_stats.card_elo_applied` records that a defense screenshot was charged. That flag is read, never written — the live path owns it, so a later re-upload still correctly skips.
 
 Pending games are excluded. Their real result does not exist yet, and `finalizeGame` applies their ELO once the capture pipeline delivers it.
