@@ -97,6 +97,33 @@ const stats = {
 	pendingExcluded: 0,
 };
 
+/**
+ * Host, port and database this run will touch — credentials left out.
+ *
+ * Printed before anything happens because `.env` carries the LOCAL dev
+ * DATABASE_URL (Docker Postgres on :5434, see CLAUDE.md). A run meant for
+ * production therefore hits the local database unless DATABASE_URL is
+ * overridden — use scripts/with-prod-db.sh. Two runs already went to the
+ * wrong database for exactly this reason, and the only symptom was a bare
+ * ECONNREFUSED because the local container happened to be stopped.
+ *
+ * @returns {string} e.g. "127.0.0.1:5433/rasenbuerosport"
+ * @example
+ * describeTarget(); // "127.0.0.1:5434/rasenbuerosport"
+ */
+function describeTarget() {
+	const raw = process.env.DATABASE_URL;
+	if (!raw) return "<DATABASE_URL not set>";
+	try {
+		const url = new URL(raw);
+		return `${url.hostname}:${url.port || 5432}${url.pathname}`;
+	} catch {
+		return "<unparseable DATABASE_URL>";
+	}
+}
+
+console.log(`target database:   ${describeTarget()}`);
+
 try {
 	if (args.restore) {
 		stats.restored = await restoreFromBackup(pool, args.restore);
