@@ -6,6 +6,22 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v1.8.5
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.8.4...v1.8.5)
+
+### 🩹 Fixes
+
+- **trophies:** Let Postgres order duo_trophies pairs, not JS sort ([#84](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/84))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v1.8.4 ([effe2fc](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/effe2fc))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v1.8.4 (2026-08-20)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.8.3...v1.8.4)
