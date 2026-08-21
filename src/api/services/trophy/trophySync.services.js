@@ -149,7 +149,15 @@ async function syncDuoTrophies({ playerId, matches, now }) {
 	// One read for every pair this player belongs to — a profile view would
 	// otherwise fire a query per partner. Only pairs that actually gained a
 	// trophy are written back.
-	const stored = new Map();
+	//
+	// Keyed by PARTNER id using the row's own stored column order — never
+	// re-derived with a JS sort. `migrations/022_duo_trophies.sql` enforces
+	// `player1_id < player2_id` using Postgres's TEXT collation, which can
+	// disagree with `[a, b].sort()`'s raw UTF-16 order on mixed-case Firebase
+	// uids (e.g. a leading 'Z' vs a leading 'x'). Sorting in JS and writing
+	// that order back violated the CHECK constraint and 500'd the whole
+	// trophy room for anyone in an affected pair.
+	const storedByPartner = new Map();
 	const rows = await query(
 		`SELECT player1_id, player2_id, trophies
 		   FROM duo_trophies
@@ -157,28 +165,33 @@ async function syncDuoTrophies({ playerId, matches, now }) {
 		[playerId],
 	);
 	for (const row of rows) {
-		stored.set(`${row.player1_id}|${row.player2_id}`, row.trophies);
+		const partnerId =
+			row.player1_id === playerId ? row.player2_id : row.player1_id;
+		storedByPartner.set(partnerId, row.trophies);
 	}
 
 	const flattened = {};
 	for (const [partnerId, shared] of partners) {
-		// The table is keyed by a sorted pair (LEAST/GREATEST, see
-		// migrations/022_duo_trophies.sql) — sorting here keeps one row per pair
-		// instead of two mirrored ones.
-		const pair = [playerId, partnerId].sort();
-		const unlocks = evaluateDuoTrophies({ duoPlayers: pair, matches: shared });
+		// Evaluation only checks which side each player is on, so it doesn't
+		// care which of the two comes first.
+		const unlocks = evaluateDuoTrophies({
+			duoPlayers: [playerId, partnerId],
+			matches: shared,
+		});
 		const { next, newCount } = mergeTrophies(
-			stored.get(`${pair[0]}|${pair[1]}`),
+			storedByPartner.get(partnerId),
 			unlocks,
 			now,
 		);
 		if (newCount > 0) {
+			// LEAST/GREATEST let Postgres pick the pair order with its own
+			// collation, matching the CHECK constraint by construction.
 			await query(
 				`INSERT INTO duo_trophies (player1_id, player2_id, trophies)
-				 VALUES ($1, $2, $3::jsonb)
+				 VALUES (LEAST($1, $2), GREATEST($1, $2), $3::jsonb)
 				 ON CONFLICT (player1_id, player2_id)
 				 DO UPDATE SET trophies = EXCLUDED.trophies`,
-				[pair[0], pair[1], JSON.stringify(next)],
+				[playerId, partnerId, JSON.stringify(next)],
 			);
 		}
 

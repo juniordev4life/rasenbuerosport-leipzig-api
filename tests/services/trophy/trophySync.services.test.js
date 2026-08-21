@@ -136,9 +136,15 @@ describe("syncPlayerTrophies", () => {
 		expect(upsert).toBeDefined();
 	});
 
-	it("keys the duo row by the sorted pair, whichever player asks", async () => {
-		// migrations/022 has a unique constraint on (player1_id, player2_id);
-		// an unsorted key would create a second, mirrored row for the same duo.
+	it("lets Postgres pick the pair order instead of sorting in JS", async () => {
+		// migrations/022 has a CHECK (player1_id < player2_id) evaluated with
+		// Postgres's TEXT collation. A JS `[a, b].sort()` can disagree with that
+		// collation on mixed-case Firebase uids (e.g. a leading 'Z' vs a leading
+		// 'x' — see the incident this regression test guards against), and the
+		// mismatch made every write to an affected pair violate the CHECK and
+		// 500 the whole trophy room. LEAST/GREATEST in the SQL side-steps the
+		// disagreement entirely by letting the database decide, so the params
+		// themselves must travel unsorted.
 		const matches = Array.from({ length: 10 }, (_, i) =>
 			sharedWin(`m-${i}`, "zeta", "alpha"),
 		);
@@ -154,7 +160,51 @@ describe("syncPlayerTrophies", () => {
 		const upsert = query.mock.calls.find(([sql]) =>
 			sql.includes("INSERT INTO duo_trophies"),
 		);
-		expect(upsert[1].slice(0, 2)).toEqual(["alpha", "zeta"]);
+		expect(upsert[0]).toMatch(/LEAST\(\$1,\s*\$2\)/);
+		expect(upsert[0]).toMatch(/GREATEST\(\$1,\s*\$2\)/);
+		expect(upsert[1].slice(0, 2)).toEqual(["zeta", "alpha"]);
+	});
+
+	it("finds an existing duo row even when its stored order is the opposite of a JS sort", async () => {
+		// Simulates exactly the incident: the row was written (correctly) with
+		// player1_id = "ZxCuhx..." / player2_id = "xpSPg0..." because Postgres's
+		// collation says so, even though `["xpSPg0...", "ZxCuhx..."].sort()`
+		// would put them the other way around in JS. If the lookup re-derives
+		// the key with a JS sort instead of trusting the row, it misses the
+		// existing entry, treats it as brand new, and re-attempts the insert —
+		// which is what triggered the constraint violation on every request.
+		const earlier = "2026-05-29T16:54:42.225Z";
+		query.mockImplementation(
+			duoRows([
+				{
+					player1_id: "ZxCuhxQmEkM8zEI5h6MQZoRj3ED2",
+					player2_id: "xpSPg0g3x8PpnMGNPDYShkeLhEA2",
+					trophies: { DU1: { unlocked_at: earlier, backfilled: true } },
+				},
+			]),
+		);
+		const matches = Array.from({ length: 10 }, (_, i) =>
+			sharedWin(
+				`m-${i}`,
+				"xpSPg0g3x8PpnMGNPDYShkeLhEA2",
+				"ZxCuhxQmEkM8zEI5h6MQZoRj3ED2",
+			),
+		);
+
+		const map = await syncPlayerTrophies({
+			playerId: "xpSPg0g3x8PpnMGNPDYShkeLhEA2",
+			matches,
+			stats: {},
+			trophiesMap: {},
+			now: NOW,
+		});
+
+		// The already-unlocked entry must be recognized as existing, not
+		// re-granted, and NO write should be attempted.
+		expect(map.DU1.unlocked_at).toBe(earlier);
+		expect(
+			query.mock.calls.some(([sql]) => sql.includes("INSERT INTO duo_trophies")),
+		).toBe(false);
 	});
 
 	it("keeps the earliest unlock when two pairs earned the same trophy", async () => {
