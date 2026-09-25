@@ -68,8 +68,8 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | `GET` | `/health` | — | Health check |
-| `GET` | `/api/v1/auth/me` | Bearer | Get current user profile |
-| `PATCH` | `/api/v1/auth/profile` | Bearer | Update current user profile |
+| `GET` | `/api/v1/auth/me` | Bearer | Get current user profile (`needsSetup: true` on first sign-in) |
+| `PATCH` | `/api/v1/auth/profile` | Bearer | Create or update the current user's profile (`avatar_url`: own Storage upload or Google photo only) |
 | `GET` | `/api/v1/games` | Bearer | Get user's game history |
 | `POST` | `/api/v1/games` | Bearer | Create a new game |
 | `GET` | `/api/v1/games/recent` | Bearer | Global activity feed |
@@ -202,7 +202,20 @@ The API uses **Firebase Authentication** with ID-token verification:
 1. The frontend signs in via Firebase Auth (Google Sign-In) and obtains a Firebase ID token
 2. Each API request sends the token as `Authorization: Bearer <id-token>`
 3. The `requireAuth` middleware verifies the token via the **Firebase Admin SDK** (`getFirebaseAuth().verifyIdToken`)
-4. The decoded user (`uid`, `email`) is attached to `request.user`, then enriched with the matching `profiles` row (role, username) from Postgres
+4. It admits only **verified `@redbulls.com` accounts**: `email_verified` must be true and the address must end in `@` + `ALLOWED_EMAIL_DOMAIN` (`src/constants/auth.constants.js`). Every other account gets a 403
+5. The decoded user (`uid`, `email`) is attached to `request.user`. The middleware does not load the `profiles` row; routes that need the role use `requireAdmin`, which reads `profiles.role` itself
+
+**Rejections are generic.**
+- A token that fails verification gets 401 `Invalid or expired token` with `error: ["Token verification failed"]`. The reason is logged server-side only.
+- Every account outside the gate (foreign domain, unverified address, no email) gets the same 403 body with the message `User not authorized`. The app matches on that exact message and signs the user out, so keep it stable.
+
+Because the gate sits in `requireAuth`, it covers every Bearer route. That includes `PATCH /api/v1/auth/profile`, so an outside account can no longer create a profile. `GET /api/v1/auth/me` answers an admitted account that has no profile yet with `needsSetup: true`.
+
+**Avatar URLs:** `PATCH /api/v1/auth/profile` accepts `avatar_url` only as
+- the user's own upload in the project's Storage bucket (`https://firebasestorage.googleapis.com/v0/b/<FIREBASE_STORAGE_BUCKET>/o/avatars%2F<uid>%2F…`), or
+- a Google account photo (`https://lh3.googleusercontent.com/…`).
+
+Anything else gets a 400, so nobody can make every viewer's browser load an image from a host of their choosing. `null` leaves the avatar unchanged.
 
 **Credentials**
 
@@ -420,8 +433,10 @@ bash scripts/with-prod-db.sh node scripts/trophy-backfill.js --commit
 |-------|---------------|
 | **Helmet** | Security headers (CSP, X-Frame-Options, etc.) |
 | **CORS** | Configurable origin (default: `localhost:5173`) |
-| **Rate Limiting** | 250 requests per minute per IP |
-| **Token Verification** | Firebase ID token validation via Firebase Admin SDK |
+| **Rate Limiting** | 250 requests per minute per client IP. `trustProxy: 1` makes that the address Cloud Run's front end appends to `X-Forwarded-For`, which the client cannot spoof. Counters are per instance. `POST /api/v1/feedback`: 5 per 10 minutes per user |
+| **Token Verification** | Firebase ID token validation via Firebase Admin SDK; generic 401, details only in the server log |
+| **Account Gate** | Only verified `@redbulls.com` accounts pass `requireAuth`; a neutral 403 `User not authorized` otherwise |
+| **Avatar URLs** | Allow-list: own Storage upload (`avatars/<uid>/…`) or Google account photo |
 | **Scheduler Auth** | Shared secret on `POST /wrapped/generate` (Cloud Scheduler) |
 | **Input Validation** | JSON Schema on all endpoints |
 | **Standardized Errors** | Consistent error response format |

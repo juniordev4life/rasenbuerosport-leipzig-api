@@ -2,46 +2,48 @@
 
 # Authentication & Security
 
-RasenBürosport uses **Supabase Auth** for user management and JWT-based authentication on all protected endpoints.
+RasenBürosport uses **Firebase Authentication** with Google Sign-In. The API never issues credentials. It verifies the Firebase ID token the app sends and admits only **verified `@redbulls.com` accounts**.
 
 ---
 
 ## Authentication Flow
 
 ```
-1. User registers or logs in
-   POST /api/v1/auth/register  or  POST /api/v1/auth/login
+1. The app signs in with Google (Firebase Auth, signInWithPopup)
        ↓
-2. Supabase Auth returns JWT tokens
-   { access_token, refresh_token }
+2. Every request carries the Firebase ID token
+   Authorization: Bearer <id-token>
        ↓
-3. Frontend stores the access token
+3. requireAuth verifies it with the Firebase Admin SDK
+   getFirebaseAuth().verifyIdToken(token)
        ↓
-4. Subsequent requests include the token
-   Authorization: Bearer eyJ...
+4. requireAuth checks the account:
+   email_verified === true and the address ends in @redbulls.com
        ↓
-5. requireAuth middleware verifies the token
-   supabase.auth.getUser(token)
+5. request.user = { id: <uid>, email }
        ↓
-6. Authenticated user attached to request.user
+6. GET /api/v1/auth/me → the profile, or needsSetup: true on first sign-in
+   (the app then creates the profile with PATCH /api/v1/auth/profile)
 ```
 
 ---
 
 ## Middleware: requireAuth
 
-The `requireAuth` middleware is a Fastify `preHandler` applied to all protected routes.
-
-### What It Does
+`src/api/middlewares/auth.middlewares.js`. A Fastify `preHandler` on every protected route. The feedback route runs it as `onRequest` instead; see [Rate Limiting](#rate-limiting).
 
 1. Extracts the `Bearer` token from the `Authorization` header
-2. Verifies the JWT against Supabase Auth via `supabase.auth.getUser(token)`
-3. On success: attaches the full user object to `request.user`
-4. On failure: returns `401 Unauthorized`
+2. Verifies the token with the Firebase Admin SDK
+3. Admits the account only if `email_verified` is true and the address ends in `@` + `ALLOWED_EMAIL_DOMAIN`. The constant lives in `src/constants/auth.constants.js` and is currently `redbulls.com`. The `@` in the check rules out lookalikes such as `evilredbulls.com`, `redbulls.com.evil.com` and subdomains
+4. Attaches `{ id, email }` to `request.user`. It does not load the profile. Admin-only routes add `requireAdmin`, which reads `profiles.role`
+
+Because the gate sits in `requireAuth`, it covers every Bearer route. That includes `PATCH /api/v1/auth/profile`, so an account outside the domain cannot create a profile.
 
 ### Error Responses
 
-**Missing token:**
+All rejections are generic. The reason (Firebase error code, rejected email domain) is logged server-side only.
+
+**Missing token (401):**
 
 ```json
 {
@@ -53,7 +55,7 @@ The `requireAuth` middleware is a Fastify `preHandler` applied to all protected 
 }
 ```
 
-**Invalid/expired token:**
+**Invalid or expired token (401):**
 
 ```json
 {
@@ -65,70 +67,51 @@ The `requireAuth` middleware is a Fastify `preHandler` applied to all protected 
 }
 ```
 
+**Account outside the gate (403).** The body is identical for a foreign domain, an unverified address, and a token without an email:
+
+```json
+{
+  "code": 403,
+  "title": "Forbidden",
+  "message": "User not authorized",
+  "data": null,
+  "error": ["Access denied"]
+}
+```
+
+The app matches on the exact message `User not authorized` and signs the user out. It never deletes the Firebase account: after a wrong rejection, the next sign-in would get a new uid and lose the link to the profile and match history. Keep the message stable.
+
 ---
 
 ## Public vs Protected Endpoints
 
-| Endpoint | Auth Required |
-|----------|--------------|
-| `GET /health` | No |
-| `GET /api/v1/leaderboard` | No |
-| `POST /api/v1/auth/register` | No |
-| `POST /api/v1/auth/login` | No |
-| **All other endpoints** | **Yes** |
+| Endpoint | Auth |
+|----------|------|
+| `GET /health` | None |
+| `GET /api/v1/leaderboard`, `GET /api/v1/seasons*` | None |
+| `POST /api/v1/wrapped/generate`, `POST /api/v1/talkshow/generate` | Scheduler secret (`X-Trigger-Secret`) |
+| Office recording agent routes (see the README's agent endpoints) | Agent secret (`X-Agent-Secret`) |
+| `DELETE /api/v1/games/:gameId` | Bearer + `requireAdmin` |
+| **All other endpoints** | Bearer (Firebase ID token + account gate) |
 
 ---
 
-## User Registration
+## Profile Endpoint Rules
 
-### Endpoint
+`PATCH /api/v1/auth/profile` creates the profile on first use (upsert) and updates it afterwards. Omitted or `null` fields keep their current value.
 
-```
-POST /api/v1/auth/register
-```
+| Field | Rule |
+|-------|------|
+| `username` | 2–30 characters |
+| `avatar_url` | `null`, or an absolute https URL of an allowed kind (see below). Otherwise 400 |
+| `voice_aliases` | Up to 10 entries of 1–30 characters. An empty array clears them |
 
-### Process
+Allowed avatar URLs are checked by `isAllowedAvatarUrl` in `src/api/services/auth.services.js`:
 
-1. Check if the `username` is already taken (query `profiles` table)
-2. Create the user via `supabase.auth.admin.createUser()` with the service role client
-3. Supabase Auth creates the user in `auth.users`
-4. A trigger (or the service) creates a profile in the `profiles` table
-5. The user is automatically signed in and receives JWT tokens
+- the user's own upload in the project's Storage bucket: `https://firebasestorage.googleapis.com/v0/b/<FIREBASE_STORAGE_BUCKET>/o/avatars%2F<uid>%2F…`
+- a Google account photo: `https://lh3.googleusercontent.com/…`
 
-### Invite-Only Mode
-
-The app uses Supabase's invite-only mode — new users can only be registered through the API or the admin invite script (`scripts/invite.js`). Self-registration through Supabase's UI is disabled.
-
----
-
-## User Login
-
-### Endpoint
-
-```
-POST /api/v1/auth/login
-```
-
-### Process
-
-1. Authenticate via `supabase.auth.signInWithPassword()`
-2. Supabase verifies credentials and returns a session with JWT tokens
-3. The `access_token` is used for subsequent API requests
-4. The `refresh_token` can be used to obtain new access tokens
-
----
-
-## Supabase Client Configuration
-
-The backend uses two Supabase client instances (singletons):
-
-| Client | Purpose | Key |
-|--------|---------|-----|
-| `getSupabase()` | Public operations, token verification | `SUPABASE_ANON_KEY` |
-| `getSupabaseAdmin()` | Admin operations, data access | `SUPABASE_SERVICE_ROLE_KEY` |
-
-The **anon client** is used for JWT verification (`supabase.auth.getUser()`).
-The **admin client** bypasses Row-Level Security (RLS) for service-level data operations.
+Anything else gets 400 `Invalid avatar URL`. Without `FIREBASE_STORAGE_BUCKET`, no Storage URL is accepted. The allow-list exists because every viewer's browser loads the avatar: an arbitrary URL would let one user make everyone's browser request an image from a host of their choosing.
 
 ---
 
@@ -136,49 +119,31 @@ The **admin client** bypasses Row-Level Security (RLS) for service-level data op
 
 ### Helmet
 
-`@fastify/helmet` adds security headers to all responses:
-
-- Content Security Policy (CSP)
-- X-Frame-Options
-- X-Content-Type-Options
-- Referrer Policy
-- Strict Transport Security (HSTS)
+`@fastify/helmet` adds security headers to all responses: Content Security Policy, X-Frame-Options, X-Content-Type-Options, Referrer Policy, Strict Transport Security.
 
 ### CORS
 
-`@fastify/cors` controls cross-origin access:
-
-```javascript
-{
-  origin: process.env.CORS_ORIGIN || "http://localhost:5173",
-  credentials: true
-}
-```
-
-The `CORS_ORIGIN` environment variable should match the frontend's URL.
+`@fastify/cors` allows the origins in `CORS_ORIGIN` (comma-separated for several, default `http://localhost:5173`), with credentials enabled. Keep it in sync with the deployed app URL.
 
 ### Rate Limiting
 
-`@fastify/rate-limit` prevents abuse:
+`@fastify/rate-limit` allows 250 requests per minute per client IP. Exceeding the limit returns `429 Too Many Requests`.
 
-```javascript
-{
-  max: 250,
-  timeWindow: "1 minute"
-}
-```
+The client IP comes from `trustProxy: 1` in `src/server.js`. Fastify trusts exactly one proxy hop, Cloud Run's Google Front End, and takes the address it appends to `X-Forwarded-For`. Do not switch to `true`: that trusts every hop and takes the left-most entry, which the client writes itself, so the limit could be bypassed with a new fake IP per request. If a load balancer, Cloud Armor or a Hosting rewrite is ever put in front of the service, add one hop per extra proxy.
 
-250 requests per minute per IP address. Exceeding the limit returns `429 Too Many Requests`.
+Things to know:
+
+- **Office network:** colleagues behind the same office NAT share one bucket.
+- **Per instance:** counters live in memory per Cloud Run instance.
+- **Feedback:** `POST /api/v1/feedback` has its own limit instead of the global one: 5 submissions per 10 minutes **per user**. The route runs `requireAuth` as an `onRequest` hook, so the user is known when the limiter builds its key, and anonymous requests are rejected before their body (up to 10 MB) is read.
 
 ### JSON Schema Validation
 
-Fastify's built-in JSON Schema validation ensures all input data matches expected formats before it reaches the controller. Schemas are defined in `src/api/schemas/` and applied to routes via the `schema` option.
+Fastify validates params, query strings and bodies against the schemas in `src/api/schemas/` before a request reaches the controller.
 
 ---
 
 ## Roles
-
-The backend defines a simple role system:
 
 ```javascript
 export const ROLES = {
@@ -187,7 +152,7 @@ export const ROLES = {
 };
 ```
 
-Currently, all authenticated users have the same permissions. The role system is in place for future expansion (admin panel, moderation, etc.).
+Roles are stored on `profiles.role`. `requireAdmin` (after `requireAuth`) guards admin-only routes, e.g. `DELETE /api/v1/games/:gameId`.
 
 ---
 
@@ -195,14 +160,12 @@ Currently, all authenticated users have the same permissions. The role system is
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `SUPABASE_URL` | Yes | Supabase project URL |
-| `SUPABASE_ANON_KEY` | Yes | Supabase anon/public key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key (admin) |
-| `ANTHROPIC_API_KEY` | Yes | Anthropic API key for Claude |
-| `CORS_ORIGIN` | No | Frontend URL (default: `http://localhost:5173`) |
-| `PORT` | No | Server port (default: `3001`) |
-| `HOST` | No | Server host (default: `0.0.0.0`) |
-| `NODE_ENV` | No | `development` or `production` |
+| `FIREBASE_PROJECT_ID` | Yes | Firebase project the Admin SDK validates ID tokens against |
+| `FIREBASE_STORAGE_BUCKET` | Yes | Storage bucket for audio reports; also bounds the avatar allow-list. Must match the app's `PUBLIC_FIREBASE_STORAGE_BUCKET` |
+| `GOOGLE_APPLICATION_CREDENTIALS` | No | Local fallback to a service-account JSON; otherwise Application Default Credentials |
+| `CORS_ORIGIN` | No | Allowed app origin(s), comma-separated (default: `http://localhost:5173`) |
+| `WRAPPED_TRIGGER_SECRET` | For scheduler routes | Shared secret for Cloud Scheduler |
+| `AGENT_SECRET` | For agent routes | Shared secret for the office recording agent |
 
 > **Security:** Never commit `.env` files. The `.env` file is listed in `.gitignore`.
 
