@@ -37,6 +37,30 @@ function isAllowedAccount({ email, email_verified: emailVerified }) {
 }
 
 /**
+ * Logs why a token failed verification (server-side only) and answers with
+ * the generic 401.
+ * @param {import('fastify').FastifyRequest} request
+ * @param {import('fastify').FastifyReply} reply
+ * @param {Error & { code?: string }} error - Error thrown by verifyIdToken
+ * @returns {import('fastify').FastifyReply}
+ */
+function rejectToken(request, reply, error) {
+	// Firebase uses one code (auth/argument-error) for many causes, such as
+	// a wrong project or a bad signature, so log the message too. It never
+	// contains the token itself.
+	request.log.info(
+		{ code: error?.code, reason: error?.message },
+		"ID token verification failed",
+	);
+	return sendAuthError(
+		reply,
+		401,
+		"Invalid or expired token",
+		"Token verification failed",
+	);
+}
+
+/**
  * Logs why an account was rejected (server-side only) and answers with the
  * neutral 403 that is identical for every rejection reason.
  * @param {import('fastify').FastifyRequest} request
@@ -86,13 +110,7 @@ export async function requireAuth(request, reply) {
 	try {
 		decodedToken = await getFirebaseAuth().verifyIdToken(authHeader.slice(7));
 	} catch (error) {
-		request.log.info({ code: error?.code }, "ID token verification failed");
-		return sendAuthError(
-			reply,
-			401,
-			"Invalid or expired token",
-			"Token verification failed",
-		);
+		return rejectToken(request, reply, error);
 	}
 
 	if (!isAllowedAccount(decodedToken)) {

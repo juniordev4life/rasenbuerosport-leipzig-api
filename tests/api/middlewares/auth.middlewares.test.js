@@ -43,7 +43,7 @@ describe("requireAuth", () => {
 		expect(verifyIdToken).not.toHaveBeenCalled();
 	});
 
-	it("answers a failed verification with a generic 401 and logs the code", async () => {
+	it("answers a failed verification with a generic 401 and logs the detail", async () => {
 		const detail = new Error(
 			'Firebase ID token has incorrect "aud" claim. Expected "internal-project".',
 		);
@@ -58,7 +58,7 @@ describe("requireAuth", () => {
 		expect(getPayload().error).toEqual(["Token verification failed"]);
 		expect(JSON.stringify(getPayload())).not.toContain("internal-project");
 		expect(request.log.info).toHaveBeenCalledWith(
-			{ code: "auth/argument-error" },
+			{ code: "auth/argument-error", reason: detail.message },
 			expect.any(String),
 		);
 		expect(request.user).toBeUndefined();
