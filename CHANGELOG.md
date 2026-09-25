@@ -6,6 +6,26 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v1.8.7
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.8.6...v1.8.7)
+
+### 🩹 Fixes
+
+- **talkshow:** Restrict _preview and audio to admins ([#86](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/86))
+
+### 📖 Documentation
+
+- **infra:** Document the Storage rules and the bucket access model ([#87](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/87))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v1.8.6 ([0c99b7b](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/0c99b7b))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v1.8.6 (2026-09-25)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.8.5...v1.8.6)
