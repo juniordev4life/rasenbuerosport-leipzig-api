@@ -121,8 +121,31 @@ This file is the **single textual inventory** of the live GCP/Firebase infrastru
 | Field | Value |
 |-------|-------|
 | Default bucket | `rasenbuerosport-leipzig-9d54f.firebasestorage.app` |
-| Used for | User avatars, FC26 screenshot uploads |
-| Rules | _TODO: paste current `storage.rules` summary, or link to file if checked in_ |
+| Used for | App uploads: `avatars/`, `match-stats/`. API (Admin SDK + `makePublic`): `talkshow/`, `match-reports/`, `feedback-screenshots/`. Capture pipeline (`gsutil -a public-read`): `highlights/`, `highlights-dev/`. API scripts: `team-logos/` |
+| Rules | [`storage.rules`](https://github.com/juniordev4life/rasenbuerosport-leipzig-app/blob/main/storage.rules) in the app repo, deployed by hand |
+| Uniform bucket-level access | Off: the API and the capture pipeline publish objects through object ACLs |
+| Public read | Bucket IAM `allUsers` → `roles/storage.legacyObjectReader`: read by URL, **no listing** (since 2026-09-26) |
+
+Access has two independent layers.
+
+**1. Firebase Security Rules.** They govern only client SDK requests (`firebasestorage.googleapis.com`). The Admin SDK and `gsutil` bypass them, and so do download URLs from `getDownloadURL()`, because those carry a token.
+
+- `avatars/<uid>/<file>`: create or replace only by the owner, with a verified `@redbulls.com` account. This is the same check as `isAllowedAccount` in `src/api/middlewares/auth.middlewares.js`. Images except SVG, at most 2 MiB. Public `get`.
+- `match-stats/<gameId>/<file>`: create, replace and `get` for verified `@redbulls.com` accounts. Images except SVG, at most 10 MiB.
+- `team-logos/**`: public `get`.
+- No list and no delete; every other path is denied.
+
+Rule changes go live only through a manual deploy from an up-to-date app `main`, because Match Day deploys Hosting only:
+
+```bash
+npx firebase-tools deploy --only storage --project rasenbuerosport-leipzig-9d54f
+```
+
+**2. Bucket IAM and object ACLs.** They govern `https://storage.googleapis.com/<bucket>/…` URLs and bypass the rules.
+
+- **Public grant.** Until 2026-09-26, `allUsers` had `roles/storage.objectViewer`. That role also allows listing, so anyone could enumerate and download every object. It is now `roles/storage.legacyObjectReader`, which grants only `storage.objects.get`: every object stays readable by URL, and nobody can list the bucket anonymously.
+- **Team logos depend on this grant.** `teams.logo_url` points to `https://storage.googleapis.com/<bucket>/team-logos/…`, and the logo objects have no object ACL. Before you remove or narrow the grant, give `team-logos/` public ACLs or switch the URLs to the Firebase form (`scripts/update-logo-urls.js`).
+- **Everything else** that is meant to be public carries its own public object ACL (`makePublic`, `public-read`).
 
 ---
 
