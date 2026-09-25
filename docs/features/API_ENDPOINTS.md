@@ -66,7 +66,7 @@ Get the authenticated user's profile.
 
 ### `PATCH /auth/profile`
 
-Create the current user's profile on first use, or update it. Omitted or `null` fields keep their current value.
+Create the current user's profile on first use, or update it. Omitted fields keep their current value, and so does `avatar_url: null`. `null` for `username` or `voice_aliases` is rejected with 400.
 
 **Auth:** Bearer token required
 

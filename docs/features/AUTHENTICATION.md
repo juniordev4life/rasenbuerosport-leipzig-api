@@ -98,7 +98,7 @@ The app matches on the exact message `User not authorized` and signs the user ou
 
 ## Profile Endpoint Rules
 
-`PATCH /api/v1/auth/profile` creates the profile on first use (upsert) and updates it afterwards. Omitted or `null` fields keep their current value.
+`PATCH /api/v1/auth/profile` creates the profile on first use (upsert) and updates it afterwards. Omitted fields keep their current value, and so does `avatar_url: null`. `null` for `username` or `voice_aliases` is rejected with 400.
 
 | Field | Rule |
 |-------|------|
