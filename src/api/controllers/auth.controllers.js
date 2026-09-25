@@ -1,5 +1,6 @@
 import { handleErrorResponse } from "../helpers/error.helpers.js";
 import { setGeneralResponse } from "../helpers/response.helpers.js";
+import { updateProfileSchema } from "../schemas/auth.schemas.js";
 import * as authService from "../services/auth.services.js";
 
 export const meController = {
@@ -36,20 +37,7 @@ export const meController = {
 };
 
 export const updateProfileController = {
-	schema: {
-		body: {
-			type: "object",
-			properties: {
-				username: { type: "string", minLength: 2, maxLength: 30 },
-				avatar_url: { type: "string" },
-				voice_aliases: {
-					type: "array",
-					maxItems: 10,
-					items: { type: "string", minLength: 1, maxLength: 30 },
-				},
-			},
-		},
-	},
+	schema: updateProfileSchema,
 	handler: async (request, reply) => {
 		try {
 			const profile = await authService.updateUserProfile(
