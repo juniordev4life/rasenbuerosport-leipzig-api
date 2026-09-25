@@ -299,21 +299,28 @@ The app includes ~400 real football clubs from **25 European top leagues** (cura
 
 ### Updating Teams
 
-Team data is sourced from SoFIFA (FC 26 ratings) and refreshed with a single command:
+Team data is sourced from SoFIFA (FC27 ratings, roster of 17.09.2026) and refreshed with a single command:
 
 ```bash
-DATABASE_URL="postgresql://postgres:PASSWORD@127.0.0.1:5433/rasenbuerosport" npm run teams:update
+npm run db:proxy                                          # terminal 1, keep it open
+bash scripts/with-prod-db.sh npm run teams:update         # terminal 2
 ```
 
 This runs the three-stage pipeline in order:
 
-1. `scripts/parse-sofifa-leagues.js` — parses the saved SoFIFA league RTF files in `ligen/` and regenerates `scripts/scraped-teams.json`.
-2. `scripts/import-teams.js` — upserts every team into Cloud SQL via `INSERT … ON CONFLICT (name) DO UPDATE`. Existing teams are matched by name, so **UUIDs are preserved**; `logo_url`, `sofifa_id`, `overall_rating`, `star_rating`, `league_name`, and `country_code` are refreshed. This step writes SoFIFA-CDN logo URLs.
+1. `scripts/parse-sofifa-leagues.js` — parses the saved SoFIFA league pages in `ligen/` and regenerates `scripts/scraped-teams.json`. The parsing itself lives in `scripts/lib/sofifaParser.utils.js` (unit-tested in `tests/scripts/`).
+2. `scripts/import-teams.js` — writes every team to Cloud SQL in one all-or-nothing transaction. See *How teams are matched* below. This step writes SoFIFA-CDN logo URLs.
 3. `scripts/update-logo-urls.js` — rewrites `logo_url` from the SoFIFA CDN back to the Firebase Storage bucket, so logos stay self-hosted. Bundling this in means the re-hosting can't be forgotten.
 
-`DATABASE_URL` is required and checked **up front** — a missing connection string aborts before any parsing. Point it at the Cloud SQL Auth Proxy (`npm run db:proxy`, port 5433) for PROD, or at your local Docker Postgres (port 5434). Each step is transactional; a non-zero exit aborts the run before the next step.
+`DATABASE_URL` is required and checked **up front** — a missing connection string aborts before any parsing. `scripts/with-prod-db.sh` sets it to PROD through the Cloud SQL Auth Proxy; without the wrapper, `.env` points at your local Docker Postgres (port 5434). Each step is transactional; a non-zero exit aborts the run before the next step.
 
-A brand-new club added during a run gets a Firebase URL whose image may not be in the bucket yet (404). Fetch and upload missing logos with `scripts/download-logos.js`.
+**Saving the league pages.** Each league is `https://sofifa.com/league/<id>` — pin the roster with `?r=<roster>` (FC27, 17.09.2026: `r=270002`). Save the page source as `ligen/liga <id>.html`; the older RTF copies (`liga <id>.rtf`) still parse. SoFIFA and its image CDN sit behind Cloudflare, so `curl`/`fetch` from a script gets a 403 — save the pages from a normal browser. The parser refuses to write any output when a league yields no teams (that is what a SoFIFA markup change looks like), and when the same league id is saved twice. The FC 26 RTF files are archived in `ligen/fc26/`.
+
+**How teams are matched.** `import-teams.js` matches on `sofifa_id` first and **keeps the existing name**: games store team names as text (`game_players.team_name`, `games.home_team_name` / `away_team_name`), so renaming a team would orphan its history and crest — and SoFIFA does rename clubs between editions (FC27: "Arsenal" → "Arsenal FC", "Inter" → "Inter Milan"). Ratings, stars, league, country and logo are refreshed. A team without a `sofifa_id` match falls back to its name (and adopts the id); anything else is inserted. UUIDs are always preserved, and teams missing from the scrape are left unchanged, never deleted. Preview a run with `bash scripts/with-prod-db.sh node scripts/import-teams.js --dry-run` — it executes everything, prints what was updated, inserted and kept, then rolls back.
+
+**League names.** Since FC27, SoFIFA titles carry sponsored names ("Serie A Enilive", "Sky Bet Championship"). The app's league filter groups by `teams.league_name`, so `LEAGUE_NAMES` in `scripts/lib/sofifaParser.utils.js` pins the established name per SoFIFA league id; only a league missing there uses the SoFIFA title.
+
+**Logos.** `update-logo-urls.js` only points a team at `team-logos/<cdnId>.png` when that object exists in the bucket. A brand-new club — or one whose crest got a new CDN id (FC27: Bayer 04 Leverkusen, Juventus) — keeps its SoFIFA CDN URL and is listed as missing; upload the logo to `team-logos/` and re-run the script.
 
 > `migrations/migrate-teams.js` is the original one-off bootstrap (CSV-based, `DELETE FROM teams` first, then downloads + uploads logos). It is **destructive** — do not use it for incremental updates.
 
@@ -655,6 +662,11 @@ npm run test:coverage # With coverage report
 ```
 backend/
 ├── scripts/
+│   ├── update-teams.js                  # Team pipeline: parse → import → re-host logos
+│   ├── parse-sofifa-leagues.js          # Saved SoFIFA league pages → scraped-teams.json
+│   ├── lib/sofifaParser.utils.js        # Pure SoFIFA page parsing (unit-tested)
+│   ├── import-teams.js                  # scraped-teams.json → teams (matched by sofifa_id)
+│   ├── update-logo-urls.js              # CDN logo URLs → Firebase Storage
 │   ├── seed.js                          # Demo data generator
 │   └── invite.js                        # User invitation script
 ├── src/
