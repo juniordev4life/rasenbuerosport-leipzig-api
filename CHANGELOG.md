@@ -6,7 +6,7 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
-## v1.8.6
+## v1.8.6 (2026-09-25)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.8.5...v1.8.6)
 
