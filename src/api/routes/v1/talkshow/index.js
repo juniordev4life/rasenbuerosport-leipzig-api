@@ -4,7 +4,10 @@ import {
 	previewTalkshowController,
 	renderTalkshowAudioController,
 } from "../../../controllers/talkshow.controllers.js";
-import { requireAuth } from "../../../middlewares/auth.middlewares.js";
+import {
+	requireAdmin,
+	requireAuth,
+} from "../../../middlewares/auth.middlewares.js";
 import { requireSchedulerSecret } from "../../../middlewares/schedulerAuth.middlewares.js";
 
 /** @param {import('fastify').FastifyInstance} fastify */
@@ -26,14 +29,18 @@ export default async function (fastify) {
 		handler: getLatestTalkshowController.handler,
 	});
 
+	// Admin-only operator tools. Both spend credits (Claude for
+	// `_preview`, ElevenLabs for `/audio`), and a persisting `_preview`
+	// replaces the week's episode and clears its `audio_url`, which
+	// re-arms the next `/audio` render. The app only reads `/latest`.
 	fastify.post("/_preview", {
-		preHandler: requireAuth,
+		preHandler: [requireAuth, requireAdmin],
 		schema: previewTalkshowController.schema,
 		handler: previewTalkshowController.handler,
 	});
 
 	fastify.post("/audio", {
-		preHandler: requireAuth,
+		preHandler: [requireAuth, requireAdmin],
 		schema: renderTalkshowAudioController.schema,
 		handler: renderTalkshowAudioController.handler,
 	});
