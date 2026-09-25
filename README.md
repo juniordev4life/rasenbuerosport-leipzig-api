@@ -408,6 +408,22 @@ Two things the replay does **not** fix, because they are not derived from the ga
 - **Trophies are append-only.** `mergeTrophies` (in `src/api/services/trophy/trophySync.services.js`, shared with `scripts/trophy-backfill.js`) skips entries that already exist and never revokes one. A badge earned through a match that later changed stays awarded, and `duo_trophies` is keyed on the player pair, so a changed lineup means a different row. Both need manual JSONB edits.
 - **Anything already delivered.** Push notifications name the players in their body and are long gone from the server. Generated match-report audio is uploaded `immutable` with a one-year max-age, so CDN and browser copies keep serving the old narration for a while even after a regeneration.
 
+### Simulating League-ELO v2 (offline)
+
+A proposed successor rulebook ("EAFC Liga-Elo": α-weighted duos, handicap H for the duo side in 1v2, capped side bonus and contribution shift, shootout damping, strict zero-sum with a +1 minimum win, repetition damping per week, parallel duo rating) lives next to the live engine in `src/api/services/elo/leagueEloV2*.services.js`. It is not wired into any endpoint. `scripts/simulate-elo-v2.js` replays every finalized game with it and prints the resulting ranking next to the current ratings — read-only, nothing is written:
+
+```bash
+DATABASE_URL=postgresql://postgres:localdev@127.0.0.1:5434/<snapshot-db> \
+  npm run elo:simulate-v2 -- --json=elo-v2.json
+```
+
+Run it against a local PROD snapshot (see *Local Development with a PROD Snapshot*). How the stored games map onto the rulebook:
+
+- Result and goal difference come from `score_home`/`score_away`; per-player events feed only the side bonus and the contribution shift.
+- Shootout kicks are duplicated into `score_timeline` (period `penalty`) — they are skipped there and read from `penalty_shootout.shots`, a miss counting as a keeper save (the app records no wide/post outcome).
+- Red cards the post-match screenshot reports beyond the attributed ones count for the side bonus only. Yellow cards play no role in v2.
+- The repetition factor counts games of the same line-up (home/away ignored) within one ISO week, Berlin time. Games with an empty side are skipped.
+
 ---
 
 ## Trophies
