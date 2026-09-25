@@ -6,6 +6,22 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v1.8.6
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.8.5...v1.8.6)
+
+### 🩹 Fixes
+
+- **auth:** Enforce the @redbulls.com account gate in requireAuth and harden auth inputs ([#85](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/85))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v1.8.5 ([dcac511](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/dcac511))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v1.8.5 (2026-08-21)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.8.4...v1.8.5)
