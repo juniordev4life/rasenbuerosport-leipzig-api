@@ -18,65 +18,21 @@ All endpoints are prefixed with `/api/v1` via Fastify's autoload plugin.
 
 ## Authentication
 
-Most endpoints require a valid Supabase JWT token in the `Authorization` header:
+Most endpoints require a Firebase ID token in the `Authorization` header. The app gets the token from Firebase Auth (Google Sign-In):
 
 ```
-Authorization: Bearer <token>
+Authorization: Bearer <firebase-id-token>
 ```
 
-Public endpoints (no auth required): `/health`, `/api/v1/leaderboard`
+Only **verified `@redbulls.com` accounts** are admitted. Every other account gets 403 `User not authorized` on every Bearer route. An invalid or expired token gets a generic 401. Details and the exact error bodies are in [Authentication](AUTHENTICATION.md).
+
+Public endpoints (no auth required): `/health`, `/api/v1/leaderboard`, `/api/v1/seasons*`
+
+Sign-up and login happen in the app via Firebase. The API has no register or login endpoints.
 
 ---
 
 ## Auth Endpoints
-
-### `POST /auth/register`
-
-Register a new user account.
-
-**Request Body:**
-
-```json
-{
-  "email": "max@example.com",
-  "password": "SecurePassword123!",
-  "username": "MaxMustermann"
-}
-```
-
-**Response (201):**
-
-```json
-{
-  "code": 201,
-  "title": "Success",
-  "message": "User registered successfully",
-  "data": {
-    "user": { "id": "uuid", "email": "max@example.com" },
-    "session": { "access_token": "eyJ...", "refresh_token": "..." }
-  },
-  "error": []
-}
-```
-
----
-
-### `POST /auth/login`
-
-Authenticate an existing user.
-
-**Request Body:**
-
-```json
-{
-  "email": "max@example.com",
-  "password": "SecurePassword123!"
-}
-```
-
-**Response (200):** Returns user object and session with JWT tokens.
-
----
 
 ### `GET /auth/me`
 
@@ -84,18 +40,55 @@ Get the authenticated user's profile.
 
 **Auth:** Bearer token required
 
-**Response (200):**
+**Response (200), existing profile:**
 
 ```json
 {
+  "code": 200,
+  "title": "Success",
+  "message": "Profile retrieved",
   "data": {
-    "id": "uuid",
+    "id": "<firebase-uid>",
     "username": "MaxMustermann",
     "avatar_url": "https://...",
-    "created_at": "2026-01-15T10:00:00Z"
-  }
+    "role": "user",
+    "needsSetup": false
+  },
+  "error": []
 }
 ```
+
+**Response (200), first sign-in (no profile yet):** `data` is `{ "id", "email", "username": null, "avatar_url": null, "needsSetup": true }`. The app then shows its setup page and creates the profile with `PATCH /auth/profile`.
+
+**Response (403):** `User not authorized` for any account outside the gate. The app signs the user out on exactly this message.
+
+---
+
+### `PATCH /auth/profile`
+
+Create the current user's profile on first use, or update it. Omitted fields keep their current value, and so does `avatar_url: null`. `null` for `username` or `voice_aliases` is rejected with 400.
+
+**Auth:** Bearer token required
+
+**Request Body:**
+
+```json
+{
+  "username": "MaxMustermann",
+  "avatar_url": "https://firebasestorage.googleapis.com/v0/b/<bucket>/o/avatars%2F<uid>%2Favatar.png?alt=media&token=...",
+  "voice_aliases": ["Maxi"]
+}
+```
+
+| Field | Rule |
+|-------|------|
+| `username` | 2–30 characters |
+| `avatar_url` | `null`, the caller's own upload in the project bucket (`…/o/avatars%2F<uid>%2F…`), or a Google account photo (`https://lh3.googleusercontent.com/…`) |
+| `voice_aliases` | Up to 10 entries of 1–30 characters. An empty array clears them |
+
+**Response (200):** The stored profile row.
+
+**Response (400):** Schema violation (e.g. a non-https `avatar_url`), or `Invalid avatar URL` for an https URL outside the allow-list.
 
 ---
 

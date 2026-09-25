@@ -10,14 +10,24 @@ import { requireAuth } from "../../../middlewares/auth.middlewares.js";
  *
  * Behind `requireAuth` because we want to (a) bind submissions to a
  * known user for triage and (b) keep the endpoint off public spam
- * tooling. A per-user rate limit on top of the global limiter
- * caps each user at 5 submissions per 10 minutes — easily enough
- * for legitimate feedback bursts, well below abuse territory.
+ * tooling. A per-user rate limit, which replaces the global limiter
+ * for this route, caps each user at 5 submissions per 10 minutes —
+ * easily enough for legitimate feedback bursts, well below abuse
+ * territory.
+ *
+ * `requireAuth` runs as an `onRequest` hook here, not as `preHandler`.
+ * Plugin-level hooks run before the route-level hook that
+ * @fastify/rate-limit adds, so `request.user` is already set when the
+ * limiter builds its key. That makes the limit per user; with the
+ * preHandler it silently fell back to the IP. It also rejects anonymous
+ * requests before the body (up to 10 MB) is read. Anonymous requests
+ * are therefore not rate-limited on this route, which is acceptable:
+ * each costs one token check and no body parsing.
  *
  * @param {import('fastify').FastifyInstance} fastify
  */
 export default async function (fastify) {
-	fastify.addHook("preHandler", requireAuth);
+	fastify.addHook("onRequest", requireAuth);
 
 	fastify.post("/", {
 		schema: submitFeedbackController.schema,

@@ -12,6 +12,9 @@ process.env.DATABASE_URL =
 	"postgresql://postgres:localdev@127.0.0.1:5434/rasenbuerosport_test";
 process.env.FIREBASE_PROJECT_ID =
 	process.env.FIREBASE_PROJECT_ID || "rasenbuerosport-test";
+process.env.FIREBASE_STORAGE_BUCKET =
+	process.env.FIREBASE_STORAGE_BUCKET ||
+	"rasenbuerosport-test.firebasestorage.app";
 process.env.WRAPPED_TRIGGER_SECRET =
 	process.env.WRAPPED_TRIGGER_SECRET || "test-wrapped-secret";
 process.env.ANTHROPIC_API_KEY =

@@ -160,8 +160,10 @@ The `requireAuth` middleware:
 
 1. Extracts the bearer token from the `Authorization` header
 2. Verifies it via `getFirebaseAuth().verifyIdToken(token)` (Firebase Admin SDK)
-3. Loads the matching `profiles` row from Postgres (id = Firebase `uid`)
-4. Attaches `{ id, email, role, username }` to `request.user`
+3. Admits only verified `@redbulls.com` accounts: `email_verified === true` and an address ending in `@` + `ALLOWED_EMAIL_DOMAIN`. Everyone else gets a neutral 403 `User not authorized`
+4. Attaches `{ id, email }` to `request.user`. It does **not** load the `profiles` row; `requireAdmin` reads `profiles.role` itself
+
+Keep the 403 message exactly `User not authorized`: the app (`rasenbuerosport-leipzig-app`) signs the user out when it sees it. Keep 401 bodies generic too. Log the Firebase error code via `request.log`, and never echo it to the client.
 
 ### Credentials
 
@@ -181,11 +183,11 @@ export const ROLES = {
 };
 ```
 
-For admin-only routes, check `request.user.role === ROLES.ADMIN` in the controller — there is no `requireRole` middleware yet. If you add one, follow the engineering-unit pattern (`requireRole(role)`, `requireAnyRole([roles])`).
+For admin-only routes, add `requireAdmin` after `requireAuth` (`preHandler: [requireAuth, requireAdmin]`). It reads `profiles.role` itself, because `request.user` carries only `{ id, email }`. There is no generic `requireRole` middleware yet. If you add one, follow the engineering-unit pattern (`requireRole(role)`, `requireAnyRole([roles])`).
 
 ### Public Endpoints
 
-`/health`, `/api/v1/leaderboard`, `/api/v1/seasons*`. Everything else requires `requireAuth`.
+`/health`, `/api/v1/leaderboard`, `/api/v1/seasons*`. The scheduler and office-agent routes use the shared-secret middlewares below. Everything else requires `requireAuth`.
 
 ### Scheduler Endpoints
 
@@ -273,7 +275,10 @@ Fastify's global error handler (in `setup.js`) catches schema validation errors 
 ## Security
 
 - **Helmet** — security headers via `@fastify/helmet`
-- **Rate Limiting** — 250 requests / minute via `@fastify/rate-limit`
+- **Rate Limiting** — 250 requests / minute per client IP via `@fastify/rate-limit`.
+  - `trustProxy: 1` (`src/server.js`) makes `request.ip` the address Cloud Run's front end appends to `X-Forwarded-For`. Never set it to `true`: that picks the left-most entry, which the client can spoof.
+  - A route-level limit keyed on `request.user` needs `requireAuth` as an `onRequest` hook, so that it runs before the limiter; see the feedback route.
+- **Avatar URLs** — `avatar_url` is allow-listed in `isAllowedAvatarUrl` (`auth.services.js`): own Storage upload (`avatars/<uid>/…`) or Google account photo
 - **CORS** — origin from `CORS_ORIGIN` (comma-separated for multiple), credentials enabled
 - **Input Validation** — JSON Schema on all endpoints
 - Never log secrets (Firebase tokens, `WRAPPED_TRIGGER_SECRET`, `ANTHROPIC_API_KEY`, DB password)
