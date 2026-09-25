@@ -74,6 +74,7 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | `POST` | `/api/v1/games` | Bearer | Create a new game |
 | `GET` | `/api/v1/games/recent` | Bearer | Global activity feed |
 | `GET` | `/api/v1/games/:gameId` | Bearer | Get game details |
+| `DELETE` | `/api/v1/games/:gameId` | Bearer + admin | Delete a game (its `game_players` rows cascade) |
 | `POST` | `/api/v1/games/:gameId/match-stats` | Bearer | Extract stats from FC26 screenshot |
 | `DELETE` | `/api/v1/games/:gameId/match-stats` | Bearer | Remove match stats |
 | `POST` | `/api/v1/games/:gameId/match-report` | Bearer | Generate reporter-style AI match report (Buschmann/Reif tone) |
@@ -103,8 +104,8 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | `POST` | `/api/v1/wrapped/generate` | Scheduler | Trigger weekly wrapped generation (Cloud Scheduler only) |
 | `POST` | `/api/v1/talkshow/generate` | Scheduler | Generate weekly talkshow episode — Claude script + multi-speaker ElevenLabs mp3 (Cloud Scheduler only) |
 | `GET` | `/api/v1/talkshow/latest` | Bearer | Latest persisted talkshow episode (week, audio URL, turn count, summary) — feeds the dashboard Talkrunde card |
-| `POST` | `/api/v1/talkshow/_preview` | Bearer | Debug: regenerate the current week's drehbuch (optionally without persisting) |
-| `POST` | `/api/v1/talkshow/audio` | Bearer | Re-render the audio for a persisted episode (idempotent — returns cached `audio_url` if already rendered) |
+| `POST` | `/api/v1/talkshow/_preview` | Bearer + admin | Debug: regenerate the drehbuch via Claude for the current week (or the week of `reference`). Persists by default, replacing the episode and clearing its `audio_url`; `persist: false` is a dry run |
+| `POST` | `/api/v1/talkshow/audio` | Bearer + admin | Render the ElevenLabs mp3 for a persisted episode (idempotent — returns the cached `audio_url` if already rendered) |
 | `POST` | `/api/v1/feedback` | Bearer | Submit in-app feedback (general → email via Resend, bug/feature → GitHub issue) |
 | `GET` | `/api/v1/players/:playerId/trophies` | Bearer | Player trophy room — all 64 trophies with unlocked-state, progress on threshold trophies, hidden trophies masked until unlocked |
 
@@ -224,6 +225,8 @@ Anything else gets a 400, so nobody can make every viewer's browser load an imag
 - The `FIREBASE_PROJECT_ID` env var pins the project the Admin SDK validates tokens against
 
 **Public endpoints:** `/health`, `/api/v1/leaderboard`, `/api/v1/seasons*`. Everything else requires a Bearer token. The internal `/api/v1/wrapped/generate` and `/api/v1/talkshow/generate` endpoints use a separate scheduler-secret middleware for Cloud Scheduler.
+
+**Admin endpoints:** `DELETE /api/v1/games/:gameId`, `POST /api/v1/talkshow/_preview` and `POST /api/v1/talkshow/audio` run `requireAdmin` after `requireAuth`. It reads the caller's `profiles.role` and answers 403 `Admin access required` unless the role is `admin`. The two talkshow routes are operator tools: they spend Claude and ElevenLabs credits, and a persisting `_preview` replaces a week's episode. The app only reads `GET /api/v1/talkshow/latest`; the weekly episode comes from the scheduler route.
 
 **Agent endpoints:** `GET /api/v1/recording/next`, `POST /api/v1/recording/report`, `GET /api/v1/recording/timeline` and `PATCH /api/v1/games/:gameId` authenticate via the `X-Agent-Secret` header (`AGENT_SECRET` env var, `requireAgentSecret` middleware) — machine auth for the office recording agent (`rasenbuerosport-leipzig-capture`), same pattern as the scheduler secret. The flow: the app POSTs `start` to `/v1/recording/command` on kickoff with a client-generated provisional recording id (the game row does not exist until after the final whistle), the agent polls `/v1/recording/next` and records; after saving, the app POSTs `stop` with the real game id, and the agent runs the highlight pipeline (extract goals → cut a reel → upload it public to Storage) and PATCHes `video_status` onto the game row: `processing` while the reel builds, then `ready` + `highlight_url` (or `failed`). The app renders `highlight_url` straight from the game response (`<video>`), polling while `processing` — no file lookups. A leftover `start` older than 3 h is served as `idle` (stale-start guard).
 

@@ -166,7 +166,7 @@ export const generateEpisodeController = {
 };
 
 /**
- * Debug-only endpoint that triggers a fresh talk-show script
+ * Admin-only debug endpoint that triggers a fresh talk-show script
  * generation for the current week (or the week containing the
  * optional `reference` date) and returns both the parsed turn list
  * and the raw script. Useful for quality-checking the drehbuch
@@ -240,7 +240,8 @@ export const previewTalkshowController = {
  *
  * Triggers the multi-speaker ElevenLabs pipeline + Firebase Storage
  * upload. Subsequent calls return the cached `audio_url` without
- * re-spending TTS credits.
+ * re-spending TTS credits. Admin-only: a render spends those credits,
+ * and concurrent calls on an empty cache each render.
  */
 export const renderTalkshowAudioController = {
 	schema: {
