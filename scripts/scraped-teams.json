@@ -6,13 +6,6 @@
     "country_code": "DK",
     "teams": [
       {
-        "name": "FC København",
-        "sofifa_id": 819,
-        "logo_url": "https://cdn.sofifa.net/meta/team/85/120.png",
-        "overall_rating": 72,
-        "star_rating": 3.5
-      },
-      {
         "name": "FC Midtjylland",
         "sofifa_id": 1516,
         "logo_url": "https://cdn.sofifa.net/meta/team/939/120.png",
@@ -20,11 +13,11 @@
         "star_rating": 3.5
       },
       {
-        "name": "Brøndby IF",
-        "sofifa_id": 269,
-        "logo_url": "https://cdn.sofifa.net/meta/team/293/120.png",
-        "overall_rating": 70,
-        "star_rating": 3
+        "name": "FC København",
+        "sofifa_id": 819,
+        "logo_url": "https://cdn.sofifa.net/meta/team/85/120.png",
+        "overall_rating": 71,
+        "star_rating": 3.5
       },
       {
         "name": "Aarhus Gymnastikforening",
@@ -34,6 +27,20 @@
         "star_rating": 3
       },
       {
+        "name": "FC Nordsjælland",
+        "sofifa_id": 1788,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2394/120.png",
+        "overall_rating": 69,
+        "star_rating": 3
+      },
+      {
+        "name": "Brøndby IF",
+        "sofifa_id": 269,
+        "logo_url": "https://cdn.sofifa.net/meta/team/293/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
         "name": "Randers FC",
         "sofifa_id": 1786,
         "logo_url": "https://cdn.sofifa.net/meta/team/2356/120.png",
@@ -41,23 +48,23 @@
         "star_rating": 2.5
       },
       {
-        "name": "FC Nordsjælland",
-        "sofifa_id": 1788,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2394/120.png",
+        "name": "Odense Boldklub",
+        "sofifa_id": 272,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1789/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
+      },
+      {
+        "name": "Sønderjyske Fodbold",
+        "sofifa_id": 1447,
+        "logo_url": "https://cdn.sofifa.net/meta/team/390/120.png",
+        "overall_rating": 66,
+        "star_rating": 2
       },
       {
         "name": "Viborg FF",
         "sofifa_id": 1443,
         "logo_url": "https://cdn.sofifa.net/meta/team/2447/120.png",
-        "overall_rating": 67,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Odense Boldklub",
-        "sofifa_id": 272,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1789/120.png",
         "overall_rating": 66,
         "star_rating": 2
       },
@@ -65,27 +72,20 @@
         "name": "Silkeborg IF",
         "sofifa_id": 270,
         "logo_url": "https://cdn.sofifa.net/meta/team/86/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
-      },
-      {
-        "name": "Vejle Boldklub",
-        "sofifa_id": 822,
-        "logo_url": "https://cdn.sofifa.net/meta/team/7466/120.png",
         "overall_rating": 65,
         "star_rating": 2
       },
       {
-        "name": "Sønderjyske Fodbold",
-        "sofifa_id": 1447,
-        "logo_url": "https://cdn.sofifa.net/meta/team/390/120.png",
+        "name": "Lyngby Boldklub",
+        "sofifa_id": 15001,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2650/120.png",
         "overall_rating": 64,
         "star_rating": 1.5
       },
       {
-        "name": "Fredericia",
-        "sofifa_id": 15006,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2933/120.png",
+        "name": "AC Horsens",
+        "sofifa_id": 1446,
+        "logo_url": "https://cdn.sofifa.net/meta/team/211/120.png",
         "overall_rating": 63,
         "star_rating": 1.5
       }
@@ -108,14 +108,7 @@
         "name": "KRC Genk",
         "sofifa_id": 673,
         "logo_url": "https://cdn.sofifa.net/meta/team/2709/120.png",
-        "overall_rating": 73,
-        "star_rating": 3.5
-      },
-      {
-        "name": "Union Saint-Gilloise",
-        "sofifa_id": 2014,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3958/120.png",
-        "overall_rating": 73,
+        "overall_rating": 72,
         "star_rating": 3.5
       },
       {
@@ -126,9 +119,30 @@
         "star_rating": 3.5
       },
       {
-        "name": "Royal Antwerp FC",
-        "sofifa_id": 230,
-        "logo_url": "https://cdn.sofifa.net/meta/team/328/120.png",
+        "name": "Union Saint-Gilloise",
+        "sofifa_id": 2014,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3958/120.png",
+        "overall_rating": 72,
+        "star_rating": 3.5
+      },
+      {
+        "name": "KAA Gent",
+        "sofifa_id": 674,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2402/120.png",
+        "overall_rating": 71,
+        "star_rating": 3.5
+      },
+      {
+        "name": "KV Mechelen",
+        "sofifa_id": 110724,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2938/120.png",
+        "overall_rating": 70,
+        "star_rating": 3
+      },
+      {
+        "name": "Sint-Truidense VV",
+        "sofifa_id": 680,
+        "logo_url": "https://cdn.sofifa.net/meta/team/355/120.png",
         "overall_rating": 70,
         "star_rating": 3
       },
@@ -136,20 +150,6 @@
         "name": "Standard de Liège",
         "sofifa_id": 232,
         "logo_url": "https://cdn.sofifa.net/meta/team/700/120.png",
-        "overall_rating": 70,
-        "star_rating": 3
-      },
-      {
-        "name": "KAA Gent",
-        "sofifa_id": 674,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2402/120.png",
-        "overall_rating": 70,
-        "star_rating": 3
-      },
-      {
-        "name": "KV Mechelen",
-        "sofifa_id": 110724,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2938/120.png",
         "overall_rating": 69,
         "star_rating": 3
       },
@@ -157,35 +157,42 @@
         "name": "Oud-Heverlee Leuven",
         "sofifa_id": 100087,
         "logo_url": "https://cdn.sofifa.net/meta/team/1947/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
-        "name": "Sint-Truidense VV",
-        "sofifa_id": 680,
-        "logo_url": "https://cdn.sofifa.net/meta/team/355/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
-        "name": "Royal Charleroi Sporting Club",
-        "sofifa_id": 670,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1087/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
-        "name": "KVC Westerlo",
-        "sofifa_id": 681,
-        "logo_url": "https://cdn.sofifa.net/meta/team/357/120.png",
         "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "KV Kortrijk",
+        "sofifa_id": 100081,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1130/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Royal Antwerp FC",
+        "sofifa_id": 230,
+        "logo_url": "https://cdn.sofifa.net/meta/team/328/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Waasland-Beveren",
+        "sofifa_id": 110913,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1272/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
+        "name": "RAAL La Louvière",
+        "sofifa_id": 132231,
+        "logo_url": "https://cdn.sofifa.net/meta/team/6722/120.png",
+        "overall_rating": 67,
         "star_rating": 2.5
       },
       {
         "name": "SV Zulte Waregem",
         "sofifa_id": 15005,
         "logo_url": "https://cdn.sofifa.net/meta/team/1118/120.png",
-        "overall_rating": 68,
+        "overall_rating": 67,
         "star_rating": 2.5
       },
       {
@@ -196,18 +203,25 @@
         "star_rating": 2.5
       },
       {
-        "name": "FCV Dender EH",
-        "sofifa_id": 537,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2741/120.png",
+        "name": "KVC Westerlo",
+        "sofifa_id": 681,
+        "logo_url": "https://cdn.sofifa.net/meta/team/357/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
       },
       {
-        "name": "RAAL La Louvière",
-        "sofifa_id": 132231,
-        "logo_url": "https://cdn.sofifa.net/meta/team/6722/120.png",
+        "name": "Royal Charleroi Sporting Club",
+        "sofifa_id": 670,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1087/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
+      },
+      {
+        "name": "Lommel SK",
+        "sofifa_id": 37,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2591/120.png",
+        "overall_rating": 66,
+        "star_rating": 2
       }
     ]
   },
@@ -232,13 +246,6 @@
         "star_rating": 4
       },
       {
-        "name": "Botafogo",
-        "sofifa_id": 517,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2864/120.png",
-        "overall_rating": 75,
-        "star_rating": 4
-      },
-      {
         "name": "Atlético Mineiro",
         "sofifa_id": 1035,
         "logo_url": "https://cdn.sofifa.net/meta/team/3427/120.png",
@@ -246,23 +253,37 @@
         "star_rating": 4
       },
       {
-        "name": "Internacional",
-        "sofifa_id": 1048,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2696/120.png",
+        "name": "Santos",
+        "sofifa_id": 1053,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3684/120.png",
         "overall_rating": 74,
         "star_rating": 3.5
       },
       {
-        "name": "Corinthians",
-        "sofifa_id": 1041,
-        "logo_url": "https://cdn.sofifa.net/meta/team/303/120.png",
-        "overall_rating": 73,
+        "name": "Red Bull Bragantino",
+        "sofifa_id": 112472,
+        "logo_url": "https://cdn.sofifa.net/meta/team/7808/120.png",
+        "overall_rating": 74,
         "star_rating": 3.5
       },
       {
         "name": "São Paulo",
         "sofifa_id": 598,
         "logo_url": "https://cdn.sofifa.net/meta/team/3496/120.png",
+        "overall_rating": 73,
+        "star_rating": 3.5
+      },
+      {
+        "name": "Bahia",
+        "sofifa_id": 1598,
+        "logo_url": "https://cdn.sofifa.net/meta/team/692/120.png",
+        "overall_rating": 73,
+        "star_rating": 3.5
+      },
+      {
+        "name": "Corinthians",
+        "sofifa_id": 1041,
+        "logo_url": "https://cdn.sofifa.net/meta/team/303/120.png",
         "overall_rating": 73,
         "star_rating": 3.5
       },
@@ -281,9 +302,9 @@
         "star_rating": 3.5
       },
       {
-        "name": "Bahia",
-        "sofifa_id": 1598,
-        "logo_url": "https://cdn.sofifa.net/meta/team/692/120.png",
+        "name": "Botafogo",
+        "sofifa_id": 517,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2864/120.png",
         "overall_rating": 72,
         "star_rating": 3.5
       },
@@ -295,13 +316,6 @@
         "star_rating": 3.5
       },
       {
-        "name": "Fortaleza",
-        "sofifa_id": 111052,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3621/120.png",
-        "overall_rating": 71,
-        "star_rating": 3.5
-      },
-      {
         "name": "Vasco da Gama",
         "sofifa_id": 569,
         "logo_url": "https://cdn.sofifa.net/meta/team/696/120.png",
@@ -309,10 +323,10 @@
         "star_rating": 3
       },
       {
-        "name": "Vitória",
-        "sofifa_id": 1719,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3440/120.png",
-        "overall_rating": 69,
+        "name": "Mirassol",
+        "sofifa_id": 111975,
+        "logo_url": "https://cdn.sofifa.net/meta/team/11126/120.png",
+        "overall_rating": 70,
         "star_rating": 3
       }
     ]
@@ -324,17 +338,17 @@
     "country_code": "NL",
     "teams": [
       {
-        "name": "PSV",
-        "sofifa_id": 247,
-        "logo_url": "https://cdn.sofifa.net/meta/team/682/120.png",
+        "name": "Ajax",
+        "sofifa_id": 245,
+        "logo_url": "https://cdn.sofifa.net/meta/team/629/120.png",
         "overall_rating": 77,
         "star_rating": 4
       },
       {
-        "name": "Ajax",
-        "sofifa_id": 245,
-        "logo_url": "https://cdn.sofifa.net/meta/team/629/120.png",
-        "overall_rating": 75,
+        "name": "PSV",
+        "sofifa_id": 247,
+        "logo_url": "https://cdn.sofifa.net/meta/team/682/120.png",
+        "overall_rating": 77,
         "star_rating": 4
       },
       {
@@ -352,17 +366,10 @@
         "star_rating": 3.5
       },
       {
-        "name": "FC Utrecht",
-        "sofifa_id": 1903,
-        "logo_url": "https://cdn.sofifa.net/meta/team/750/120.png",
-        "overall_rating": 72,
-        "star_rating": 3.5
-      },
-      {
         "name": "NEC Nijmegen",
         "sofifa_id": 1910,
         "logo_url": "https://cdn.sofifa.net/meta/team/494/120.png",
-        "overall_rating": 71,
+        "overall_rating": 72,
         "star_rating": 3.5
       },
       {
@@ -373,38 +380,24 @@
         "star_rating": 3.5
       },
       {
-        "name": "Go Ahead Eagles",
-        "sofifa_id": 100632,
-        "logo_url": "https://cdn.sofifa.net/meta/team/664/120.png",
-        "overall_rating": 69,
+        "name": "FC Utrecht",
+        "sofifa_id": 1903,
+        "logo_url": "https://cdn.sofifa.net/meta/team/750/120.png",
+        "overall_rating": 70,
         "star_rating": 3
       },
       {
-        "name": "Sparta Rotterdam",
-        "sofifa_id": 100646,
-        "logo_url": "https://cdn.sofifa.net/meta/team/919/120.png",
+        "name": "Go Ahead Eagles",
+        "sofifa_id": 100632,
+        "logo_url": "https://cdn.sofifa.net/meta/team/664/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
       {
-        "name": "Fortuna Sittard",
-        "sofifa_id": 634,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1459/120.png",
+        "name": "SC Heerenveen",
+        "sofifa_id": 1913,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1053/120.png",
         "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Heracles Almelo",
-        "sofifa_id": 100634,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1403/120.png",
-        "overall_rating": 67,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Excelsior",
-        "sofifa_id": 1971,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1652/120.png",
-        "overall_rating": 67,
         "star_rating": 2.5
       },
       {
@@ -422,24 +415,45 @@
         "star_rating": 2.5
       },
       {
-        "name": "SC Heerenveen",
-        "sofifa_id": 1913,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1053/120.png",
+        "name": "Fortuna Sittard",
+        "sofifa_id": 634,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1459/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
       },
       {
-        "name": "NAC Breda",
-        "sofifa_id": 1904,
-        "logo_url": "https://cdn.sofifa.net/meta/team/637/120.png",
+        "name": "Sparta Rotterdam",
+        "sofifa_id": 100646,
+        "logo_url": "https://cdn.sofifa.net/meta/team/919/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
       },
       {
-        "name": "FC Volendam",
-        "sofifa_id": 645,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2396/120.png",
+        "name": "Willem II",
+        "sofifa_id": 1907,
+        "logo_url": "https://cdn.sofifa.net/meta/team/669/120.png",
         "overall_rating": 66,
+        "star_rating": 2
+      },
+      {
+        "name": "Excelsior",
+        "sofifa_id": 1971,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1652/120.png",
+        "overall_rating": 66,
+        "star_rating": 2
+      },
+      {
+        "name": "ADO Den Haag",
+        "sofifa_id": 650,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1128/120.png",
+        "overall_rating": 66,
+        "star_rating": 2
+      },
+      {
+        "name": "SC Cambuur",
+        "sofifa_id": 647,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1435/120.png",
+        "overall_rating": 65,
         "star_rating": 2
       },
       {
@@ -458,16 +472,9 @@
     "country_code": "GB-ENG",
     "teams": [
       {
-        "name": "Arsenal",
+        "name": "Arsenal FC",
         "sofifa_id": 1,
         "logo_url": "https://cdn.sofifa.net/meta/team/19/120.png",
-        "overall_rating": 85,
-        "star_rating": 5
-      },
-      {
-        "name": "Liverpool",
-        "sofifa_id": 9,
-        "logo_url": "https://cdn.sofifa.net/meta/team/8/120.png",
         "overall_rating": 85,
         "star_rating": 5
       },
@@ -479,6 +486,20 @@
         "star_rating": 5
       },
       {
+        "name": "Liverpool FC",
+        "sofifa_id": 9,
+        "logo_url": "https://cdn.sofifa.net/meta/team/8/120.png",
+        "overall_rating": 83,
+        "star_rating": 5
+      },
+      {
+        "name": "Manchester United",
+        "sofifa_id": 11,
+        "logo_url": "https://cdn.sofifa.net/meta/team/14/120.png",
+        "overall_rating": 82,
+        "star_rating": 4.5
+      },
+      {
         "name": "Tottenham Hotspur",
         "sofifa_id": 18,
         "logo_url": "https://cdn.sofifa.net/meta/team/6/120.png",
@@ -486,37 +507,23 @@
         "star_rating": 4.5
       },
       {
-        "name": "Newcastle United",
-        "sofifa_id": 13,
-        "logo_url": "https://cdn.sofifa.net/meta/team/20/120.png",
-        "overall_rating": 81,
-        "star_rating": 4.5
-      },
-      {
-        "name": "Aston Villa",
-        "sofifa_id": 2,
-        "logo_url": "https://cdn.sofifa.net/meta/team/15/120.png",
-        "overall_rating": 81,
-        "star_rating": 4.5
-      },
-      {
-        "name": "Chelsea",
+        "name": "Chelsea FC",
         "sofifa_id": 5,
         "logo_url": "https://cdn.sofifa.net/meta/team/18/120.png",
         "overall_rating": 81,
         "star_rating": 4.5
       },
       {
-        "name": "Manchester United",
-        "sofifa_id": 11,
-        "logo_url": "https://cdn.sofifa.net/meta/team/14/120.png",
-        "overall_rating": 80,
+        "name": "Sunderland AFC",
+        "sofifa_id": 106,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3/120.png",
+        "overall_rating": 79,
         "star_rating": 4.5
       },
       {
-        "name": "Crystal Palace",
-        "sofifa_id": 1799,
-        "logo_url": "https://cdn.sofifa.net/meta/team/51/120.png",
+        "name": "Aston Villa",
+        "sofifa_id": 2,
+        "logo_url": "https://cdn.sofifa.net/meta/team/15/120.png",
         "overall_rating": 79,
         "star_rating": 4.5
       },
@@ -528,9 +535,23 @@
         "star_rating": 4.5
       },
       {
-        "name": "Brighton & Hove Albion",
-        "sofifa_id": 1808,
-        "logo_url": "https://cdn.sofifa.net/meta/team/78/120.png",
+        "name": "Newcastle United",
+        "sofifa_id": 13,
+        "logo_url": "https://cdn.sofifa.net/meta/team/20/120.png",
+        "overall_rating": 79,
+        "star_rating": 4.5
+      },
+      {
+        "name": "Crystal Palace",
+        "sofifa_id": 1799,
+        "logo_url": "https://cdn.sofifa.net/meta/team/51/120.png",
+        "overall_rating": 79,
+        "star_rating": 4.5
+      },
+      {
+        "name": "Everton FC",
+        "sofifa_id": 7,
+        "logo_url": "https://cdn.sofifa.net/meta/team/13/120.png",
         "overall_rating": 78,
         "star_rating": 4
       },
@@ -542,9 +563,16 @@
         "star_rating": 4
       },
       {
-        "name": "Everton",
-        "sofifa_id": 7,
-        "logo_url": "https://cdn.sofifa.net/meta/team/13/120.png",
+        "name": "Brentford",
+        "sofifa_id": 1925,
+        "logo_url": "https://cdn.sofifa.net/meta/team/236/120.png",
+        "overall_rating": 78,
+        "star_rating": 4
+      },
+      {
+        "name": "Brighton & Hove Albion",
+        "sofifa_id": 1808,
+        "logo_url": "https://cdn.sofifa.net/meta/team/78/120.png",
         "overall_rating": 78,
         "star_rating": 4
       },
@@ -552,27 +580,6 @@
         "name": "Fulham FC",
         "sofifa_id": 144,
         "logo_url": "https://cdn.sofifa.net/meta/team/11/120.png",
-        "overall_rating": 78,
-        "star_rating": 4
-      },
-      {
-        "name": "Brentford",
-        "sofifa_id": 1925,
-        "logo_url": "https://cdn.sofifa.net/meta/team/236/120.png",
-        "overall_rating": 77,
-        "star_rating": 4
-      },
-      {
-        "name": "Sunderland",
-        "sofifa_id": 106,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3/120.png",
-        "overall_rating": 77,
-        "star_rating": 4
-      },
-      {
-        "name": "West Ham United",
-        "sofifa_id": 19,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1/120.png",
         "overall_rating": 77,
         "star_rating": 4
       },
@@ -580,22 +587,29 @@
         "name": "Leeds United",
         "sofifa_id": 8,
         "logo_url": "https://cdn.sofifa.net/meta/team/71/120.png",
+        "overall_rating": 77,
+        "star_rating": 4
+      },
+      {
+        "name": "Ipswich Town",
+        "sofifa_id": 94,
+        "logo_url": "https://cdn.sofifa.net/meta/team/116/120.png",
         "overall_rating": 76,
         "star_rating": 4
       },
       {
-        "name": "Burnley",
-        "sofifa_id": 1796,
-        "logo_url": "https://cdn.sofifa.net/meta/team/27/120.png",
-        "overall_rating": 75,
-        "star_rating": 4
+        "name": "Coventry City",
+        "sofifa_id": 1800,
+        "logo_url": "https://cdn.sofifa.net/meta/team/117/120.png",
+        "overall_rating": 74,
+        "star_rating": 3.5
       },
       {
-        "name": "Wolverhampton Wanderers",
-        "sofifa_id": 110,
-        "logo_url": "https://cdn.sofifa.net/meta/team/29/120.png",
-        "overall_rating": 75,
-        "star_rating": 4
+        "name": "Hull City",
+        "sofifa_id": 1952,
+        "logo_url": "https://cdn.sofifa.net/meta/team/22/120.png",
+        "overall_rating": 74,
+        "star_rating": 3.5
       }
     ]
   },
@@ -606,30 +620,37 @@
     "country_code": "GB-ENG",
     "teams": [
       {
-        "name": "Ipswich Town",
-        "sofifa_id": 94,
-        "logo_url": "https://cdn.sofifa.net/meta/team/116/120.png",
+        "name": "Wolverhampton Wanderers",
+        "sofifa_id": 110,
+        "logo_url": "https://cdn.sofifa.net/meta/team/29/120.png",
+        "overall_rating": 75,
+        "star_rating": 4
+      },
+      {
+        "name": "West Ham United",
+        "sofifa_id": 19,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1/120.png",
+        "overall_rating": 75,
+        "star_rating": 4
+      },
+      {
+        "name": "Burnley",
+        "sofifa_id": 1796,
+        "logo_url": "https://cdn.sofifa.net/meta/team/27/120.png",
+        "overall_rating": 74,
+        "star_rating": 3.5
+      },
+      {
+        "name": "Southampton FC",
+        "sofifa_id": 17,
+        "logo_url": "https://cdn.sofifa.net/meta/team/65/120.png",
         "overall_rating": 73,
         "star_rating": 3.5
       },
       {
-        "name": "Coventry City",
-        "sofifa_id": 1800,
-        "logo_url": "https://cdn.sofifa.net/meta/team/117/120.png",
-        "overall_rating": 72,
-        "star_rating": 3.5
-      },
-      {
-        "name": "Leicester City",
-        "sofifa_id": 95,
-        "logo_url": "https://cdn.sofifa.net/meta/team/42/120.png",
-        "overall_rating": 72,
-        "star_rating": 3.5
-      },
-      {
-        "name": "Sheffield United",
-        "sofifa_id": 1794,
-        "logo_url": "https://cdn.sofifa.net/meta/team/21/120.png",
+        "name": "Wrexham",
+        "sofifa_id": 1947,
+        "logo_url": "https://cdn.sofifa.net/meta/team/283/120.png",
         "overall_rating": 72,
         "star_rating": 3.5
       },
@@ -641,51 +662,23 @@
         "star_rating": 3.5
       },
       {
-        "name": "Southampton",
-        "sofifa_id": 17,
-        "logo_url": "https://cdn.sofifa.net/meta/team/65/120.png",
+        "name": "Middlesbrough FC",
+        "sofifa_id": 12,
+        "logo_url": "https://cdn.sofifa.net/meta/team/7/120.png",
         "overall_rating": 72,
         "star_rating": 3.5
       },
       {
-        "name": "Wrexham",
-        "sofifa_id": 1947,
-        "logo_url": "https://cdn.sofifa.net/meta/team/283/120.png",
+        "name": "Sheffield United",
+        "sofifa_id": 1794,
+        "logo_url": "https://cdn.sofifa.net/meta/team/21/120.png",
         "overall_rating": 71,
         "star_rating": 3.5
       },
       {
-        "name": "Bristol City",
-        "sofifa_id": 1919,
-        "logo_url": "https://cdn.sofifa.net/meta/team/122/120.png",
-        "overall_rating": 71,
-        "star_rating": 3.5
-      },
-      {
-        "name": "Hull City",
-        "sofifa_id": 1952,
-        "logo_url": "https://cdn.sofifa.net/meta/team/22/120.png",
-        "overall_rating": 71,
-        "star_rating": 3.5
-      },
-      {
-        "name": "Millwall FC",
-        "sofifa_id": 97,
-        "logo_url": "https://cdn.sofifa.net/meta/team/64/120.png",
-        "overall_rating": 71,
-        "star_rating": 3.5
-      },
-      {
-        "name": "Stoke City",
-        "sofifa_id": 1806,
-        "logo_url": "https://cdn.sofifa.net/meta/team/26/120.png",
-        "overall_rating": 71,
-        "star_rating": 3.5
-      },
-      {
-        "name": "Middlesbrough",
-        "sofifa_id": 12,
-        "logo_url": "https://cdn.sofifa.net/meta/team/7/120.png",
+        "name": "Derby County",
+        "sofifa_id": 91,
+        "logo_url": "https://cdn.sofifa.net/meta/team/24/120.png",
         "overall_rating": 71,
         "star_rating": 3.5
       },
@@ -697,6 +690,20 @@
         "star_rating": 3.5
       },
       {
+        "name": "Watford",
+        "sofifa_id": 1795,
+        "logo_url": "https://cdn.sofifa.net/meta/team/25/120.png",
+        "overall_rating": 71,
+        "star_rating": 3.5
+      },
+      {
+        "name": "Norwich City",
+        "sofifa_id": 1792,
+        "logo_url": "https://cdn.sofifa.net/meta/team/33/120.png",
+        "overall_rating": 71,
+        "star_rating": 3.5
+      },
+      {
         "name": "Preston North End",
         "sofifa_id": 1801,
         "logo_url": "https://cdn.sofifa.net/meta/team/99/120.png",
@@ -704,16 +711,16 @@
         "star_rating": 3
       },
       {
-        "name": "Watford",
-        "sofifa_id": 1795,
-        "logo_url": "https://cdn.sofifa.net/meta/team/25/120.png",
+        "name": "Stoke City",
+        "sofifa_id": 1806,
+        "logo_url": "https://cdn.sofifa.net/meta/team/26/120.png",
         "overall_rating": 70,
         "star_rating": 3
       },
       {
-        "name": "Norwich City",
-        "sofifa_id": 1792,
-        "logo_url": "https://cdn.sofifa.net/meta/team/33/120.png",
+        "name": "Bristol City",
+        "sofifa_id": 1919,
+        "logo_url": "https://cdn.sofifa.net/meta/team/122/120.png",
         "overall_rating": 70,
         "star_rating": 3
       },
@@ -725,9 +732,9 @@
         "star_rating": 3
       },
       {
-        "name": "Derby County",
-        "sofifa_id": 91,
-        "logo_url": "https://cdn.sofifa.net/meta/team/24/120.png",
+        "name": "Millwall FC",
+        "sofifa_id": 97,
+        "logo_url": "https://cdn.sofifa.net/meta/team/64/120.png",
         "overall_rating": 70,
         "star_rating": 3
       },
@@ -753,13 +760,6 @@
         "star_rating": 3
       },
       {
-        "name": "Oxford United",
-        "sofifa_id": 1951,
-        "logo_url": "https://cdn.sofifa.net/meta/team/297/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
         "name": "Blackburn Rovers",
         "sofifa_id": 3,
         "logo_url": "https://cdn.sofifa.net/meta/team/2/120.png",
@@ -767,10 +767,24 @@
         "star_rating": 3
       },
       {
-        "name": "Sheffield Wednesday",
-        "sofifa_id": 1807,
-        "logo_url": "https://cdn.sofifa.net/meta/team/56/120.png",
-        "overall_rating": 67,
+        "name": "Lincoln City",
+        "sofifa_id": 149,
+        "logo_url": "https://cdn.sofifa.net/meta/team/305/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Bolton Wanderers",
+        "sofifa_id": 4,
+        "logo_url": "https://cdn.sofifa.net/meta/team/16/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Cardiff City",
+        "sofifa_id": 1961,
+        "logo_url": "https://cdn.sofifa.net/meta/team/69/120.png",
+        "overall_rating": 68,
         "star_rating": 2.5
       }
     ]
@@ -789,27 +803,6 @@
         "star_rating": 5
       },
       {
-        "name": "Olympique de Marseille",
-        "sofifa_id": 219,
-        "logo_url": "https://cdn.sofifa.net/meta/team/44/120.png",
-        "overall_rating": 79,
-        "star_rating": 4.5
-      },
-      {
-        "name": "AS Monaco",
-        "sofifa_id": 69,
-        "logo_url": "https://cdn.sofifa.net/meta/team/6789/120.png",
-        "overall_rating": 78,
-        "star_rating": 4
-      },
-      {
-        "name": "Lille OSC",
-        "sofifa_id": 65,
-        "logo_url": "https://cdn.sofifa.net/meta/team/690/120.png",
-        "overall_rating": 77,
-        "star_rating": 4
-      },
-      {
         "name": "Olympique Lyonnais",
         "sofifa_id": 66,
         "logo_url": "https://cdn.sofifa.net/meta/team/79/120.png",
@@ -817,10 +810,17 @@
         "star_rating": 4
       },
       {
-        "name": "Stade Rennais FC",
+        "name": "AS Monaco",
+        "sofifa_id": 69,
+        "logo_url": "https://cdn.sofifa.net/meta/team/6789/120.png",
+        "overall_rating": 77,
+        "star_rating": 4
+      },
+      {
+        "name": "Stade Rennais",
         "sofifa_id": 74,
         "logo_url": "https://cdn.sofifa.net/meta/team/598/120.png",
-        "overall_rating": 76,
+        "overall_rating": 77,
         "star_rating": 4
       },
       {
@@ -831,10 +831,17 @@
         "star_rating": 4
       },
       {
-        "name": "RC Strasbourg Alsace",
-        "sofifa_id": 76,
-        "logo_url": "https://cdn.sofifa.net/meta/team/686/120.png",
-        "overall_rating": 75,
+        "name": "Lille OSC",
+        "sofifa_id": 65,
+        "logo_url": "https://cdn.sofifa.net/meta/team/690/120.png",
+        "overall_rating": 76,
+        "star_rating": 4
+      },
+      {
+        "name": "Olympique de Marseille",
+        "sofifa_id": 219,
+        "logo_url": "https://cdn.sofifa.net/meta/team/44/120.png",
+        "overall_rating": 76,
         "star_rating": 4
       },
       {
@@ -852,30 +859,37 @@
         "star_rating": 4
       },
       {
-        "name": "Stade Brestois 29",
-        "sofifa_id": 378,
-        "logo_url": "https://cdn.sofifa.net/meta/team/266/120.png",
+        "name": "RC Strasbourg Alsace",
+        "sofifa_id": 76,
+        "logo_url": "https://cdn.sofifa.net/meta/team/686/120.png",
         "overall_rating": 74,
-        "star_rating": 3.5
-      },
-      {
-        "name": "FC Nantes",
-        "sofifa_id": 71,
-        "logo_url": "https://cdn.sofifa.net/meta/team/59/120.png",
-        "overall_rating": 73,
-        "star_rating": 3.5
-      },
-      {
-        "name": "FC Lorient",
-        "sofifa_id": 217,
-        "logo_url": "https://cdn.sofifa.net/meta/team/9257/120.png",
-        "overall_rating": 72,
         "star_rating": 3.5
       },
       {
         "name": "Toulouse FC",
         "sofifa_id": 1809,
         "logo_url": "https://cdn.sofifa.net/meta/team/289/120.png",
+        "overall_rating": 72,
+        "star_rating": 3.5
+      },
+      {
+        "name": "Angers SCO",
+        "sofifa_id": 1530,
+        "logo_url": "https://cdn.sofifa.net/meta/team/776/120.png",
+        "overall_rating": 72,
+        "star_rating": 3.5
+      },
+      {
+        "name": "Stade Brestois 29",
+        "sofifa_id": 378,
+        "logo_url": "https://cdn.sofifa.net/meta/team/266/120.png",
+        "overall_rating": 72,
+        "star_rating": 3.5
+      },
+      {
+        "name": "FC Lorient",
+        "sofifa_id": 217,
+        "logo_url": "https://cdn.sofifa.net/meta/team/9257/120.png",
         "overall_rating": 72,
         "star_rating": 3.5
       },
@@ -887,25 +901,25 @@
         "star_rating": 3.5
       },
       {
-        "name": "FC Metz",
-        "sofifa_id": 68,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3513/120.png",
-        "overall_rating": 71,
-        "star_rating": 3.5
-      },
-      {
-        "name": "Angers SCO",
-        "sofifa_id": 1530,
-        "logo_url": "https://cdn.sofifa.net/meta/team/776/120.png",
-        "overall_rating": 71,
-        "star_rating": 3.5
-      },
-      {
         "name": "Le Havre AC",
         "sofifa_id": 1738,
         "logo_url": "https://cdn.sofifa.net/meta/team/1055/120.png",
         "overall_rating": 71,
         "star_rating": 3.5
+      },
+      {
+        "name": "ESTAC Troyes",
+        "sofifa_id": 294,
+        "logo_url": "https://cdn.sofifa.net/meta/team/7047/120.png",
+        "overall_rating": 70,
+        "star_rating": 3
+      },
+      {
+        "name": "Le Mans FC",
+        "sofifa_id": 1739,
+        "logo_url": "https://cdn.sofifa.net/meta/team/7758/120.png",
+        "overall_rating": 70,
+        "star_rating": 3
       }
     ]
   },
@@ -916,6 +930,13 @@
     "country_code": "FR",
     "teams": [
       {
+        "name": "FC Nantes",
+        "sofifa_id": 71,
+        "logo_url": "https://cdn.sofifa.net/meta/team/59/120.png",
+        "overall_rating": 71,
+        "star_rating": 3.5
+      },
+      {
         "name": "AS Saint-Étienne",
         "sofifa_id": 1819,
         "logo_url": "https://cdn.sofifa.net/meta/team/108/120.png",
@@ -923,11 +944,11 @@
         "star_rating": 3
       },
       {
-        "name": "Stade de Reims",
-        "sofifa_id": 379,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1028/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
+        "name": "FC Metz",
+        "sofifa_id": 68,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3513/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
       },
       {
         "name": "Montpellier HSC",
@@ -937,31 +958,10 @@
         "star_rating": 2.5
       },
       {
-        "name": "Amiens SC",
-        "sofifa_id": 1816,
-        "logo_url": "https://cdn.sofifa.net/meta/team/840/120.png",
-        "overall_rating": 67,
-        "star_rating": 2.5
-      },
-      {
-        "name": "En Avant Guingamp",
-        "sofifa_id": 62,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2919/120.png",
-        "overall_rating": 67,
-        "star_rating": 2.5
-      },
-      {
-        "name": "ESTAC Troyes",
-        "sofifa_id": 294,
-        "logo_url": "https://cdn.sofifa.net/meta/team/7047/120.png",
-        "overall_rating": 67,
-        "star_rating": 2.5
-      },
-      {
-        "name": "USL Dunkerque",
-        "sofifa_id": 111276,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1281/120.png",
-        "overall_rating": 67,
+        "name": "Stade de Reims",
+        "sofifa_id": 379,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1028/120.png",
+        "overall_rating": 68,
         "star_rating": 2.5
       },
       {
@@ -972,23 +972,16 @@
         "star_rating": 2.5
       },
       {
-        "name": "Sporting Club Bastia",
-        "sofifa_id": 58,
-        "logo_url": "https://cdn.sofifa.net/meta/team/430/120.png",
+        "name": "Pau FC",
+        "sofifa_id": 110321,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1838/120.png",
         "overall_rating": 66,
         "star_rating": 2
       },
       {
-        "name": "Clermont Foot 63",
-        "sofifa_id": 1815,
-        "logo_url": "https://cdn.sofifa.net/meta/team/6898/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
-      },
-      {
-        "name": "Stade Lavallois Mayenne FC",
-        "sofifa_id": 1814,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1112/120.png",
+        "name": "En Avant Guingamp",
+        "sofifa_id": 62,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2919/120.png",
         "overall_rating": 66,
         "star_rating": 2
       },
@@ -1000,10 +993,31 @@
         "star_rating": 2
       },
       {
+        "name": "Clermont Foot 63",
+        "sofifa_id": 1815,
+        "logo_url": "https://cdn.sofifa.net/meta/team/6898/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
+      },
+      {
+        "name": "Rodez Aveyron Football",
+        "sofifa_id": 111659,
+        "logo_url": "https://cdn.sofifa.net/meta/team/9291/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
+      },
+      {
+        "name": "USL Dunkerque",
+        "sofifa_id": 111276,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1281/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
+      },
+      {
         "name": "FC Annecy",
         "sofifa_id": 115494,
         "logo_url": "https://cdn.sofifa.net/meta/team/1447/120.png",
-        "overall_rating": 66,
+        "overall_rating": 65,
         "star_rating": 2
       },
       {
@@ -1014,23 +1028,16 @@
         "star_rating": 2
       },
       {
-        "name": "Pau FC",
-        "sofifa_id": 110321,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1838/120.png",
+        "name": "Stade Lavallois Mayenne FC",
+        "sofifa_id": 1814,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1112/120.png",
         "overall_rating": 65,
         "star_rating": 2
       },
       {
-        "name": "Le Mans FC",
-        "sofifa_id": 1739,
-        "logo_url": "https://cdn.sofifa.net/meta/team/7758/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
-        "name": "Rodez Aveyron Football",
-        "sofifa_id": 111659,
-        "logo_url": "https://cdn.sofifa.net/meta/team/9291/120.png",
+        "name": "Dijon FCO",
+        "sofifa_id": 110569,
+        "logo_url": "https://cdn.sofifa.net/meta/team/6842/120.png",
         "overall_rating": 64,
         "star_rating": 1.5
       },
@@ -1038,7 +1045,14 @@
         "name": "US Boulogne Cote d'Opale",
         "sofifa_id": 111376,
         "logo_url": "https://cdn.sofifa.net/meta/team/1461/120.png",
-        "overall_rating": 63,
+        "overall_rating": 64,
+        "star_rating": 1.5
+      },
+      {
+        "name": "FC Sochaux-Montbéliard",
+        "sofifa_id": 226,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1842/120.png",
+        "overall_rating": 64,
         "star_rating": 1.5
       }
     ]
@@ -1050,7 +1064,7 @@
     "country_code": "DE",
     "teams": [
       {
-        "name": "FC Bayern München",
+        "name": "Bayern München",
         "sofifa_id": 21,
         "logo_url": "https://cdn.sofifa.net/meta/team/503/120.png",
         "overall_rating": 84,
@@ -1073,50 +1087,36 @@
       {
         "name": "Bayer 04 Leverkusen",
         "sofifa_id": 32,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3321/120.png",
+        "logo_url": "https://cdn.sofifa.net/meta/team/000033212005/120.png",
         "overall_rating": 79,
         "star_rating": 4.5
-      },
-      {
-        "name": "Eintracht Frankfurt",
-        "sofifa_id": 1824,
-        "logo_url": "https://cdn.sofifa.net/meta/team/366/120.png",
-        "overall_rating": 78,
-        "star_rating": 4
       },
       {
         "name": "VfB Stuttgart",
         "sofifa_id": 36,
         "logo_url": "https://cdn.sofifa.net/meta/team/3319/120.png",
-        "overall_rating": 77,
+        "overall_rating": 78,
         "star_rating": 4
       },
       {
         "name": "TSG 1899 Hoffenheim",
         "sofifa_id": 10029,
         "logo_url": "https://cdn.sofifa.net/meta/team/2726/120.png",
-        "overall_rating": 76,
+        "overall_rating": 77,
         "star_rating": 4
       },
       {
-        "name": "VfL Wolfsburg",
-        "sofifa_id": 175,
-        "logo_url": "https://cdn.sofifa.net/meta/team/510/120.png",
+        "name": "SC Freiburg",
+        "sofifa_id": 25,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3543/120.png",
         "overall_rating": 76,
-        "star_rating": 4
-      },
-      {
-        "name": "1. FC Union Berlin",
-        "sofifa_id": 1831,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1079/120.png",
-        "overall_rating": 75,
         "star_rating": 4
       },
       {
         "name": "1. FSV Mainz 05",
         "sofifa_id": 169,
         "logo_url": "https://cdn.sofifa.net/meta/team/794/120.png",
-        "overall_rating": 75,
+        "overall_rating": 76,
         "star_rating": 4
       },
       {
@@ -1127,23 +1127,16 @@
         "star_rating": 4
       },
       {
-        "name": "SV Werder Bremen",
-        "sofifa_id": 38,
-        "logo_url": "https://cdn.sofifa.net/meta/team/82/120.png",
+        "name": "Eintracht Frankfurt",
+        "sofifa_id": 1824,
+        "logo_url": "https://cdn.sofifa.net/meta/team/366/120.png",
         "overall_rating": 75,
         "star_rating": 4
       },
       {
-        "name": "SC Freiburg",
-        "sofifa_id": 25,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3543/120.png",
-        "overall_rating": 75,
-        "star_rating": 4
-      },
-      {
-        "name": "1. FC Köln",
-        "sofifa_id": 31,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3320/120.png",
+        "name": "Hamburger SV",
+        "sofifa_id": 28,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2708/120.png",
         "overall_rating": 74,
         "star_rating": 3.5
       },
@@ -1155,25 +1148,46 @@
         "star_rating": 3.5
       },
       {
-        "name": "Hamburger SV",
-        "sofifa_id": 28,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2708/120.png",
+        "name": "1. FC Union Berlin",
+        "sofifa_id": 1831,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1079/120.png",
         "overall_rating": 74,
         "star_rating": 3.5
       },
       {
-        "name": "FC St. Pauli",
-        "sofifa_id": 110329,
-        "logo_url": "https://cdn.sofifa.net/meta/team/353/120.png",
-        "overall_rating": 72,
+        "name": "Werder Bremen",
+        "sofifa_id": 38,
+        "logo_url": "https://cdn.sofifa.net/meta/team/82/120.png",
+        "overall_rating": 74,
         "star_rating": 3.5
       },
       {
-        "name": "1. FC Heidenheim 1846",
-        "sofifa_id": 111235,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2831/120.png",
-        "overall_rating": 72,
+        "name": "1. FC Köln",
+        "sofifa_id": 31,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3320/120.png",
+        "overall_rating": 74,
         "star_rating": 3.5
+      },
+      {
+        "name": "Schalke 04",
+        "sofifa_id": 34,
+        "logo_url": "https://cdn.sofifa.net/meta/team/67/120.png",
+        "overall_rating": 73,
+        "star_rating": 3.5
+      },
+      {
+        "name": "SC Paderborn 07",
+        "sofifa_id": 10030,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2642/120.png",
+        "overall_rating": 70,
+        "star_rating": 3
+      },
+      {
+        "name": "SV Elversberg",
+        "sofifa_id": 580,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3588/120.png",
+        "overall_rating": 70,
+        "star_rating": 3
       }
     ]
   },
@@ -1184,16 +1198,16 @@
     "country_code": "DE",
     "teams": [
       {
-        "name": "FC Schalke 04",
-        "sofifa_id": 34,
-        "logo_url": "https://cdn.sofifa.net/meta/team/67/120.png",
-        "overall_rating": 71,
+        "name": "VfL Wolfsburg",
+        "sofifa_id": 175,
+        "logo_url": "https://cdn.sofifa.net/meta/team/510/120.png",
+        "overall_rating": 74,
         "star_rating": 3.5
       },
       {
-        "name": "SV Darmstadt 98",
-        "sofifa_id": 110502,
-        "logo_url": "https://cdn.sofifa.net/meta/team/482/120.png",
+        "name": "1. FC Heidenheim 1846",
+        "sofifa_id": 111235,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2831/120.png",
         "overall_rating": 70,
         "star_rating": 3
       },
@@ -1205,9 +1219,9 @@
         "star_rating": 3
       },
       {
-        "name": "Hertha BSC",
-        "sofifa_id": 166,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3317/120.png",
+        "name": "FC St. Pauli",
+        "sofifa_id": 110329,
+        "logo_url": "https://cdn.sofifa.net/meta/team/353/120.png",
         "overall_rating": 70,
         "star_rating": 3
       },
@@ -1219,6 +1233,13 @@
         "star_rating": 3
       },
       {
+        "name": "SV Darmstadt 98",
+        "sofifa_id": 110502,
+        "logo_url": "https://cdn.sofifa.net/meta/team/482/120.png",
+        "overall_rating": 69,
+        "star_rating": 3
+      },
+      {
         "name": "1. FC Kaiserslautern",
         "sofifa_id": 29,
         "logo_url": "https://cdn.sofifa.net/meta/team/1638/120.png",
@@ -1226,23 +1247,9 @@
         "star_rating": 3
       },
       {
-        "name": "Karlsruher SC",
-        "sofifa_id": 1832,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3114/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
-        "name": "Holstein Kiel",
-        "sofifa_id": 576,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3611/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
-        "name": "Fortuna Düsseldorf",
-        "sofifa_id": 110636,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1092/120.png",
+        "name": "Hertha BSC",
+        "sofifa_id": 166,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3317/120.png",
         "overall_rating": 69,
         "star_rating": 3
       },
@@ -1254,16 +1261,9 @@
         "star_rating": 2.5
       },
       {
-        "name": "SV Elversberg",
-        "sofifa_id": 580,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3588/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
-        "name": "SC Paderborn 07",
-        "sofifa_id": 10030,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2642/120.png",
+        "name": "1. FC Magdeburg",
+        "sofifa_id": 110588,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3527/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
@@ -1275,9 +1275,16 @@
         "star_rating": 2.5
       },
       {
-        "name": "1. FC Magdeburg",
-        "sofifa_id": 110588,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3527/120.png",
+        "name": "Karlsruher SC",
+        "sofifa_id": 1832,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3114/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Holstein Kiel",
+        "sofifa_id": 576,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3611/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
@@ -1285,6 +1292,13 @@
         "name": "Dynamo Dresden",
         "sofifa_id": 503,
         "logo_url": "https://cdn.sofifa.net/meta/team/1077/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Eintracht Braunschweig",
+        "sofifa_id": 110500,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3565/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
       },
@@ -1296,18 +1310,18 @@
         "star_rating": 2.5
       },
       {
-        "name": "Eintracht Braunschweig",
-        "sofifa_id": 110500,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3565/120.png",
+        "name": "VfL Osnabrück",
+        "sofifa_id": 487,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2872/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
       },
       {
-        "name": "SC Preußen Münster",
-        "sofifa_id": 531,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3647/120.png",
-        "overall_rating": 67,
-        "star_rating": 2.5
+        "name": "FC Energie Cottbus",
+        "sofifa_id": 162,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3322/120.png",
+        "overall_rating": 66,
+        "star_rating": 2
       }
     ]
   },
@@ -1318,52 +1332,59 @@
     "country_code": "IT",
     "teams": [
       {
-        "name": "Inter",
+        "name": "Inter Milan",
         "sofifa_id": 44,
         "logo_url": "https://cdn.sofifa.net/meta/team/2930/120.png",
-        "overall_rating": 83,
-        "star_rating": 5
+        "overall_rating": 82,
+        "star_rating": 4.5
       },
       {
-        "name": "Napoli",
+        "name": "SSC Napoli",
         "sofifa_id": 48,
         "logo_url": "https://cdn.sofifa.net/meta/team/597/120.png",
         "overall_rating": 81,
         "star_rating": 4.5
       },
       {
-        "name": "AC Milan",
-        "sofifa_id": 47,
-        "logo_url": "https://cdn.sofifa.net/meta/team/113/120.png",
-        "overall_rating": 81,
-        "star_rating": 4.5
-      },
-      {
-        "name": "Juventus",
+        "name": "Juventus FC",
         "sofifa_id": 45,
-        "logo_url": "https://cdn.sofifa.net/meta/team/625/120.png",
+        "logo_url": "https://cdn.sofifa.net/meta/team/000006252020/120.png",
         "overall_rating": 80,
         "star_rating": 4.5
       },
       {
-        "name": "Roma",
+        "name": "AS Roma",
         "sofifa_id": 52,
         "logo_url": "https://cdn.sofifa.net/meta/team/37/120.png",
         "overall_rating": 80,
         "star_rating": 4.5
       },
       {
-        "name": "Atalanta",
+        "name": "AC Milan",
+        "sofifa_id": 47,
+        "logo_url": "https://cdn.sofifa.net/meta/team/113/120.png",
+        "overall_rating": 80,
+        "star_rating": 4.5
+      },
+      {
+        "name": "Atalanta BC",
         "sofifa_id": 39,
         "logo_url": "https://cdn.sofifa.net/meta/team/708/120.png",
         "overall_rating": 79,
         "star_rating": 4.5
       },
       {
-        "name": "Lazio",
+        "name": "Como",
+        "sofifa_id": 1745,
+        "logo_url": "https://cdn.sofifa.net/meta/team/268/120.png",
+        "overall_rating": 78,
+        "star_rating": 4
+      },
+      {
+        "name": "SS Lazio",
         "sofifa_id": 46,
         "logo_url": "https://cdn.sofifa.net/meta/team/43/120.png",
-        "overall_rating": 78,
+        "overall_rating": 77,
         "star_rating": 4
       },
       {
@@ -1374,23 +1395,9 @@
         "star_rating": 4
       },
       {
-        "name": "Como",
-        "sofifa_id": 1745,
-        "logo_url": "https://cdn.sofifa.net/meta/team/268/120.png",
-        "overall_rating": 76,
-        "star_rating": 4
-      },
-      {
-        "name": "Bologna",
+        "name": "Bologna FC",
         "sofifa_id": 189,
         "logo_url": "https://cdn.sofifa.net/meta/team/8513/120.png",
-        "overall_rating": 76,
-        "star_rating": 4
-      },
-      {
-        "name": "Torino",
-        "sofifa_id": 54,
-        "logo_url": "https://cdn.sofifa.net/meta/team/613/120.png",
         "overall_rating": 76,
         "star_rating": 4
       },
@@ -1398,13 +1405,27 @@
         "name": "Sassuolo",
         "sofifa_id": 111974,
         "logo_url": "https://cdn.sofifa.net/meta/team/2714/120.png",
+        "overall_rating": 75,
+        "star_rating": 4
+      },
+      {
+        "name": "Torino FC",
+        "sofifa_id": 54,
+        "logo_url": "https://cdn.sofifa.net/meta/team/613/120.png",
+        "overall_rating": 75,
+        "star_rating": 4
+      },
+      {
+        "name": "Venezia FC",
+        "sofifa_id": 205,
+        "logo_url": "https://cdn.sofifa.net/meta/team/267/120.png",
         "overall_rating": 74,
         "star_rating": 3.5
       },
       {
-        "name": "Cremonese",
-        "sofifa_id": 111434,
-        "logo_url": "https://cdn.sofifa.net/meta/team/10722/120.png",
+        "name": "Monza",
+        "sofifa_id": 111811,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1628/120.png",
         "overall_rating": 73,
         "star_rating": 3.5
       },
@@ -1416,7 +1437,7 @@
         "star_rating": 3.5
       },
       {
-        "name": "Parma",
+        "name": "Parma Calcio",
         "sofifa_id": 50,
         "logo_url": "https://cdn.sofifa.net/meta/team/398/120.png",
         "overall_rating": 73,
@@ -1430,30 +1451,23 @@
         "star_rating": 3.5
       },
       {
-        "name": "Hellas Verona FC",
-        "sofifa_id": 206,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1123/120.png",
-        "overall_rating": 73,
-        "star_rating": 3.5
-      },
-      {
-        "name": "Udinese",
+        "name": "Udinese Calcio",
         "sofifa_id": 55,
         "logo_url": "https://cdn.sofifa.net/meta/team/346/120.png",
         "overall_rating": 73,
         "star_rating": 3.5
       },
       {
-        "name": "Pisa",
-        "sofifa_id": 110738,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1072/120.png",
+        "name": "Lecce",
+        "sofifa_id": 347,
+        "logo_url": "https://cdn.sofifa.net/meta/team/7790/120.png",
         "overall_rating": 72,
         "star_rating": 3.5
       },
       {
-        "name": "Lecce",
-        "sofifa_id": 347,
-        "logo_url": "https://cdn.sofifa.net/meta/team/7790/120.png",
+        "name": "Frosinone",
+        "sofifa_id": 111657,
+        "logo_url": "https://cdn.sofifa.net/meta/team/4070/120.png",
         "overall_rating": 71,
         "star_rating": 3.5
       }
@@ -1469,57 +1483,64 @@
         "name": "Palermo FC",
         "sofifa_id": 1843,
         "logo_url": "https://cdn.sofifa.net/meta/team/1216/120.png",
-        "overall_rating": 72,
-        "star_rating": 3.5
-      },
-      {
-        "name": "Monza",
-        "sofifa_id": 111811,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1628/120.png",
-        "overall_rating": 72,
+        "overall_rating": 73,
         "star_rating": 3.5
       },
       {
         "name": "Sampdoria",
         "sofifa_id": 1837,
         "logo_url": "https://cdn.sofifa.net/meta/team/522/120.png",
+        "overall_rating": 72,
+        "star_rating": 3.5
+      },
+      {
+        "name": "Hellas Verona FC",
+        "sofifa_id": 206,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1123/120.png",
         "overall_rating": 71,
         "star_rating": 3.5
       },
       {
-        "name": "Venezia",
-        "sofifa_id": 205,
-        "logo_url": "https://cdn.sofifa.net/meta/team/267/120.png",
-        "overall_rating": 70,
-        "star_rating": 3
+        "name": "Cremonese",
+        "sofifa_id": 111434,
+        "logo_url": "https://cdn.sofifa.net/meta/team/10722/120.png",
+        "overall_rating": 71,
+        "star_rating": 3.5
       },
       {
         "name": "Modena",
         "sofifa_id": 1744,
         "logo_url": "https://cdn.sofifa.net/meta/team/1000/120.png",
+        "overall_rating": 70,
+        "star_rating": 3
+      },
+      {
+        "name": "Pisa",
+        "sofifa_id": 110738,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1072/120.png",
+        "overall_rating": 70,
+        "star_rating": 3
+      },
+      {
+        "name": "Calcio Padova",
+        "sofifa_id": 110912,
+        "logo_url": "https://cdn.sofifa.net/meta/team/249160/120.png",
         "overall_rating": 69,
         "star_rating": 3
       },
       {
-        "name": "Empoli",
-        "sofifa_id": 1746,
-        "logo_url": "https://cdn.sofifa.net/meta/team/397/120.png",
+        "name": "Catanzaro",
+        "sofifa_id": 110908,
+        "logo_url": "https://cdn.sofifa.net/meta/team/7471/120.png",
         "overall_rating": 69,
         "star_rating": 3
       },
       {
-        "name": "Cesena FC",
-        "sofifa_id": 110915,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1234/120.png",
+        "name": "Avellino",
+        "sofifa_id": 2038,
+        "logo_url": "https://cdn.sofifa.net/meta/team/6911/120.png",
         "overall_rating": 69,
         "star_rating": 3
-      },
-      {
-        "name": "Carrarese",
-        "sofifa_id": 112493,
-        "logo_url": "https://cdn.sofifa.net/meta/team/7766/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
       },
       {
         "name": "Südtirol",
@@ -1529,65 +1550,23 @@
         "star_rating": 2.5
       },
       {
-        "name": "Pescara",
-        "sofifa_id": 200,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1343/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Calcio Padova",
-        "sofifa_id": 110912,
-        "logo_url": "https://cdn.sofifa.net/meta/team/249160/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Catanzaro",
-        "sofifa_id": 110908,
-        "logo_url": "https://cdn.sofifa.net/meta/team/7471/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Spezia",
-        "sofifa_id": 110741,
-        "logo_url": "https://cdn.sofifa.net/meta/team/345/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Avellino",
-        "sofifa_id": 2038,
-        "logo_url": "https://cdn.sofifa.net/meta/team/6911/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
-        "name": "SSC Bari",
-        "sofifa_id": 1848,
-        "logo_url": "https://cdn.sofifa.net/meta/team/445/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Mantova",
-        "sofifa_id": 111433,
-        "logo_url": "https://cdn.sofifa.net/meta/team/10771/120.png",
+        "name": "Arezzo",
+        "sofifa_id": 110907,
+        "logo_url": "https://cdn.sofifa.net/meta/team/7253/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
       },
       {
-        "name": "Frosinone",
-        "sofifa_id": 111657,
-        "logo_url": "https://cdn.sofifa.net/meta/team/4070/120.png",
+        "name": "Vicenza",
+        "sofifa_id": 112954,
+        "logo_url": "https://cdn.sofifa.net/meta/team/658/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
       },
       {
-        "name": "Reggiana",
-        "sofifa_id": 110740,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2892/120.png",
+        "name": "Carrarese",
+        "sofifa_id": 112493,
+        "logo_url": "https://cdn.sofifa.net/meta/team/7766/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
       },
@@ -1599,11 +1578,46 @@
         "star_rating": 2.5
       },
       {
+        "name": "Benevento",
+        "sofifa_id": 112026,
+        "logo_url": "https://cdn.sofifa.net/meta/team/563/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Empoli",
+        "sofifa_id": 1746,
+        "logo_url": "https://cdn.sofifa.net/meta/team/397/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Mantova",
+        "sofifa_id": 111433,
+        "logo_url": "https://cdn.sofifa.net/meta/team/10771/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Cesena FC",
+        "sofifa_id": 110915,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1234/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Ascoli",
+        "sofifa_id": 1847,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1006/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
         "name": "Virtus Entella",
         "sofifa_id": 113147,
         "logo_url": "https://cdn.sofifa.net/meta/team/7818/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
+        "overall_rating": 67,
+        "star_rating": 2.5
       }
     ]
   },
@@ -1614,9 +1628,30 @@
     "country_code": "US",
     "teams": [
       {
-        "name": "Charlotte FC",
-        "sofifa_id": 114640,
-        "logo_url": "https://cdn.sofifa.net/meta/team/260119/120.png",
+        "name": "Inter Miami",
+        "sofifa_id": 112893,
+        "logo_url": "https://cdn.sofifa.net/meta/team/239235/120.png",
+        "overall_rating": 73,
+        "star_rating": 3.5
+      },
+      {
+        "name": "Vancouver Whitecaps FC",
+        "sofifa_id": 101112,
+        "logo_url": "https://cdn.sofifa.net/meta/team/292/120.png",
+        "overall_rating": 71,
+        "star_rating": 3.5
+      },
+      {
+        "name": "New York City FC",
+        "sofifa_id": 112828,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3627/120.png",
+        "overall_rating": 71,
+        "star_rating": 3.5
+      },
+      {
+        "name": "Seattle Sounders FC",
+        "sofifa_id": 111144,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2649/120.png",
         "overall_rating": 71,
         "star_rating": 3.5
       },
@@ -1628,9 +1663,23 @@
         "star_rating": 3.5
       },
       {
-        "name": "Vancouver Whitecaps FC",
-        "sofifa_id": 101112,
-        "logo_url": "https://cdn.sofifa.net/meta/team/292/120.png",
+        "name": "Charlotte FC",
+        "sofifa_id": 114640,
+        "logo_url": "https://cdn.sofifa.net/meta/team/260119/120.png",
+        "overall_rating": 70,
+        "star_rating": 3
+      },
+      {
+        "name": "Chicago Fire",
+        "sofifa_id": 693,
+        "logo_url": "https://cdn.sofifa.net/meta/team/75/120.png",
+        "overall_rating": 70,
+        "star_rating": 3
+      },
+      {
+        "name": "New England Revolution",
+        "sofifa_id": 691,
+        "logo_url": "https://cdn.sofifa.net/meta/team/641/120.png",
         "overall_rating": 70,
         "star_rating": 3
       },
@@ -1642,30 +1691,30 @@
         "star_rating": 3
       },
       {
-        "name": "Inter Miami",
-        "sofifa_id": 112893,
-        "logo_url": "https://cdn.sofifa.net/meta/team/239235/120.png",
+        "name": "Nashville SC",
+        "sofifa_id": 114162,
+        "logo_url": "https://cdn.sofifa.net/meta/team/148048/120.png",
         "overall_rating": 70,
         "star_rating": 3
       },
       {
-        "name": "Minnesota United FC",
-        "sofifa_id": 111138,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3639/120.png",
-        "overall_rating": 69,
+        "name": "Toronto FC",
+        "sofifa_id": 111651,
+        "logo_url": "https://cdn.sofifa.net/meta/team/111/120.png",
+        "overall_rating": 70,
         "star_rating": 3
       },
       {
-        "name": "Portland Timbers",
-        "sofifa_id": 111140,
-        "logo_url": "https://cdn.sofifa.net/meta/team/607/120.png",
-        "overall_rating": 69,
+        "name": "Orlando City SC",
+        "sofifa_id": 112606,
+        "logo_url": "https://cdn.sofifa.net/meta/team/204/120.png",
+        "overall_rating": 70,
         "star_rating": 3
       },
       {
-        "name": "Seattle Sounders FC",
-        "sofifa_id": 111144,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2649/120.png",
+        "name": "San Jose Earthquakes",
+        "sofifa_id": 111928,
+        "logo_url": "https://cdn.sofifa.net/meta/team/287/120.png",
         "overall_rating": 69,
         "star_rating": 3
       },
@@ -1684,23 +1733,37 @@
         "star_rating": 3
       },
       {
-        "name": "San Diego FC",
-        "sofifa_id": 131439,
-        "logo_url": "https://cdn.sofifa.net/meta/team/275650/120.png",
+        "name": "Portland Timbers",
+        "sofifa_id": 111140,
+        "logo_url": "https://cdn.sofifa.net/meta/team/607/120.png",
         "overall_rating": 69,
         "star_rating": 3
       },
       {
-        "name": "Chicago Fire",
-        "sofifa_id": 693,
-        "logo_url": "https://cdn.sofifa.net/meta/team/75/120.png",
+        "name": "Minnesota United FC",
+        "sofifa_id": 111138,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3639/120.png",
         "overall_rating": 69,
         "star_rating": 3
       },
       {
-        "name": "Nashville SC",
-        "sofifa_id": 114162,
-        "logo_url": "https://cdn.sofifa.net/meta/team/148048/120.png",
+        "name": "Real Salt Lake",
+        "sofifa_id": 111065,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1062/120.png",
+        "overall_rating": 69,
+        "star_rating": 3
+      },
+      {
+        "name": "Houston Dynamo",
+        "sofifa_id": 698,
+        "logo_url": "https://cdn.sofifa.net/meta/team/478/120.png",
+        "overall_rating": 69,
+        "star_rating": 3
+      },
+      {
+        "name": "DC United",
+        "sofifa_id": 688,
+        "logo_url": "https://cdn.sofifa.net/meta/team/182/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
@@ -1712,9 +1775,23 @@
         "star_rating": 2.5
       },
       {
-        "name": "New England Revolution",
-        "sofifa_id": 691,
-        "logo_url": "https://cdn.sofifa.net/meta/team/641/120.png",
+        "name": "St. Louis CITY SC",
+        "sofifa_id": 113018,
+        "logo_url": "https://cdn.sofifa.net/meta/team/267299/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "FC Dallas",
+        "sofifa_id": 695,
+        "logo_url": "https://cdn.sofifa.net/meta/team/583/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "San Diego FC",
+        "sofifa_id": 131439,
+        "logo_url": "https://cdn.sofifa.net/meta/team/275650/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
@@ -1726,24 +1803,10 @@
         "star_rating": 2.5
       },
       {
-        "name": "New York City FC",
-        "sofifa_id": 112828,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3627/120.png",
+        "name": "Philadelphia Union",
+        "sofifa_id": 112134,
+        "logo_url": "https://cdn.sofifa.net/meta/team/275/120.png",
         "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Houston Dynamo",
-        "sofifa_id": 698,
-        "logo_url": "https://cdn.sofifa.net/meta/team/478/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
-        "name": "St. Louis CITY SC",
-        "sofifa_id": 113018,
-        "logo_url": "https://cdn.sofifa.net/meta/team/267299/120.png",
-        "overall_rating": 67,
         "star_rating": 2.5
       },
       {
@@ -1754,74 +1817,25 @@
         "star_rating": 2.5
       },
       {
-        "name": "DC United",
-        "sofifa_id": 688,
-        "logo_url": "https://cdn.sofifa.net/meta/team/182/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
-      },
-      {
-        "name": "Real Salt Lake",
-        "sofifa_id": 111065,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1062/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
+        "name": "New York Red Bulls",
+        "sofifa_id": 689,
+        "logo_url": "https://cdn.sofifa.net/meta/team/383/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
       },
       {
         "name": "CF Montréal",
         "sofifa_id": 111139,
         "logo_url": "https://cdn.sofifa.net/meta/team/3736/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
-      },
-      {
-        "name": "FC Dallas",
-        "sofifa_id": 695,
-        "logo_url": "https://cdn.sofifa.net/meta/team/583/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
-      },
-      {
-        "name": "Toronto FC",
-        "sofifa_id": 111651,
-        "logo_url": "https://cdn.sofifa.net/meta/team/111/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
-      },
-      {
-        "name": "Orlando City SC",
-        "sofifa_id": 112606,
-        "logo_url": "https://cdn.sofifa.net/meta/team/204/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
-      },
-      {
-        "name": "Philadelphia Union",
-        "sofifa_id": 112134,
-        "logo_url": "https://cdn.sofifa.net/meta/team/275/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
-      },
-      {
-        "name": "New York Red Bulls",
-        "sofifa_id": 689,
-        "logo_url": "https://cdn.sofifa.net/meta/team/383/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
-        "name": "San Jose Earthquakes",
-        "sofifa_id": 111928,
-        "logo_url": "https://cdn.sofifa.net/meta/team/287/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
+        "overall_rating": 67,
+        "star_rating": 2.5
       },
       {
         "name": "Sporting Kansas City",
         "sofifa_id": 696,
         "logo_url": "https://cdn.sofifa.net/meta/team/323/120.png",
-        "overall_rating": 63,
-        "star_rating": 1.5
+        "overall_rating": 66,
+        "star_rating": 2
       }
     ]
   },
@@ -1842,15 +1856,8 @@
         "name": "Viking FK",
         "sofifa_id": 300,
         "logo_url": "https://cdn.sofifa.net/meta/team/321/120.png",
-        "overall_rating": 69,
+        "overall_rating": 70,
         "star_rating": 3
-      },
-      {
-        "name": "Rosenborg BK",
-        "sofifa_id": 298,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1335/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
       },
       {
         "name": "SK Brann",
@@ -1863,8 +1870,29 @@
         "name": "Molde FK",
         "sofifa_id": 417,
         "logo_url": "https://cdn.sofifa.net/meta/team/290/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Rosenborg BK",
+        "sofifa_id": 298,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1335/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
+      },
+      {
+        "name": "Sarpsborg 08 FF",
+        "sofifa_id": 112199,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2601/120.png",
+        "overall_rating": 66,
+        "star_rating": 2
+      },
+      {
+        "name": "Lillestrøm SK",
+        "sofifa_id": 299,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2510/120.png",
+        "overall_rating": 66,
+        "star_rating": 2
       },
       {
         "name": "Vålerenga Fotball",
@@ -1874,10 +1902,24 @@
         "star_rating": 2
       },
       {
-        "name": "Sarpsborg 08 FF",
-        "sofifa_id": 112199,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2601/120.png",
-        "overall_rating": 66,
+        "name": "Fredrikstad FK",
+        "sofifa_id": 2041,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1743/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
+      },
+      {
+        "name": "Hamarkameratene",
+        "sofifa_id": 1756,
+        "logo_url": "https://cdn.sofifa.net/meta/team/8661/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
+      },
+      {
+        "name": "KFUM-Kameratene Oslo",
+        "sofifa_id": 131491,
+        "logo_url": "https://cdn.sofifa.net/meta/team/11914/120.png",
+        "overall_rating": 65,
         "star_rating": 2
       },
       {
@@ -1888,60 +1930,32 @@
         "star_rating": 2
       },
       {
-        "name": "Fredrikstad FK",
-        "sofifa_id": 2041,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1743/120.png",
-        "overall_rating": 64,
-        "star_rating": 1.5
-      },
-      {
-        "name": "KFUM-Kameratene Oslo",
-        "sofifa_id": 131491,
-        "logo_url": "https://cdn.sofifa.net/meta/team/11914/120.png",
-        "overall_rating": 64,
-        "star_rating": 1.5
-      },
-      {
-        "name": "Hamarkameratene",
-        "sofifa_id": 1756,
-        "logo_url": "https://cdn.sofifa.net/meta/team/8661/120.png",
-        "overall_rating": 63,
-        "star_rating": 1.5
-      },
-      {
         "name": "Sandefjord Fotball",
         "sofifa_id": 1757,
         "logo_url": "https://cdn.sofifa.net/meta/team/617/120.png",
-        "overall_rating": 63,
+        "overall_rating": 64,
         "star_rating": 1.5
-      },
-      {
-        "name": "Strømsgodset IF",
-        "sofifa_id": 922,
-        "logo_url": "https://cdn.sofifa.net/meta/team/313/120.png",
-        "overall_rating": 63,
-        "star_rating": 1.5
-      },
-      {
-        "name": "Bryne FK",
-        "sofifa_id": 1523,
-        "logo_url": "https://cdn.sofifa.net/meta/team/8775/120.png",
-        "overall_rating": 62,
-        "star_rating": 1
       },
       {
         "name": "Kristiansund BK",
         "sofifa_id": 113459,
         "logo_url": "https://cdn.sofifa.net/meta/team/869/120.png",
-        "overall_rating": 62,
-        "star_rating": 1
+        "overall_rating": 64,
+        "star_rating": 1.5
       },
       {
-        "name": "FK Haugesund",
-        "sofifa_id": 1463,
-        "logo_url": "https://cdn.sofifa.net/meta/team/270/120.png",
-        "overall_rating": 62,
-        "star_rating": 1
+        "name": "IK Start",
+        "sofifa_id": 1524,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2735/120.png",
+        "overall_rating": 64,
+        "star_rating": 1.5
+      },
+      {
+        "name": "Aalesunds FK",
+        "sofifa_id": 1755,
+        "logo_url": "https://cdn.sofifa.net/meta/team/393/120.png",
+        "overall_rating": 63,
+        "star_rating": 1.5
       }
     ]
   },
@@ -1952,11 +1966,11 @@
     "country_code": "GB-SCT",
     "teams": [
       {
-        "name": "Celtic",
+        "name": "Celtic FC",
         "sofifa_id": 78,
         "logo_url": "https://cdn.sofifa.net/meta/team/53/120.png",
-        "overall_rating": 75,
-        "star_rating": 4
+        "overall_rating": 74,
+        "star_rating": 3.5
       },
       {
         "name": "Rangers FC",
@@ -1966,18 +1980,11 @@
         "star_rating": 3.5
       },
       {
-        "name": "Hearts",
+        "name": "Heart of Midlothian FC",
         "sofifa_id": 80,
         "logo_url": "https://cdn.sofifa.net/meta/team/314/120.png",
-        "overall_rating": 71,
-        "star_rating": 3.5
-      },
-      {
-        "name": "Aberdeen",
-        "sofifa_id": 77,
-        "logo_url": "https://cdn.sofifa.net/meta/team/273/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
+        "overall_rating": 70,
+        "star_rating": 3
       },
       {
         "name": "Hibernian",
@@ -1987,18 +1994,32 @@
         "star_rating": 2.5
       },
       {
-        "name": "Motherwell FC",
-        "sofifa_id": 83,
-        "logo_url": "https://cdn.sofifa.net/meta/team/309/120.png",
-        "overall_rating": 65,
+        "name": "Aberdeen FC",
+        "sofifa_id": 77,
+        "logo_url": "https://cdn.sofifa.net/meta/team/273/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Dundee United FC",
+        "sofifa_id": 181,
+        "logo_url": "https://cdn.sofifa.net/meta/team/282/120.png",
+        "overall_rating": 66,
         "star_rating": 2
       },
       {
-        "name": "Kilmarnock",
+        "name": "Motherwell FC",
+        "sofifa_id": 83,
+        "logo_url": "https://cdn.sofifa.net/meta/team/309/120.png",
+        "overall_rating": 66,
+        "star_rating": 2
+      },
+      {
+        "name": "Kilmarnock FC",
         "sofifa_id": 82,
         "logo_url": "https://cdn.sofifa.net/meta/team/180/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
+        "overall_rating": 64,
+        "star_rating": 1.5
       },
       {
         "name": "Dundee FC",
@@ -2008,31 +2029,24 @@
         "star_rating": 1.5
       },
       {
-        "name": "Dundee United FC",
-        "sofifa_id": 181,
-        "logo_url": "https://cdn.sofifa.net/meta/team/282/120.png",
-        "overall_rating": 64,
-        "star_rating": 1.5
-      },
-      {
-        "name": "Livingston FC",
-        "sofifa_id": 621,
-        "logo_url": "https://cdn.sofifa.net/meta/team/258/120.png",
-        "overall_rating": 64,
+        "name": "Falkirk FC",
+        "sofifa_id": 79,
+        "logo_url": "https://cdn.sofifa.net/meta/team/770/120.png",
+        "overall_rating": 63,
         "star_rating": 1.5
       },
       {
         "name": "St. Mirren",
         "sofifa_id": 100805,
         "logo_url": "https://cdn.sofifa.net/meta/team/496/120.png",
-        "overall_rating": 64,
+        "overall_rating": 63,
         "star_rating": 1.5
       },
       {
-        "name": "Falkirk",
-        "sofifa_id": 79,
-        "logo_url": "https://cdn.sofifa.net/meta/team/770/120.png",
-        "overall_rating": 61,
+        "name": "St Johnstone FC",
+        "sofifa_id": 100804,
+        "logo_url": "https://cdn.sofifa.net/meta/team/734/120.png",
+        "overall_rating": 62,
         "star_rating": 1
       }
     ]
@@ -2061,14 +2075,21 @@
         "name": "Atlético Madrid",
         "sofifa_id": 240,
         "logo_url": "https://cdn.sofifa.net/meta/team/7980/120.png",
-        "overall_rating": 82,
+        "overall_rating": 83,
+        "star_rating": 5
+      },
+      {
+        "name": "Real Betis Balompié",
+        "sofifa_id": 449,
+        "logo_url": "https://cdn.sofifa.net/meta/team/485/120.png",
+        "overall_rating": 79,
         "star_rating": 4.5
       },
       {
         "name": "Athletic Club",
         "sofifa_id": 448,
         "logo_url": "https://cdn.sofifa.net/meta/team/13258/120.png",
-        "overall_rating": 80,
+        "overall_rating": 79,
         "star_rating": 4.5
       },
       {
@@ -2079,16 +2100,16 @@
         "star_rating": 4.5
       },
       {
-        "name": "Real Betis Balompié",
-        "sofifa_id": 449,
-        "logo_url": "https://cdn.sofifa.net/meta/team/485/120.png",
-        "overall_rating": 79,
-        "star_rating": 4.5
-      },
-      {
         "name": "Real Sociedad",
         "sofifa_id": 457,
         "logo_url": "https://cdn.sofifa.net/meta/team/594/120.png",
+        "overall_rating": 78,
+        "star_rating": 4
+      },
+      {
+        "name": "RC Celta",
+        "sofifa_id": 450,
+        "logo_url": "https://cdn.sofifa.net/meta/team/36/120.png",
         "overall_rating": 77,
         "star_rating": 4
       },
@@ -2107,13 +2128,6 @@
         "star_rating": 4
       },
       {
-        "name": "Girona FC",
-        "sofifa_id": 110062,
-        "logo_url": "https://cdn.sofifa.net/meta/team/231/120.png",
-        "overall_rating": 77,
-        "star_rating": 4
-      },
-      {
         "name": "Valencia CF",
         "sofifa_id": 461,
         "logo_url": "https://cdn.sofifa.net/meta/team/214/120.png",
@@ -2121,30 +2135,9 @@
         "star_rating": 4
       },
       {
-        "name": "RCD Mallorca",
-        "sofifa_id": 453,
-        "logo_url": "https://cdn.sofifa.net/meta/team/645/120.png",
-        "overall_rating": 76,
-        "star_rating": 4
-      },
-      {
         "name": "RCD Espanyol",
         "sofifa_id": 452,
         "logo_url": "https://cdn.sofifa.net/meta/team/528/120.png",
-        "overall_rating": 76,
-        "star_rating": 4
-      },
-      {
-        "name": "RC Celta",
-        "sofifa_id": 450,
-        "logo_url": "https://cdn.sofifa.net/meta/team/36/120.png",
-        "overall_rating": 76,
-        "star_rating": 4
-      },
-      {
-        "name": "Getafe CF",
-        "sofifa_id": 1860,
-        "logo_url": "https://cdn.sofifa.net/meta/team/106/120.png",
         "overall_rating": 75,
         "star_rating": 4
       },
@@ -2156,11 +2149,18 @@
         "star_rating": 4
       },
       {
-        "name": "Elche CF",
-        "sofifa_id": 468,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1099/120.png",
-        "overall_rating": 74,
-        "star_rating": 3.5
+        "name": "RC Deportivo A Coruña",
+        "sofifa_id": 242,
+        "logo_url": "https://cdn.sofifa.net/meta/team/429/120.png",
+        "overall_rating": 75,
+        "star_rating": 4
+      },
+      {
+        "name": "Getafe CF",
+        "sofifa_id": 1860,
+        "logo_url": "https://cdn.sofifa.net/meta/team/106/120.png",
+        "overall_rating": 75,
+        "star_rating": 4
       },
       {
         "name": "Deportivo Alavés",
@@ -2173,14 +2173,28 @@
         "name": "Levante UD",
         "sofifa_id": 1853,
         "logo_url": "https://cdn.sofifa.net/meta/team/3457/120.png",
+        "overall_rating": 74,
+        "star_rating": 3.5
+      },
+      {
+        "name": "Elche CF",
+        "sofifa_id": 468,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1099/120.png",
         "overall_rating": 73,
         "star_rating": 3.5
       },
       {
-        "name": "Real Oviedo",
-        "sofifa_id": 110827,
-        "logo_url": "https://cdn.sofifa.net/meta/team/93/120.png",
+        "name": "Racing Santander",
+        "sofifa_id": 456,
+        "logo_url": "https://cdn.sofifa.net/meta/team/9818/120.png",
         "overall_rating": 73,
+        "star_rating": 3.5
+      },
+      {
+        "name": "Málaga CF",
+        "sofifa_id": 573,
+        "logo_url": "https://cdn.sofifa.net/meta/team/126/120.png",
+        "overall_rating": 72,
         "star_rating": 3.5
       }
     ]
@@ -2192,6 +2206,20 @@
     "country_code": "ES",
     "teams": [
       {
+        "name": "Girona FC",
+        "sofifa_id": 110062,
+        "logo_url": "https://cdn.sofifa.net/meta/team/231/120.png",
+        "overall_rating": 74,
+        "star_rating": 3.5
+      },
+      {
+        "name": "RCD Mallorca",
+        "sofifa_id": 453,
+        "logo_url": "https://cdn.sofifa.net/meta/team/645/120.png",
+        "overall_rating": 73,
+        "star_rating": 3.5
+      },
+      {
         "name": "UD Almería",
         "sofifa_id": 1861,
         "logo_url": "https://cdn.sofifa.net/meta/team/618/120.png",
@@ -2199,16 +2227,23 @@
         "star_rating": 3.5
       },
       {
-        "name": "UD Las Palmas",
-        "sofifa_id": 472,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2921/120.png",
-        "overall_rating": 72,
+        "name": "Real Oviedo",
+        "sofifa_id": 110827,
+        "logo_url": "https://cdn.sofifa.net/meta/team/93/120.png",
+        "overall_rating": 71,
         "star_rating": 3.5
       },
       {
-        "name": "RC Deportivo de La Coruña",
-        "sofifa_id": 242,
-        "logo_url": "https://cdn.sofifa.net/meta/team/429/120.png",
+        "name": "UD Las Palmas",
+        "sofifa_id": 472,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2921/120.png",
+        "overall_rating": 71,
+        "star_rating": 3.5
+      },
+      {
+        "name": "CD Leganés",
+        "sofifa_id": 100888,
+        "logo_url": "https://cdn.sofifa.net/meta/team/844/120.png",
         "overall_rating": 71,
         "star_rating": 3.5
       },
@@ -2220,30 +2255,16 @@
         "star_rating": 3
       },
       {
-        "name": "Real Valladolid CF",
-        "sofifa_id": 462,
-        "logo_url": "https://cdn.sofifa.net/meta/team/361/120.png",
-        "overall_rating": 70,
+        "name": "CD Castellón",
+        "sofifa_id": 100852,
+        "logo_url": "https://cdn.sofifa.net/meta/team/10008/120.png",
+        "overall_rating": 69,
         "star_rating": 3
       },
       {
-        "name": "CD Leganés",
-        "sofifa_id": 100888,
-        "logo_url": "https://cdn.sofifa.net/meta/team/844/120.png",
-        "overall_rating": 70,
-        "star_rating": 3
-      },
-      {
-        "name": "Racing Santander",
-        "sofifa_id": 456,
-        "logo_url": "https://cdn.sofifa.net/meta/team/9818/120.png",
-        "overall_rating": 70,
-        "star_rating": 3
-      },
-      {
-        "name": "Burgos CF",
-        "sofifa_id": 10846,
-        "logo_url": "https://cdn.sofifa.net/meta/team/8366/120.png",
+        "name": "Granada CF",
+        "sofifa_id": 110832,
+        "logo_url": "https://cdn.sofifa.net/meta/team/103/120.png",
         "overall_rating": 69,
         "star_rating": 3
       },
@@ -2255,16 +2276,16 @@
         "star_rating": 3
       },
       {
-        "name": "Córdoba CF",
-        "sofifa_id": 1867,
-        "logo_url": "https://cdn.sofifa.net/meta/team/931/120.png",
+        "name": "Burgos CF",
+        "sofifa_id": 10846,
+        "logo_url": "https://cdn.sofifa.net/meta/team/8366/120.png",
         "overall_rating": 69,
         "star_rating": 3
       },
       {
-        "name": "Real Zaragoza",
-        "sofifa_id": 244,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3968/120.png",
+        "name": "Albacete Balompié",
+        "sofifa_id": 1854,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3169/120.png",
         "overall_rating": 69,
         "star_rating": 3
       },
@@ -2276,51 +2297,37 @@
         "star_rating": 3
       },
       {
-        "name": "SD Huesca",
-        "sofifa_id": 110839,
-        "logo_url": "https://cdn.sofifa.net/meta/team/274/120.png",
+        "name": "Real Valladolid CF",
+        "sofifa_id": 462,
+        "logo_url": "https://cdn.sofifa.net/meta/team/361/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
       {
-        "name": "Albacete Balompié",
-        "sofifa_id": 1854,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3169/120.png",
+        "name": "Córdoba CF",
+        "sofifa_id": 1867,
+        "logo_url": "https://cdn.sofifa.net/meta/team/931/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
       {
-        "name": "Málaga CF",
-        "sofifa_id": 573,
-        "logo_url": "https://cdn.sofifa.net/meta/team/126/120.png",
-        "overall_rating": 68,
+        "name": "FC Andorra",
+        "sofifa_id": 114554,
+        "logo_url": "https://cdn.sofifa.net/meta/team/238115/120.png",
+        "overall_rating": 67,
         "star_rating": 2.5
       },
       {
-        "name": "Cultural Leonesa",
-        "sofifa_id": 15012,
-        "logo_url": "https://cdn.sofifa.net/meta/team/11354/120.png",
-        "overall_rating": 68,
+        "name": "CE Sabadell FC",
+        "sofifa_id": 15021,
+        "logo_url": "https://cdn.sofifa.net/meta/team/758/120.png",
+        "overall_rating": 67,
         "star_rating": 2.5
       },
       {
-        "name": "CD Castellón",
-        "sofifa_id": 100852,
-        "logo_url": "https://cdn.sofifa.net/meta/team/10008/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Granada CF",
-        "sofifa_id": 110832,
-        "logo_url": "https://cdn.sofifa.net/meta/team/103/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
-        "name": "CD Mirandés",
-        "sofifa_id": 110069,
-        "logo_url": "https://cdn.sofifa.net/meta/team/6968/120.png",
+        "name": "CD Tenerife",
+        "sofifa_id": 260,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1012/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
       },
@@ -2332,18 +2339,25 @@
         "star_rating": 2.5
       },
       {
-        "name": "FC Andorra",
-        "sofifa_id": 114554,
-        "logo_url": "https://cdn.sofifa.net/meta/team/238115/120.png",
+        "name": "CD Eldense",
+        "sofifa_id": 131110,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1888/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
       },
       {
         "name": "Real Sociedad de Fútbol B",
         "sofifa_id": 110711,
-        "logo_url": "https://cdn.sofifa.net/meta/team/9656/120.png",
-        "overall_rating": 63,
-        "star_rating": 1.5
+        "logo_url": "https://cdn.sofifa.net/meta/team/594/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
+      },
+      {
+        "name": "RC Celta Fortuna",
+        "sofifa_id": 110716,
+        "logo_url": "https://cdn.sofifa.net/meta/team/36/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
       }
     ]
   },
@@ -2357,13 +2371,6 @@
         "name": "Malmö FF",
         "sofifa_id": 320,
         "logo_url": "https://cdn.sofifa.net/meta/team/354/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
-        "name": "Mjällby AIF",
-        "sofifa_id": 112072,
-        "logo_url": "https://cdn.sofifa.net/meta/team/411/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
@@ -2382,9 +2389,30 @@
         "star_rating": 2.5
       },
       {
+        "name": "Mjällby AIF",
+        "sofifa_id": 112072,
+        "logo_url": "https://cdn.sofifa.net/meta/team/411/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
+        "name": "GAIS",
+        "sofifa_id": 111594,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1777/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
         "name": "BK Häcken",
         "sofifa_id": 711,
         "logo_url": "https://cdn.sofifa.net/meta/team/2535/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Djurgårdens IF",
+        "sofifa_id": 710,
+        "logo_url": "https://cdn.sofifa.net/meta/team/443/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
       },
@@ -2396,13 +2424,6 @@
         "star_rating": 2.5
       },
       {
-        "name": "Djurgårdens IF",
-        "sofifa_id": 710,
-        "logo_url": "https://cdn.sofifa.net/meta/team/443/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
-      },
-      {
         "name": "AIK",
         "sofifa_id": 433,
         "logo_url": "https://cdn.sofifa.net/meta/team/2825/120.png",
@@ -2410,23 +2431,30 @@
         "star_rating": 2
       },
       {
-        "name": "GAIS",
-        "sofifa_id": 111594,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1777/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
         "name": "IK Sirius",
         "sofifa_id": 113458,
         "logo_url": "https://cdn.sofifa.net/meta/team/2678/120.png",
-        "overall_rating": 65,
+        "overall_rating": 66,
         "star_rating": 2
       },
       {
         "name": "IF Brommapojkarna",
         "sofifa_id": 111705,
         "logo_url": "https://cdn.sofifa.net/meta/team/3285/120.png",
+        "overall_rating": 64,
+        "star_rating": 1.5
+      },
+      {
+        "name": "Halmstads BK",
+        "sofifa_id": 321,
+        "logo_url": "https://cdn.sofifa.net/meta/team/720/120.png",
+        "overall_rating": 64,
+        "star_rating": 1.5
+      },
+      {
+        "name": "Västerås SK",
+        "sofifa_id": 112180,
+        "logo_url": "https://cdn.sofifa.net/meta/team/8671/120.png",
         "overall_rating": 64,
         "star_rating": 1.5
       },
@@ -2438,32 +2466,18 @@
         "star_rating": 1.5
       },
       {
-        "name": "Halmstads BK",
-        "sofifa_id": 321,
-        "logo_url": "https://cdn.sofifa.net/meta/team/720/120.png",
+        "name": "Örgryte IS",
+        "sofifa_id": 706,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1870/120.png",
         "overall_rating": 63,
         "star_rating": 1.5
       },
       {
-        "name": "IFK Norrköping",
-        "sofifa_id": 702,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3603/120.png",
+        "name": "Kalmar FF",
+        "sofifa_id": 1439,
+        "logo_url": "https://cdn.sofifa.net/meta/team/432/120.png",
         "overall_rating": 63,
         "star_rating": 1.5
-      },
-      {
-        "name": "IFK Värnamo",
-        "sofifa_id": 112126,
-        "logo_url": "https://cdn.sofifa.net/meta/team/6607/120.png",
-        "overall_rating": 62,
-        "star_rating": 1
-      },
-      {
-        "name": "Östers IF",
-        "sofifa_id": 1870,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2876/120.png",
-        "overall_rating": 62,
-        "star_rating": 1
       }
     ]
   },
@@ -2474,9 +2488,23 @@
     "country_code": "GB-ENG",
     "teams": [
       {
-        "name": "Cardiff City",
-        "sofifa_id": 1961,
-        "logo_url": "https://cdn.sofifa.net/meta/team/69/120.png",
+        "name": "Leicester City",
+        "sofifa_id": 95,
+        "logo_url": "https://cdn.sofifa.net/meta/team/42/120.png",
+        "overall_rating": 69,
+        "star_rating": 3
+      },
+      {
+        "name": "Oxford United",
+        "sofifa_id": 1951,
+        "logo_url": "https://cdn.sofifa.net/meta/team/297/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Sheffield Wednesday",
+        "sofifa_id": 1807,
+        "logo_url": "https://cdn.sofifa.net/meta/team/56/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
@@ -2484,13 +2512,6 @@
         "name": "Luton Town",
         "sofifa_id": 1923,
         "logo_url": "https://cdn.sofifa.net/meta/team/115/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Bolton Wanderers",
-        "sofifa_id": 4,
-        "logo_url": "https://cdn.sofifa.net/meta/team/16/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
       },
@@ -2509,13 +2530,6 @@
         "star_rating": 2
       },
       {
-        "name": "Stockport County",
-        "sofifa_id": 1931,
-        "logo_url": "https://cdn.sofifa.net/meta/team/249/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
-      },
-      {
         "name": "Plymouth Argyle",
         "sofifa_id": 1929,
         "logo_url": "https://cdn.sofifa.net/meta/team/110/120.png",
@@ -2530,6 +2544,13 @@
         "star_rating": 2
       },
       {
+        "name": "Leyton Orient",
+        "sofifa_id": 1958,
+        "logo_url": "https://cdn.sofifa.net/meta/team/294/120.png",
+        "overall_rating": 66,
+        "star_rating": 2
+      },
+      {
         "name": "Reading FC",
         "sofifa_id": 1793,
         "logo_url": "https://cdn.sofifa.net/meta/team/23/120.png",
@@ -2537,65 +2558,58 @@
         "star_rating": 2
       },
       {
-        "name": "Lincoln City",
-        "sofifa_id": 149,
-        "logo_url": "https://cdn.sofifa.net/meta/team/305/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
         "name": "Bradford City",
         "sofifa_id": 1804,
         "logo_url": "https://cdn.sofifa.net/meta/team/137/120.png",
-        "overall_rating": 65,
+        "overall_rating": 66,
         "star_rating": 2
       },
       {
-        "name": "Rotherham United",
-        "sofifa_id": 1797,
-        "logo_url": "https://cdn.sofifa.net/meta/team/138/120.png",
-        "overall_rating": 65,
+        "name": "Milton Keynes Dons",
+        "sofifa_id": 1798,
+        "logo_url": "https://cdn.sofifa.net/meta/team/341/120.png",
+        "overall_rating": 66,
         "star_rating": 2
       },
       {
-        "name": "Leyton Orient",
-        "sofifa_id": 1958,
-        "logo_url": "https://cdn.sofifa.net/meta/team/294/120.png",
+        "name": "Stockport County",
+        "sofifa_id": 1931,
+        "logo_url": "https://cdn.sofifa.net/meta/team/249/120.png",
         "overall_rating": 65,
         "star_rating": 2
-      },
-      {
-        "name": "Stevenage",
-        "sofifa_id": 361,
-        "logo_url": "https://cdn.sofifa.net/meta/team/409/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
-        "name": "Barnsley",
-        "sofifa_id": 1932,
-        "logo_url": "https://cdn.sofifa.net/meta/team/54/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
-        "name": "Doncaster Rovers",
-        "sofifa_id": 142,
-        "logo_url": "https://cdn.sofifa.net/meta/team/235/120.png",
-        "overall_rating": 64,
-        "star_rating": 1.5
       },
       {
         "name": "Mansfield Town",
         "sofifa_id": 1940,
         "logo_url": "https://cdn.sofifa.net/meta/team/225/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
+      },
+      {
+        "name": "AFC Wimbledon",
+        "sofifa_id": 112259,
+        "logo_url": "https://cdn.sofifa.net/meta/team/301/120.png",
         "overall_rating": 64,
         "star_rating": 1.5
       },
       {
-        "name": "Peterborough United",
-        "sofifa_id": 1938,
-        "logo_url": "https://cdn.sofifa.net/meta/team/254/120.png",
+        "name": "Cambridge United",
+        "sofifa_id": 1944,
+        "logo_url": "https://cdn.sofifa.net/meta/team/232/120.png",
+        "overall_rating": 64,
+        "star_rating": 1.5
+      },
+      {
+        "name": "Notts County",
+        "sofifa_id": 1937,
+        "logo_url": "https://cdn.sofifa.net/meta/team/98/120.png",
+        "overall_rating": 64,
+        "star_rating": 1.5
+      },
+      {
+        "name": "Barnsley",
+        "sofifa_id": 1932,
+        "logo_url": "https://cdn.sofifa.net/meta/team/54/120.png",
         "overall_rating": 64,
         "star_rating": 1.5
       },
@@ -2607,23 +2621,30 @@
         "star_rating": 1.5
       },
       {
-        "name": "Port Vale",
-        "sofifa_id": 1928,
-        "logo_url": "https://cdn.sofifa.net/meta/team/348/120.png",
+        "name": "Stevenage",
+        "sofifa_id": 361,
+        "logo_url": "https://cdn.sofifa.net/meta/team/409/120.png",
         "overall_rating": 64,
         "star_rating": 1.5
       },
       {
-        "name": "Exeter City",
-        "sofifa_id": 143,
-        "logo_url": "https://cdn.sofifa.net/meta/team/185/120.png",
-        "overall_rating": 63,
+        "name": "Doncaster Rovers",
+        "sofifa_id": 142,
+        "logo_url": "https://cdn.sofifa.net/meta/team/235/120.png",
+        "overall_rating": 64,
         "star_rating": 1.5
       },
       {
-        "name": "Northampton Town",
-        "sofifa_id": 1930,
-        "logo_url": "https://cdn.sofifa.net/meta/team/221/120.png",
+        "name": "Bromley",
+        "sofifa_id": 112764,
+        "logo_url": "https://cdn.sofifa.net/meta/team/296/120.png",
+        "overall_rating": 64,
+        "star_rating": 1.5
+      },
+      {
+        "name": "Peterborough United",
+        "sofifa_id": 1938,
+        "logo_url": "https://cdn.sofifa.net/meta/team/254/120.png",
         "overall_rating": 63,
         "star_rating": 1.5
       },
@@ -2631,13 +2652,6 @@
         "name": "Burton Albion",
         "sofifa_id": 15015,
         "logo_url": "https://cdn.sofifa.net/meta/team/150/120.png",
-        "overall_rating": 63,
-        "star_rating": 1.5
-      },
-      {
-        "name": "AFC Wimbledon",
-        "sofifa_id": 112259,
-        "logo_url": "https://cdn.sofifa.net/meta/team/301/120.png",
         "overall_rating": 63,
         "star_rating": 1.5
       }
@@ -2650,23 +2664,23 @@
     "country_code": "GB-ENG",
     "teams": [
       {
-        "name": "Milton Keynes Dons",
-        "sofifa_id": 1798,
-        "logo_url": "https://cdn.sofifa.net/meta/team/341/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
         "name": "Salford City",
         "sofifa_id": 113926,
         "logo_url": "https://cdn.sofifa.net/meta/team/129/120.png",
-        "overall_rating": 63,
+        "overall_rating": 64,
         "star_rating": 1.5
       },
       {
-        "name": "Notts County",
-        "sofifa_id": 1937,
-        "logo_url": "https://cdn.sofifa.net/meta/team/98/120.png",
+        "name": "Port Vale",
+        "sofifa_id": 1928,
+        "logo_url": "https://cdn.sofifa.net/meta/team/348/120.png",
+        "overall_rating": 64,
+        "star_rating": 1.5
+      },
+      {
+        "name": "Northampton Town",
+        "sofifa_id": 1930,
+        "logo_url": "https://cdn.sofifa.net/meta/team/221/120.png",
         "overall_rating": 63,
         "star_rating": 1.5
       },
@@ -2678,20 +2692,6 @@
         "star_rating": 1.5
       },
       {
-        "name": "Cambridge United",
-        "sofifa_id": 1944,
-        "logo_url": "https://cdn.sofifa.net/meta/team/232/120.png",
-        "overall_rating": 63,
-        "star_rating": 1.5
-      },
-      {
-        "name": "Walsall",
-        "sofifa_id": 1803,
-        "logo_url": "https://cdn.sofifa.net/meta/team/76/120.png",
-        "overall_rating": 63,
-        "star_rating": 1.5
-      },
-      {
         "name": "Bristol Rovers",
         "sofifa_id": 1962,
         "logo_url": "https://cdn.sofifa.net/meta/team/230/120.png",
@@ -2699,11 +2699,18 @@
         "star_rating": 1.5
       },
       {
-        "name": "Crawley Town",
-        "sofifa_id": 110890,
-        "logo_url": "https://cdn.sofifa.net/meta/team/205/120.png",
-        "overall_rating": 63,
-        "star_rating": 1.5
+        "name": "Cheltenham Town",
+        "sofifa_id": 1936,
+        "logo_url": "https://cdn.sofifa.net/meta/team/351/120.png",
+        "overall_rating": 62,
+        "star_rating": 1
+      },
+      {
+        "name": "Swindon Town",
+        "sofifa_id": 1934,
+        "logo_url": "https://cdn.sofifa.net/meta/team/285/120.png",
+        "overall_rating": 62,
+        "star_rating": 1
       },
       {
         "name": "Tranmere Rovers",
@@ -2720,20 +2727,6 @@
         "star_rating": 1
       },
       {
-        "name": "Bromley",
-        "sofifa_id": 112764,
-        "logo_url": "https://cdn.sofifa.net/meta/team/296/120.png",
-        "overall_rating": 62,
-        "star_rating": 1
-      },
-      {
-        "name": "Cheltenham Town",
-        "sofifa_id": 1936,
-        "logo_url": "https://cdn.sofifa.net/meta/team/351/120.png",
-        "overall_rating": 62,
-        "star_rating": 1
-      },
-      {
         "name": "Colchester United",
         "sofifa_id": 1935,
         "logo_url": "https://cdn.sofifa.net/meta/team/74/120.png",
@@ -2741,9 +2734,16 @@
         "star_rating": 1
       },
       {
-        "name": "Shrewsbury Town",
-        "sofifa_id": 127,
-        "logo_url": "https://cdn.sofifa.net/meta/team/154/120.png",
+        "name": "Oldham Athletic",
+        "sofifa_id": 1920,
+        "logo_url": "https://cdn.sofifa.net/meta/team/218/120.png",
+        "overall_rating": 62,
+        "star_rating": 1
+      },
+      {
+        "name": "Crewe Alexandra",
+        "sofifa_id": 121,
+        "logo_url": "https://cdn.sofifa.net/meta/team/87/120.png",
         "overall_rating": 62,
         "star_rating": 1
       },
@@ -2755,23 +2755,9 @@
         "star_rating": 1
       },
       {
-        "name": "Barrow",
-        "sofifa_id": 381,
-        "logo_url": "https://cdn.sofifa.net/meta/team/379/120.png",
-        "overall_rating": 62,
-        "star_rating": 1
-      },
-      {
-        "name": "Gillingham",
-        "sofifa_id": 1802,
-        "logo_url": "https://cdn.sofifa.net/meta/team/307/120.png",
-        "overall_rating": 62,
-        "star_rating": 1
-      },
-      {
-        "name": "Swindon Town",
-        "sofifa_id": 1934,
-        "logo_url": "https://cdn.sofifa.net/meta/team/285/120.png",
+        "name": "Rotherham United",
+        "sofifa_id": 1797,
+        "logo_url": "https://cdn.sofifa.net/meta/team/138/120.png",
         "overall_rating": 62,
         "star_rating": 1
       },
@@ -2783,30 +2769,65 @@
         "star_rating": 1
       },
       {
-        "name": "Oldham Athletic",
-        "sofifa_id": 1920,
-        "logo_url": "https://cdn.sofifa.net/meta/team/218/120.png",
-        "overall_rating": 61,
+        "name": "Walsall",
+        "sofifa_id": 1803,
+        "logo_url": "https://cdn.sofifa.net/meta/team/76/120.png",
+        "overall_rating": 62,
         "star_rating": 1
       },
       {
-        "name": "Harrogate Town",
-        "sofifa_id": 112222,
-        "logo_url": "https://cdn.sofifa.net/meta/team/382/120.png",
-        "overall_rating": 61,
-        "star_rating": 1
-      },
-      {
-        "name": "Crewe Alexandra",
-        "sofifa_id": 121,
-        "logo_url": "https://cdn.sofifa.net/meta/team/87/120.png",
-        "overall_rating": 61,
+        "name": "Gillingham",
+        "sofifa_id": 1802,
+        "logo_url": "https://cdn.sofifa.net/meta/team/307/120.png",
+        "overall_rating": 62,
         "star_rating": 1
       },
       {
         "name": "Newport County",
         "sofifa_id": 112254,
         "logo_url": "https://cdn.sofifa.net/meta/team/72/120.png",
+        "overall_rating": 61,
+        "star_rating": 1
+      },
+      {
+        "name": "Crawley Town",
+        "sofifa_id": 110890,
+        "logo_url": "https://cdn.sofifa.net/meta/team/205/120.png",
+        "overall_rating": 61,
+        "star_rating": 1
+      },
+      {
+        "name": "Exeter City",
+        "sofifa_id": 143,
+        "logo_url": "https://cdn.sofifa.net/meta/team/185/120.png",
+        "overall_rating": 61,
+        "star_rating": 1
+      },
+      {
+        "name": "Shrewsbury Town",
+        "sofifa_id": 127,
+        "logo_url": "https://cdn.sofifa.net/meta/team/154/120.png",
+        "overall_rating": 61,
+        "star_rating": 1
+      },
+      {
+        "name": "Rochdale",
+        "sofifa_id": 1955,
+        "logo_url": "https://cdn.sofifa.net/meta/team/240/120.png",
+        "overall_rating": 61,
+        "star_rating": 1
+      },
+      {
+        "name": "York City",
+        "sofifa_id": 1948,
+        "logo_url": "https://cdn.sofifa.net/meta/team/92/120.png",
+        "overall_rating": 61,
+        "star_rating": 1
+      },
+      {
+        "name": "Accrington Stanley",
+        "sofifa_id": 110313,
+        "logo_url": "https://cdn.sofifa.net/meta/team/395/120.png",
         "overall_rating": 60,
         "star_rating": 1
       }
@@ -2822,7 +2843,7 @@
         "name": "Olympiacos FC",
         "sofifa_id": 280,
         "logo_url": "https://cdn.sofifa.net/meta/team/602/120.png",
-        "overall_rating": 76,
+        "overall_rating": 77,
         "star_rating": 4
       },
       {
@@ -2833,17 +2854,17 @@
         "star_rating": 4
       },
       {
+        "name": "Panathinaikos FC",
+        "sofifa_id": 1884,
+        "logo_url": "https://cdn.sofifa.net/meta/team/57/120.png",
+        "overall_rating": 75,
+        "star_rating": 4
+      },
+      {
         "name": "PAOK",
         "sofifa_id": 393,
         "logo_url": "https://cdn.sofifa.net/meta/team/649/120.png",
         "overall_rating": 74,
-        "star_rating": 3.5
-      },
-      {
-        "name": "Panathinaikos FC",
-        "sofifa_id": 1884,
-        "logo_url": "https://cdn.sofifa.net/meta/team/57/120.png",
-        "overall_rating": 73,
         "star_rating": 3.5
       }
     ]
@@ -2858,8 +2879,8 @@
         "name": "Ferencvárosi Torna Club",
         "sofifa_id": 1874,
         "logo_url": "https://cdn.sofifa.net/meta/team/112/120.png",
-        "overall_rating": 71,
-        "star_rating": 3.5
+        "overall_rating": 70,
+        "star_rating": 3
       }
     ]
   },
@@ -2873,15 +2894,15 @@
         "name": "Shamrock Rovers",
         "sofifa_id": 306,
         "logo_url": "https://cdn.sofifa.net/meta/team/207/120.png",
-        "overall_rating": 63,
+        "overall_rating": 64,
         "star_rating": 1.5
       },
       {
-        "name": "Bohemian FC",
-        "sofifa_id": 305,
-        "logo_url": "https://cdn.sofifa.net/meta/team/374/120.png",
-        "overall_rating": 62,
-        "star_rating": 1
+        "name": "St Patrick's Athletic FC",
+        "sofifa_id": 423,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1260/120.png",
+        "overall_rating": 63,
+        "star_rating": 1.5
       },
       {
         "name": "Derry City",
@@ -2891,11 +2912,53 @@
         "star_rating": 1
       },
       {
+        "name": "Bohemian FC",
+        "sofifa_id": 305,
+        "logo_url": "https://cdn.sofifa.net/meta/team/374/120.png",
+        "overall_rating": 61,
+        "star_rating": 1
+      },
+      {
         "name": "Shelbourne FC",
         "sofifa_id": 834,
         "logo_url": "https://cdn.sofifa.net/meta/team/744/120.png",
         "overall_rating": 61,
         "star_rating": 1
+      },
+      {
+        "name": "Galway United",
+        "sofifa_id": 1571,
+        "logo_url": "https://cdn.sofifa.net/meta/team/312/120.png",
+        "overall_rating": 59,
+        "star_rating": 0.5
+      },
+      {
+        "name": "Waterford FC",
+        "sofifa_id": 753,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1387/120.png",
+        "overall_rating": 59,
+        "star_rating": 0.5
+      },
+      {
+        "name": "Sligo Rovers",
+        "sofifa_id": 563,
+        "logo_url": "https://cdn.sofifa.net/meta/team/910/120.png",
+        "overall_rating": 59,
+        "star_rating": 0.5
+      },
+      {
+        "name": "Drogheda United",
+        "sofifa_id": 1572,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1152/120.png",
+        "overall_rating": 59,
+        "star_rating": 0.5
+      },
+      {
+        "name": "Dundalk",
+        "sofifa_id": 837,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1311/120.png",
+        "overall_rating": 58,
+        "star_rating": 0.5
       }
     ]
   },
@@ -2909,13 +2972,20 @@
         "name": "Lech Poznań",
         "sofifa_id": 873,
         "logo_url": "https://cdn.sofifa.net/meta/team/302/120.png",
-        "overall_rating": 70,
-        "star_rating": 3
+        "overall_rating": 71,
+        "star_rating": 3.5
       },
       {
         "name": "Widzew Łódź",
         "sofifa_id": 301,
         "logo_url": "https://cdn.sofifa.net/meta/team/8761/120.png",
+        "overall_rating": 70,
+        "star_rating": 3
+      },
+      {
+        "name": "Górnik Zabrze",
+        "sofifa_id": 420,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3781/120.png",
         "overall_rating": 69,
         "star_rating": 3
       },
@@ -2927,30 +2997,23 @@
         "star_rating": 3
       },
       {
-        "name": "Jagiellonia Białystok",
-        "sofifa_id": 110745,
-        "logo_url": "https://cdn.sofifa.net/meta/team/890/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
-        "name": "Legia Warszawa",
-        "sofifa_id": 1871,
-        "logo_url": "https://cdn.sofifa.net/meta/team/349/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
-        "name": "Pogoń Szczecin",
-        "sofifa_id": 110746,
-        "logo_url": "https://cdn.sofifa.net/meta/team/808/120.png",
+        "name": "Korona Kielce",
+        "sofifa_id": 111083,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3260/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
       {
-        "name": "Górnik Zabrze",
-        "sofifa_id": 420,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3781/120.png",
+        "name": "Cracovia",
+        "sofifa_id": 110747,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1069/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Jagiellonia Białystok",
+        "sofifa_id": 110745,
+        "logo_url": "https://cdn.sofifa.net/meta/team/890/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
@@ -2958,13 +3021,27 @@
         "name": "GKS Katowice",
         "sofifa_id": 110206,
         "logo_url": "https://cdn.sofifa.net/meta/team/2764/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Legia Warszawa",
+        "sofifa_id": 1871,
+        "logo_url": "https://cdn.sofifa.net/meta/team/349/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Wisła Płock",
+        "sofifa_id": 1569,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2778/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
       },
       {
-        "name": "Cracovia",
-        "sofifa_id": 110747,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1069/120.png",
+        "name": "Motor Lublin",
+        "sofifa_id": 111097,
+        "logo_url": "https://cdn.sofifa.net/meta/team/11356/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
       },
@@ -2976,16 +3053,30 @@
         "star_rating": 2.5
       },
       {
-        "name": "Motor Lublin",
-        "sofifa_id": 111097,
-        "logo_url": "https://cdn.sofifa.net/meta/team/11356/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
+        "name": "Wieczysta Kraków",
+        "sofifa_id": 131464,
+        "logo_url": "https://cdn.sofifa.net/meta/team/253056/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
       },
       {
-        "name": "Lechia Gdańsk",
-        "sofifa_id": 111091,
-        "logo_url": "https://cdn.sofifa.net/meta/team/135/120.png",
+        "name": "Zagłębie Lubin",
+        "sofifa_id": 110749,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1266/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Pogoń Szczecin",
+        "sofifa_id": 110746,
+        "logo_url": "https://cdn.sofifa.net/meta/team/808/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Wisła Kraków",
+        "sofifa_id": 1873,
+        "logo_url": "https://cdn.sofifa.net/meta/team/331/120.png",
         "overall_rating": 66,
         "star_rating": 2
       },
@@ -2997,39 +3088,11 @@
         "star_rating": 2
       },
       {
-        "name": "Korona Kielce",
-        "sofifa_id": 111083,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3260/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
-      },
-      {
-        "name": "Wisła Płock",
-        "sofifa_id": 1569,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2778/120.png",
+        "name": "Śląsk Wrocław",
+        "sofifa_id": 111092,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3962/120.png",
         "overall_rating": 65,
         "star_rating": 2
-      },
-      {
-        "name": "Zagłębie Lubin",
-        "sofifa_id": 110749,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1266/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
-        "name": "Arka Gdynia",
-        "sofifa_id": 111082,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1228/120.png",
-        "overall_rating": 64,
-        "star_rating": 1.5
-      },
-      {
-        "name": "Bruk-Bet Termalica Nieciecza",
-        "sofifa_id": 112510,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2512/120.png",
-        "overall_rating": 64,
-        "star_rating": 1.5
       }
     ]
   },
@@ -3043,55 +3106,48 @@
         "name": "Galatasaray SK",
         "sofifa_id": 325,
         "logo_url": "https://cdn.sofifa.net/meta/team/34/120.png",
-        "overall_rating": 80,
+        "overall_rating": 79,
         "star_rating": 4.5
       },
       {
         "name": "Fenerbahçe SK",
         "sofifa_id": 326,
         "logo_url": "https://cdn.sofifa.net/meta/team/88/120.png",
-        "overall_rating": 78,
-        "star_rating": 4
+        "overall_rating": 79,
+        "star_rating": 4.5
       },
       {
         "name": "Beşiktaş JK",
         "sofifa_id": 327,
         "logo_url": "https://cdn.sofifa.net/meta/team/554/120.png",
-        "overall_rating": 75,
+        "overall_rating": 76,
         "star_rating": 4
       },
       {
         "name": "Trabzonspor",
         "sofifa_id": 436,
         "logo_url": "https://cdn.sofifa.net/meta/team/688/120.png",
-        "overall_rating": 73,
+        "overall_rating": 75,
+        "star_rating": 4
+      },
+      {
+        "name": "Çorum FK",
+        "sofifa_id": 132868,
+        "logo_url": "https://cdn.sofifa.net/meta/team/13871/120.png",
+        "overall_rating": 71,
         "star_rating": 3.5
       },
       {
         "name": "Medipol Başakşehir FK",
         "sofifa_id": 101014,
         "logo_url": "https://cdn.sofifa.net/meta/team/3702/120.png",
-        "overall_rating": 72,
+        "overall_rating": 71,
         "star_rating": 3.5
       },
       {
         "name": "Samsunspor",
         "sofifa_id": 748,
         "logo_url": "https://cdn.sofifa.net/meta/team/2811/120.png",
-        "overall_rating": 72,
-        "star_rating": 3.5
-      },
-      {
-        "name": "Alanyaspor",
-        "sofifa_id": 113142,
-        "logo_url": "https://cdn.sofifa.net/meta/team/347/120.png",
-        "overall_rating": 70,
-        "star_rating": 3
-      },
-      {
-        "name": "Kasımpaşa SK",
-        "sofifa_id": 111339,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1071/120.png",
         "overall_rating": 70,
         "star_rating": 3
       },
@@ -3103,58 +3159,65 @@
         "star_rating": 3
       },
       {
-        "name": "Fatih Karagümrük",
-        "sofifa_id": 111117,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3990/120.png",
+        "name": "Gençlerbirliği SK",
+        "sofifa_id": 101025,
+        "logo_url": "https://cdn.sofifa.net/meta/team/286/120.png",
         "overall_rating": 69,
         "star_rating": 3
+      },
+      {
+        "name": "Kasımpaşa SK",
+        "sofifa_id": 111339,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1071/120.png",
+        "overall_rating": 69,
+        "star_rating": 3
+      },
+      {
+        "name": "Erzurumspor FK",
+        "sofifa_id": 749,
+        "logo_url": "https://cdn.sofifa.net/meta/team/13818/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Amed SK",
+        "sofifa_id": 132392,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3570/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Alanyaspor",
+        "sofifa_id": 113142,
+        "logo_url": "https://cdn.sofifa.net/meta/team/347/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
       },
       {
         "name": "Gaziantep FK",
         "sofifa_id": 110776,
         "logo_url": "https://cdn.sofifa.net/meta/team/4192/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
+        "overall_rating": 68,
+        "star_rating": 2.5
       },
       {
         "name": "Çaykur Rizespor",
         "sofifa_id": 101037,
         "logo_url": "https://cdn.sofifa.net/meta/team/1041/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
-        "name": "Kocaelispor",
-        "sofifa_id": 101032,
-        "logo_url": "https://cdn.sofifa.net/meta/team/13860/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
+        "overall_rating": 68,
+        "star_rating": 2.5
       },
       {
         "name": "Göztepe SK",
         "sofifa_id": 101026,
         "logo_url": "https://cdn.sofifa.net/meta/team/3897/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
+        "overall_rating": 68,
+        "star_rating": 2.5
       },
       {
-        "name": "Kayserispor",
-        "sofifa_id": 101020,
-        "logo_url": "https://cdn.sofifa.net/meta/team/643/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
-        "name": "Antalyaspor",
-        "sofifa_id": 741,
-        "logo_url": "https://cdn.sofifa.net/meta/team/81/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
-        "name": "Gençlerbirliği SK",
-        "sofifa_id": 101025,
-        "logo_url": "https://cdn.sofifa.net/meta/team/286/120.png",
+        "name": "Kocaelispor",
+        "sofifa_id": 101032,
+        "logo_url": "https://cdn.sofifa.net/meta/team/13860/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
@@ -3162,7 +3225,7 @@
         "name": "Eyüpspor",
         "sofifa_id": 131174,
         "logo_url": "https://cdn.sofifa.net/meta/team/3224/120.png",
-        "overall_rating": 66,
+        "overall_rating": 65,
         "star_rating": 2
       }
     ]
@@ -3181,10 +3244,10 @@
         "star_rating": 3
       },
       {
-        "name": "SK Rapid",
-        "sofifa_id": 254,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3678/120.png",
-        "overall_rating": 69,
+        "name": "LASK Linz",
+        "sofifa_id": 252,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3369/120.png",
+        "overall_rating": 70,
         "star_rating": 3
       },
       {
@@ -3195,24 +3258,10 @@
         "star_rating": 2.5
       },
       {
-        "name": "LASK Linz",
-        "sofifa_id": 252,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3369/120.png",
+        "name": "SK Rapid",
+        "sofifa_id": 254,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3678/120.png",
         "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Blau-Weiß Linz",
-        "sofifa_id": 110720,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3300/120.png",
-        "overall_rating": 67,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Wolfsberger AC",
-        "sofifa_id": 111822,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3787/120.png",
-        "overall_rating": 67,
         "star_rating": 2.5
       },
       {
@@ -3221,6 +3270,27 @@
         "logo_url": "https://cdn.sofifa.net/meta/team/3630/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
+      },
+      {
+        "name": "Wolfsberger AC",
+        "sofifa_id": 111822,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3787/120.png",
+        "overall_rating": 66,
+        "star_rating": 2
+      },
+      {
+        "name": "SV Ried",
+        "sofifa_id": 780,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3569/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
+      },
+      {
+        "name": "Grazer AK 1902",
+        "sofifa_id": 2015,
+        "logo_url": "https://cdn.sofifa.net/meta/team/5724/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
       },
       {
         "name": "TSV Hartberg",
@@ -3240,20 +3310,13 @@
         "name": "WSG Tirol",
         "sofifa_id": 15040,
         "logo_url": "https://cdn.sofifa.net/meta/team/4080/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
+        "overall_rating": 64,
+        "star_rating": 1.5
       },
       {
-        "name": "Grazer AK 1902",
-        "sofifa_id": 2015,
-        "logo_url": "https://cdn.sofifa.net/meta/team/5724/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
-        "name": "SV Ried",
-        "sofifa_id": 780,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3569/120.png",
+        "name": "Austria Lustenau",
+        "sofifa_id": 781,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3601/120.png",
         "overall_rating": 64,
         "star_rating": 1.5
       }
@@ -3266,13 +3329,6 @@
     "country_code": "KR",
     "teams": [
       {
-        "name": "FC Seoul",
-        "sofifa_id": 982,
-        "logo_url": "https://cdn.sofifa.net/meta/team/672/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
         "name": "Jeonbuk Hyundai Motors",
         "sofifa_id": 1477,
         "logo_url": "https://cdn.sofifa.net/meta/team/3339/120.png",
@@ -3280,9 +3336,9 @@
         "star_rating": 3
       },
       {
-        "name": "Daejeon Citizen",
-        "sofifa_id": 980,
-        "logo_url": "https://cdn.sofifa.net/meta/team/5664/120.png",
+        "name": "FC Seoul",
+        "sofifa_id": 982,
+        "logo_url": "https://cdn.sofifa.net/meta/team/672/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
@@ -3294,16 +3350,23 @@
         "star_rating": 2.5
       },
       {
-        "name": "Pohang Steelers",
-        "sofifa_id": 1474,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1506/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
+        "name": "Daejeon Citizen",
+        "sofifa_id": 980,
+        "logo_url": "https://cdn.sofifa.net/meta/team/5664/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
       },
       {
         "name": "Gangwon FC",
         "sofifa_id": 112115,
         "logo_url": "https://cdn.sofifa.net/meta/team/7273/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Incheon United FC",
+        "sofifa_id": 110765,
+        "logo_url": "https://cdn.sofifa.net/meta/team/6922/120.png",
         "overall_rating": 66,
         "star_rating": 2
       },
@@ -3311,6 +3374,27 @@
         "name": "FC Anyang",
         "sofifa_id": 112555,
         "logo_url": "https://cdn.sofifa.net/meta/team/8032/120.png",
+        "overall_rating": 66,
+        "star_rating": 2
+      },
+      {
+        "name": "Jeju United FC",
+        "sofifa_id": 1478,
+        "logo_url": "https://cdn.sofifa.net/meta/team/8034/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
+      },
+      {
+        "name": "Pohang Steelers",
+        "sofifa_id": 1474,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1506/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
+      },
+      {
+        "name": "Bucheon 1995",
+        "sofifa_id": 112554,
+        "logo_url": "https://cdn.sofifa.net/meta/team/7361/120.png",
         "overall_rating": 65,
         "star_rating": 2
       },
@@ -3322,32 +3406,11 @@
         "star_rating": 2
       },
       {
-        "name": "Daegu FC",
-        "sofifa_id": 2056,
-        "logo_url": "https://cdn.sofifa.net/meta/team/6954/120.png",
-        "overall_rating": 64,
-        "star_rating": 1.5
-      },
-      {
-        "name": "Jeju United FC",
-        "sofifa_id": 1478,
-        "logo_url": "https://cdn.sofifa.net/meta/team/8034/120.png",
-        "overall_rating": 64,
-        "star_rating": 1.5
-      },
-      {
-        "name": "Suwon FC",
-        "sofifa_id": 112558,
-        "logo_url": "https://cdn.sofifa.net/meta/team/904/120.png",
-        "overall_rating": 63,
-        "star_rating": 1.5
-      },
-      {
         "name": "Gwangju FC",
         "sofifa_id": 112258,
         "logo_url": "https://cdn.sofifa.net/meta/team/4370/120.png",
-        "overall_rating": 61,
-        "star_rating": 1
+        "overall_rating": 63,
+        "star_rating": 1.5
       }
     ]
   },
@@ -3365,25 +3428,32 @@
         "star_rating": 3.5
       },
       {
-        "name": "FC Basel 1893",
-        "sofifa_id": 896,
-        "logo_url": "https://cdn.sofifa.net/meta/team/468/120.png",
-        "overall_rating": 71,
-        "star_rating": 3.5
+        "name": "Servette FC",
+        "sofifa_id": 324,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1970/120.png",
+        "overall_rating": 70,
+        "star_rating": 3
       },
       {
         "name": "FC Lugano",
         "sofifa_id": 10032,
         "logo_url": "https://cdn.sofifa.net/meta/team/13775/120.png",
-        "overall_rating": 70,
+        "overall_rating": 69,
         "star_rating": 3
       },
       {
-        "name": "Servette FC",
-        "sofifa_id": 324,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1970/120.png",
+        "name": "FC Basel 1893",
+        "sofifa_id": 896,
+        "logo_url": "https://cdn.sofifa.net/meta/team/468/120.png",
         "overall_rating": 69,
         "star_rating": 3
+      },
+      {
+        "name": "FC Sion",
+        "sofifa_id": 110770,
+        "logo_url": "https://cdn.sofifa.net/meta/team/462/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
       },
       {
         "name": "FC St. Gallen 1879",
@@ -3400,11 +3470,11 @@
         "star_rating": 2.5
       },
       {
-        "name": "FC Sion",
-        "sofifa_id": 110770,
-        "logo_url": "https://cdn.sofifa.net/meta/team/462/120.png",
-        "overall_rating": 67,
-        "star_rating": 2.5
+        "name": "FC Luzern",
+        "sofifa_id": 897,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3091/120.png",
+        "overall_rating": 66,
+        "star_rating": 2
       },
       {
         "name": "FC Thun",
@@ -3414,16 +3484,9 @@
         "star_rating": 2
       },
       {
-        "name": "FC Luzern",
-        "sofifa_id": 897,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3091/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
-      },
-      {
-        "name": "FC Winterthur",
-        "sofifa_id": 1713,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3525/120.png",
+        "name": "Grasshopper Club Zürich",
+        "sofifa_id": 322,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2866/120.png",
         "overall_rating": 65,
         "star_rating": 2
       },
@@ -3431,15 +3494,15 @@
         "name": "FC Zürich",
         "sofifa_id": 894,
         "logo_url": "https://cdn.sofifa.net/meta/team/389/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
+        "overall_rating": 64,
+        "star_rating": 1.5
       },
       {
-        "name": "Grasshopper Club Zürich",
-        "sofifa_id": 322,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2866/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
+        "name": "FC Vaduz",
+        "sofifa_id": 286,
+        "logo_url": "https://cdn.sofifa.net/meta/team/13771/120.png",
+        "overall_rating": 62,
+        "star_rating": 1
       }
     ]
   },
@@ -3450,9 +3513,9 @@
     "country_code": "PT",
     "teams": [
       {
-        "name": "Sporting CP",
-        "sofifa_id": 237,
-        "logo_url": "https://cdn.sofifa.net/meta/team/58/120.png",
+        "name": "FC Porto",
+        "sofifa_id": 236,
+        "logo_url": "https://cdn.sofifa.net/meta/team/652/120.png",
         "overall_rating": 79,
         "star_rating": 4.5
       },
@@ -3464,10 +3527,10 @@
         "star_rating": 4
       },
       {
-        "name": "FC Porto",
-        "sofifa_id": 236,
-        "logo_url": "https://cdn.sofifa.net/meta/team/652/120.png",
-        "overall_rating": 78,
+        "name": "Sporting CP",
+        "sofifa_id": 237,
+        "logo_url": "https://cdn.sofifa.net/meta/team/58/120.png",
+        "overall_rating": 77,
         "star_rating": 4
       },
       {
@@ -3481,13 +3544,13 @@
         "name": "Famalicão",
         "sofifa_id": 112809,
         "logo_url": "https://cdn.sofifa.net/meta/team/3161/120.png",
-        "overall_rating": 71,
-        "star_rating": 3.5
+        "overall_rating": 70,
+        "star_rating": 3
       },
       {
-        "name": "Casa Pia",
-        "sofifa_id": 114510,
-        "logo_url": "https://cdn.sofifa.net/meta/team/11741/120.png",
+        "name": "FC Arouca",
+        "sofifa_id": 112513,
+        "logo_url": "https://cdn.sofifa.net/meta/team/4092/120.png",
         "overall_rating": 70,
         "star_rating": 3
       },
@@ -3499,37 +3562,16 @@
         "star_rating": 3
       },
       {
-        "name": "FC Arouca",
-        "sofifa_id": 112513,
-        "logo_url": "https://cdn.sofifa.net/meta/team/4092/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
-        "name": "CD Nacional",
-        "sofifa_id": 1891,
-        "logo_url": "https://cdn.sofifa.net/meta/team/7035/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
-        "name": "Gil Vicente FC",
-        "sofifa_id": 1888,
-        "logo_url": "https://cdn.sofifa.net/meta/team/364/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
         "name": "Vitória SC",
         "sofifa_id": 1887,
         "logo_url": "https://cdn.sofifa.net/meta/team/830/120.png",
-        "overall_rating": 69,
+        "overall_rating": 70,
         "star_rating": 3
       },
       {
-        "name": "Santa Clara",
-        "sofifa_id": 1438,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2628/120.png",
+        "name": "Casa Pia",
+        "sofifa_id": 114510,
+        "logo_url": "https://cdn.sofifa.net/meta/team/11741/120.png",
         "overall_rating": 69,
         "star_rating": 3
       },
@@ -3541,16 +3583,16 @@
         "star_rating": 3
       },
       {
-        "name": "Moreirense FC",
-        "sofifa_id": 1900,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1085/120.png",
+        "name": "Gil Vicente FC",
+        "sofifa_id": 1888,
+        "logo_url": "https://cdn.sofifa.net/meta/team/364/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
       {
-        "name": "CD Tondela",
-        "sofifa_id": 112516,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3497/120.png",
+        "name": "Moreirense FC",
+        "sofifa_id": 1900,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1085/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
@@ -3569,10 +3611,31 @@
         "star_rating": 2.5
       },
       {
-        "name": "AVS Futebol SAD",
-        "sofifa_id": 131463,
-        "logo_url": "https://cdn.sofifa.net/meta/team/269225/120.png",
+        "name": "CD Nacional",
+        "sofifa_id": 1891,
+        "logo_url": "https://cdn.sofifa.net/meta/team/7035/120.png",
         "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Marítimo",
+        "sofifa_id": 1893,
+        "logo_url": "https://cdn.sofifa.net/meta/team/5931/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Santa Clara",
+        "sofifa_id": 1438,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2628/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Academico Viseu",
+        "sofifa_id": 112587,
+        "logo_url": "https://cdn.sofifa.net/meta/team/8297/120.png",
+        "overall_rating": 67,
         "star_rating": 2.5
       }
     ]
@@ -3599,7 +3662,7 @@
     "country_code": "HR",
     "teams": [
       {
-        "name": "Dinamo Zagreb",
+        "name": "GNK Dinamo Zagreb",
         "sofifa_id": 211,
         "logo_url": "https://cdn.sofifa.net/meta/team/674/120.png",
         "overall_rating": 72,
@@ -3609,7 +3672,7 @@
         "name": "Hajduk Split",
         "sofifa_id": 263,
         "logo_url": "https://cdn.sofifa.net/meta/team/906/120.png",
-        "overall_rating": 70,
+        "overall_rating": 69,
         "star_rating": 3
       }
     ]
@@ -3621,10 +3684,17 @@
     "country_code": "CY",
     "teams": [
       {
+        "name": "Omonoia FC",
+        "sofifa_id": 264,
+        "logo_url": "https://cdn.sofifa.net/meta/team/368/120.png",
+        "overall_rating": 70,
+        "star_rating": 3
+      },
+      {
         "name": "APOEL FC",
         "sofifa_id": 100135,
         "logo_url": "https://cdn.sofifa.net/meta/team/2604/120.png",
-        "overall_rating": 69,
+        "overall_rating": 70,
         "star_rating": 3
       }
     ]
@@ -3639,13 +3709,6 @@
         "name": "SK Slavia Praha",
         "sofifa_id": 266,
         "logo_url": "https://cdn.sofifa.net/meta/team/216/120.png",
-        "overall_rating": 74,
-        "star_rating": 3.5
-      },
-      {
-        "name": "Sparta Praha",
-        "sofifa_id": 267,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2727/120.png",
         "overall_rating": 73,
         "star_rating": 3.5
       },
@@ -3653,6 +3716,13 @@
         "name": "Viktoria Plzeň",
         "sofifa_id": 110468,
         "logo_url": "https://cdn.sofifa.net/meta/team/3545/120.png",
+        "overall_rating": 72,
+        "star_rating": 3.5
+      },
+      {
+        "name": "Sparta Praha",
+        "sofifa_id": 267,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2727/120.png",
         "overall_rating": 71,
         "star_rating": 3.5
       }
@@ -3668,8 +3738,8 @@
         "name": "HJK Helsinki",
         "sofifa_id": 100325,
         "logo_url": "https://cdn.sofifa.net/meta/team/724/120.png",
-        "overall_rating": 63,
-        "star_rating": 1.5
+        "overall_rating": 65,
+        "star_rating": 2
       }
     ]
   },
@@ -3680,18 +3750,11 @@
     "country_code": "RO",
     "teams": [
       {
-        "name": "FCSB",
-        "sofifa_id": 100761,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3444/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
         "name": "Universitatea Craiova",
         "sofifa_id": 308,
         "logo_url": "https://cdn.sofifa.net/meta/team/11676/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
+        "overall_rating": 69,
+        "star_rating": 3
       },
       {
         "name": "Rapid Bucuresti",
@@ -3701,30 +3764,37 @@
         "star_rating": 2.5
       },
       {
-        "name": "Dinamo Bucureşti",
-        "sofifa_id": 100757,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1026/120.png",
+        "name": "Universitatea Cluj",
+        "sofifa_id": 110751,
+        "logo_url": "https://cdn.sofifa.net/meta/team/9426/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
       {
-        "name": "CFR Cluj",
-        "sofifa_id": 110816,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3599/120.png",
+        "name": "FCSB",
+        "sofifa_id": 100761,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3444/120.png",
+        "overall_rating": 68,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Dinamo Bucureşti",
+        "sofifa_id": 100757,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1026/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
       },
       {
-        "name": "Universitatea Cluj",
-        "sofifa_id": 110751,
-        "logo_url": "https://cdn.sofifa.net/meta/team/9426/120.png",
-        "overall_rating": 67,
-        "star_rating": 2.5
+        "name": "UTA Arad",
+        "sofifa_id": 110750,
+        "logo_url": "https://cdn.sofifa.net/meta/team/8474/120.png",
+        "overall_rating": 66,
+        "star_rating": 2
       },
       {
-        "name": "FC Botoşani",
-        "sofifa_id": 110752,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3195/120.png",
+        "name": "FC Argeș",
+        "sofifa_id": 100759,
+        "logo_url": "https://cdn.sofifa.net/meta/team/10266/120.png",
         "overall_rating": 66,
         "star_rating": 2
       },
@@ -3732,20 +3802,20 @@
         "name": "FCV Farul Constanța",
         "sofifa_id": 110075,
         "logo_url": "https://cdn.sofifa.net/meta/team/134619/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
-      },
-      {
-        "name": "UTA Arad",
-        "sofifa_id": 110750,
-        "logo_url": "https://cdn.sofifa.net/meta/team/8474/120.png",
         "overall_rating": 65,
         "star_rating": 2
       },
       {
-        "name": "Asociația Clubul Sportiv Petrolul 52",
-        "sofifa_id": 110078,
-        "logo_url": "https://cdn.sofifa.net/meta/team/132584/120.png",
+        "name": "CFR Cluj",
+        "sofifa_id": 110816,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3599/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
+      },
+      {
+        "name": "FC Botoşani",
+        "sofifa_id": 110752,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3195/120.png",
         "overall_rating": 65,
         "star_rating": 2
       },
@@ -3757,23 +3827,37 @@
         "star_rating": 2
       },
       {
-        "name": "FC Hermannstadt",
-        "sofifa_id": 114147,
-        "logo_url": "https://cdn.sofifa.net/meta/team/12619/120.png",
+        "name": "Sepsi OSK",
+        "sofifa_id": 113378,
+        "logo_url": "https://cdn.sofifa.net/meta/team/10238/120.png",
         "overall_rating": 64,
         "star_rating": 1.5
       },
       {
-        "name": "FC Argeș",
-        "sofifa_id": 100759,
-        "logo_url": "https://cdn.sofifa.net/meta/team/10266/120.png",
+        "name": "Corvinul Hunedoara",
+        "sofifa_id": 113449,
+        "logo_url": "https://cdn.sofifa.net/meta/team/264809/120.png",
+        "overall_rating": 64,
+        "star_rating": 1.5
+      },
+      {
+        "name": "Asociația Clubul Sportiv Petrolul 52",
+        "sofifa_id": 110078,
+        "logo_url": "https://cdn.sofifa.net/meta/team/132584/120.png",
         "overall_rating": 63,
         "star_rating": 1.5
       },
       {
-        "name": "Unirea Slobozia",
-        "sofifa_id": 131459,
-        "logo_url": "https://cdn.sofifa.net/meta/team/8132/120.png",
+        "name": "FC Voluntari",
+        "sofifa_id": 113182,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3488/120.png",
+        "overall_rating": 63,
+        "star_rating": 1.5
+      },
+      {
+        "name": "Csíkszereda Miercurea Ciuc",
+        "sofifa_id": 114546,
+        "logo_url": "https://cdn.sofifa.net/meta/team/10282/120.png",
         "overall_rating": 63,
         "star_rating": 1.5
       }
@@ -3815,23 +3899,16 @@
         "star_rating": 3
       },
       {
-        "name": "Universidad de Chile",
-        "sofifa_id": 15029,
-        "logo_url": "https://cdn.sofifa.net/meta/team/175/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Deportes Iquique",
-        "sofifa_id": 112531,
-        "logo_url": "https://cdn.sofifa.net/meta/team/9628/120.png",
+        "name": "Coquimbo Unido",
+        "sofifa_id": 112705,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2532/120.png",
         "overall_rating": 67,
         "star_rating": 2.5
       },
       {
-        "name": "Colo-Colo",
-        "sofifa_id": 110980,
-        "logo_url": "https://cdn.sofifa.net/meta/team/7930/120.png",
+        "name": "Audax Italiano",
+        "sofifa_id": 101097,
+        "logo_url": "https://cdn.sofifa.net/meta/team/8046/120.png",
         "overall_rating": 66,
         "star_rating": 2
       },
@@ -3843,10 +3920,10 @@
         "star_rating": 2
       },
       {
-        "name": "Unión Española",
-        "sofifa_id": 110977,
-        "logo_url": "https://cdn.sofifa.net/meta/team/10258/120.png",
-        "overall_rating": 65,
+        "name": "CD O'Higgins",
+        "sofifa_id": 112116,
+        "logo_url": "https://cdn.sofifa.net/meta/team/10014/120.png",
+        "overall_rating": 66,
         "star_rating": 2
       }
     ]
@@ -3861,29 +3938,50 @@
         "name": "Atlético Nacional",
         "sofifa_id": 101100,
         "logo_url": "https://cdn.sofifa.net/meta/team/6597/120.png",
-        "overall_rating": 72,
+        "overall_rating": 71,
         "star_rating": 3.5
       },
       {
-        "name": "Once Caldas",
-        "sofifa_id": 101106,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3547/120.png",
-        "overall_rating": 69,
+        "name": "Junior FC",
+        "sofifa_id": 101101,
+        "logo_url": "https://cdn.sofifa.net/meta/team/7792/120.png",
+        "overall_rating": 70,
         "star_rating": 3
       },
       {
-        "name": "Atlético Bucaramanga",
-        "sofifa_id": 112992,
-        "logo_url": "https://cdn.sofifa.net/meta/team/8238/120.png",
-        "overall_rating": 69,
+        "name": "Independiente Santa Fe",
+        "sofifa_id": 101104,
+        "logo_url": "https://cdn.sofifa.net/meta/team/12506/120.png",
+        "overall_rating": 70,
         "star_rating": 3
       },
       {
         "name": "América de Cali",
         "sofifa_id": 101099,
         "logo_url": "https://cdn.sofifa.net/meta/team/9269/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
+        "overall_rating": 69,
+        "star_rating": 3
+      },
+      {
+        "name": "Independiente Medellín",
+        "sofifa_id": 101103,
+        "logo_url": "https://cdn.sofifa.net/meta/team/332/120.png",
+        "overall_rating": 69,
+        "star_rating": 3
+      },
+      {
+        "name": "Millonarios FC",
+        "sofifa_id": 101105,
+        "logo_url": "https://cdn.sofifa.net/meta/team/7810/120.png",
+        "overall_rating": 69,
+        "star_rating": 3
+      },
+      {
+        "name": "Deportes Tolima",
+        "sofifa_id": 111722,
+        "logo_url": "https://cdn.sofifa.net/meta/team/10204/120.png",
+        "overall_rating": 69,
+        "star_rating": 3
       }
     ]
   },
@@ -3893,6 +3991,13 @@
     "country": "Paraguay",
     "country_code": "PY",
     "teams": [
+      {
+        "name": "Club Olimpia",
+        "sofifa_id": 101108,
+        "logo_url": "https://cdn.sofifa.net/meta/team/15606/120.png",
+        "overall_rating": 70,
+        "star_rating": 3
+      },
       {
         "name": "Cerro Porteño",
         "sofifa_id": 112716,
@@ -3904,29 +4009,15 @@
         "name": "Libertad",
         "sofifa_id": 111008,
         "logo_url": "https://cdn.sofifa.net/meta/team/10982/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
-        "name": "Guaraní",
-        "sofifa_id": 111329,
-        "logo_url": "https://cdn.sofifa.net/meta/team/15605/120.png",
-        "overall_rating": 67,
+        "overall_rating": 68,
         "star_rating": 2.5
       },
       {
-        "name": "Club Olimpia",
-        "sofifa_id": 101108,
-        "logo_url": "https://cdn.sofifa.net/meta/team/15606/120.png",
+        "name": "Deportivo Recoleta",
+        "sofifa_id": 131826,
+        "logo_url": "https://cdn.sofifa.net/meta/team/237828/120.png",
         "overall_rating": 66,
         "star_rating": 2
-      },
-      {
-        "name": "Sportivo Luqueño",
-        "sofifa_id": 111006,
-        "logo_url": "https://cdn.sofifa.net/meta/team/5582/120.png",
-        "overall_rating": 61,
-        "star_rating": 1
       }
     ]
   },
@@ -3940,8 +4031,8 @@
         "name": "Peñarol",
         "sofifa_id": 101110,
         "logo_url": "https://cdn.sofifa.net/meta/team/3338/120.png",
-        "overall_rating": 70,
-        "star_rating": 3
+        "overall_rating": 71,
+        "star_rating": 3.5
       },
       {
         "name": "Club Nacional de Football",
@@ -3951,23 +4042,23 @@
         "star_rating": 3
       },
       {
+        "name": "Club Atlético Juventud",
+        "sofifa_id": 112112,
+        "logo_url": "https://cdn.sofifa.net/meta/team/9277/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Montevideo City Torque",
+        "sofifa_id": 113143,
+        "logo_url": "https://cdn.sofifa.net/meta/team/5479/120.png",
+        "overall_rating": 66,
+        "star_rating": 2
+      },
+      {
         "name": "Boston River",
         "sofifa_id": 112868,
         "logo_url": "https://cdn.sofifa.net/meta/team/5476/120.png",
-        "overall_rating": 67,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Cerro Largo",
-        "sofifa_id": 115536,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2528/120.png",
-        "overall_rating": 67,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Racing Club de Montevideo",
-        "sofifa_id": 112615,
-        "logo_url": "https://cdn.sofifa.net/meta/team/5632/120.png",
         "overall_rating": 65,
         "star_rating": 2
       }
@@ -3983,7 +4074,7 @@
         "name": "Al Hilal",
         "sofifa_id": 605,
         "logo_url": "https://cdn.sofifa.net/meta/team/7011/120.png",
-        "overall_rating": 78,
+        "overall_rating": 77,
         "star_rating": 4
       },
       {
@@ -3994,6 +4085,20 @@
         "star_rating": 4
       },
       {
+        "name": "Al Ahli SFC",
+        "sofifa_id": 112387,
+        "logo_url": "https://cdn.sofifa.net/meta/team/9908/120.png",
+        "overall_rating": 75,
+        "star_rating": 4
+      },
+      {
+        "name": "Al Qadsiah FC",
+        "sofifa_id": 112391,
+        "logo_url": "https://cdn.sofifa.net/meta/team/13092/120.png",
+        "overall_rating": 75,
+        "star_rating": 4
+      },
+      {
         "name": "Al Ittihad",
         "sofifa_id": 607,
         "logo_url": "https://cdn.sofifa.net/meta/team/476/120.png",
@@ -4001,23 +4106,23 @@
         "star_rating": 3.5
       },
       {
-        "name": "Al Qadsiah FC",
-        "sofifa_id": 112391,
-        "logo_url": "https://cdn.sofifa.net/meta/team/13092/120.png",
-        "overall_rating": 74,
-        "star_rating": 3.5
-      },
-      {
-        "name": "Al Ahli SFC",
-        "sofifa_id": 112387,
-        "logo_url": "https://cdn.sofifa.net/meta/team/9908/120.png",
-        "overall_rating": 74,
+        "name": "Al Diriyah",
+        "sofifa_id": 113224,
+        "logo_url": "https://cdn.sofifa.net/meta/team/17733/120.png",
+        "overall_rating": 71,
         "star_rating": 3.5
       },
       {
         "name": "NEOM SC",
         "sofifa_id": 131798,
         "logo_url": "https://cdn.sofifa.net/meta/team/17730/120.png",
+        "overall_rating": 70,
+        "star_rating": 3
+      },
+      {
+        "name": "Al Shabab",
+        "sofifa_id": 111674,
+        "logo_url": "https://cdn.sofifa.net/meta/team/16184/120.png",
         "overall_rating": 70,
         "star_rating": 3
       },
@@ -4032,15 +4137,8 @@
         "name": "Al Taawoun FC",
         "sofifa_id": 112393,
         "logo_url": "https://cdn.sofifa.net/meta/team/2392/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
-        "name": "Al Shabab",
-        "sofifa_id": 111674,
-        "logo_url": "https://cdn.sofifa.net/meta/team/16184/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
+        "overall_rating": 68,
+        "star_rating": 2.5
       },
       {
         "name": "Al Ettifaq",
@@ -4050,9 +4148,9 @@
         "star_rating": 2.5
       },
       {
-        "name": "Al Kholood",
-        "sofifa_id": 131735,
-        "logo_url": "https://cdn.sofifa.net/meta/team/232744/120.png",
+        "name": "Abha",
+        "sofifa_id": 113058,
+        "logo_url": "https://cdn.sofifa.net/meta/team/5618/120.png",
         "overall_rating": 66,
         "star_rating": 2
       },
@@ -4064,24 +4162,17 @@
         "star_rating": 2
       },
       {
-        "name": "Al Hazem FC",
-        "sofifa_id": 113222,
-        "logo_url": "https://cdn.sofifa.net/meta/team/17694/120.png",
-        "overall_rating": 65,
+        "name": "Al Faisaly",
+        "sofifa_id": 112389,
+        "logo_url": "https://cdn.sofifa.net/meta/team/6883/120.png",
+        "overall_rating": 66,
         "star_rating": 2
       },
       {
-        "name": "Damac FC",
-        "sofifa_id": 113217,
-        "logo_url": "https://cdn.sofifa.net/meta/team/17712/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
-        "name": "Al Akhdoud Saudi Club",
-        "sofifa_id": 113060,
-        "logo_url": "https://cdn.sofifa.net/meta/team/232738/120.png",
-        "overall_rating": 65,
+        "name": "Al Fateh",
+        "sofifa_id": 112390,
+        "logo_url": "https://cdn.sofifa.net/meta/team/5891/120.png",
+        "overall_rating": 66,
         "star_rating": 2
       },
       {
@@ -4092,18 +4183,18 @@
         "star_rating": 2
       },
       {
-        "name": "Al Fateh",
-        "sofifa_id": 112390,
-        "logo_url": "https://cdn.sofifa.net/meta/team/5891/120.png",
+        "name": "Al Hazem FC",
+        "sofifa_id": 113222,
+        "logo_url": "https://cdn.sofifa.net/meta/team/17694/120.png",
         "overall_rating": 65,
         "star_rating": 2
       },
       {
-        "name": "Al-Najma SC",
-        "sofifa_id": 115892,
-        "logo_url": "https://cdn.sofifa.net/meta/team/12312/120.png",
-        "overall_rating": 64,
-        "star_rating": 1.5
+        "name": "Al Kholood",
+        "sofifa_id": 131735,
+        "logo_url": "https://cdn.sofifa.net/meta/team/232744/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
       }
     ]
   },
@@ -4117,62 +4208,34 @@
         "name": "Auckland FC",
         "sofifa_id": 131739,
         "logo_url": "https://cdn.sofifa.net/meta/team/273583/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
+        "overall_rating": 64,
+        "star_rating": 1.5
       },
       {
         "name": "Western Sydney Wanderers",
         "sofifa_id": 112427,
         "logo_url": "https://cdn.sofifa.net/meta/team/1264/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
+        "overall_rating": 63,
+        "star_rating": 1.5
       },
       {
         "name": "Melbourne City FC",
         "sofifa_id": 112224,
         "logo_url": "https://cdn.sofifa.net/meta/team/315/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
+        "overall_rating": 63,
+        "star_rating": 1.5
       },
       {
         "name": "Sydney FC",
         "sofifa_id": 111400,
         "logo_url": "https://cdn.sofifa.net/meta/team/253/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
-        "name": "Newcastle Jets",
-        "sofifa_id": 111398,
-        "logo_url": "https://cdn.sofifa.net/meta/team/557/120.png",
-        "overall_rating": 64,
+        "overall_rating": 63,
         "star_rating": 1.5
       },
       {
         "name": "Melbourne Victory",
         "sofifa_id": 111397,
         "logo_url": "https://cdn.sofifa.net/meta/team/958/120.png",
-        "overall_rating": 64,
-        "star_rating": 1.5
-      },
-      {
-        "name": "Perth Glory",
-        "sofifa_id": 111399,
-        "logo_url": "https://cdn.sofifa.net/meta/team/300/120.png",
-        "overall_rating": 63,
-        "star_rating": 1.5
-      },
-      {
-        "name": "Brisbane Roar",
-        "sofifa_id": 111395,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1238/120.png",
-        "overall_rating": 63,
-        "star_rating": 1.5
-      },
-      {
-        "name": "Macarthur FC",
-        "sofifa_id": 114604,
-        "logo_url": "https://cdn.sofifa.net/meta/team/252006/120.png",
         "overall_rating": 63,
         "star_rating": 1.5
       },
@@ -4184,11 +4247,46 @@
         "star_rating": 1.5
       },
       {
+        "name": "Newcastle Jets",
+        "sofifa_id": 111398,
+        "logo_url": "https://cdn.sofifa.net/meta/team/557/120.png",
+        "overall_rating": 62,
+        "star_rating": 1
+      },
+      {
+        "name": "Macarthur FC",
+        "sofifa_id": 114604,
+        "logo_url": "https://cdn.sofifa.net/meta/team/252006/120.png",
+        "overall_rating": 62,
+        "star_rating": 1
+      },
+      {
+        "name": "Perth Glory",
+        "sofifa_id": 111399,
+        "logo_url": "https://cdn.sofifa.net/meta/team/300/120.png",
+        "overall_rating": 61,
+        "star_rating": 1
+      },
+      {
+        "name": "Brisbane Roar",
+        "sofifa_id": 111395,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1238/120.png",
+        "overall_rating": 61,
+        "star_rating": 1
+      },
+      {
         "name": "Wellington Phoenix",
         "sofifa_id": 111766,
         "logo_url": "https://cdn.sofifa.net/meta/team/1868/120.png",
-        "overall_rating": 62,
-        "star_rating": 1
+        "overall_rating": 59,
+        "star_rating": 0.5
+      },
+      {
+        "name": "Central Coast Mariners",
+        "sofifa_id": 111396,
+        "logo_url": "https://cdn.sofifa.net/meta/team/410/120.png",
+        "overall_rating": 59,
+        "star_rating": 0.5
       }
     ]
   },
@@ -4202,7 +4300,7 @@
         "name": "River Plate",
         "sofifa_id": 1876,
         "logo_url": "https://cdn.sofifa.net/meta/team/10002/120.png",
-        "overall_rating": 75,
+        "overall_rating": 76,
         "star_rating": 4
       },
       {
@@ -4213,17 +4311,10 @@
         "star_rating": 4
       },
       {
-        "name": "Racing Club",
-        "sofifa_id": 101085,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3608/120.png",
-        "overall_rating": 74,
-        "star_rating": 3.5
-      },
-      {
         "name": "Estudiantes de La Plata",
         "sofifa_id": 101083,
         "logo_url": "https://cdn.sofifa.net/meta/team/9335/120.png",
-        "overall_rating": 73,
+        "overall_rating": 74,
         "star_rating": 3.5
       },
       {
@@ -4234,9 +4325,16 @@
         "star_rating": 3.5
       },
       {
-        "name": "Argentinos Juniors",
-        "sofifa_id": 111019,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3393/120.png",
+        "name": "Belgrano de Córdoba",
+        "sofifa_id": 111022,
+        "logo_url": "https://cdn.sofifa.net/meta/team/6829/120.png",
+        "overall_rating": 72,
+        "star_rating": 3.5
+      },
+      {
+        "name": "Racing Club",
+        "sofifa_id": 101085,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3608/120.png",
         "overall_rating": 72,
         "star_rating": 3.5
       },
@@ -4255,9 +4353,23 @@
         "star_rating": 3.5
       },
       {
-        "name": "Belgrano de Córdoba",
-        "sofifa_id": 111022,
-        "logo_url": "https://cdn.sofifa.net/meta/team/6829/120.png",
+        "name": "Independiente",
+        "sofifa_id": 110093,
+        "logo_url": "https://cdn.sofifa.net/meta/team/10840/120.png",
+        "overall_rating": 71,
+        "star_rating": 3.5
+      },
+      {
+        "name": "Platense",
+        "sofifa_id": 112689,
+        "logo_url": "https://cdn.sofifa.net/meta/team/9896/120.png",
+        "overall_rating": 71,
+        "star_rating": 3.5
+      },
+      {
+        "name": "Independiente Rivadavia",
+        "sofifa_id": 111020,
+        "logo_url": "https://cdn.sofifa.net/meta/team/812/120.png",
         "overall_rating": 71,
         "star_rating": 3.5
       },
@@ -4265,15 +4377,8 @@
         "name": "Talleres",
         "sofifa_id": 112670,
         "logo_url": "https://cdn.sofifa.net/meta/team/9999/120.png",
-        "overall_rating": 71,
-        "star_rating": 3.5
-      },
-      {
-        "name": "Independiente",
-        "sofifa_id": 110093,
-        "logo_url": "https://cdn.sofifa.net/meta/team/10840/120.png",
-        "overall_rating": 71,
-        "star_rating": 3.5
+        "overall_rating": 70,
+        "star_rating": 3
       },
       {
         "name": "Huracán",
@@ -4290,13 +4395,6 @@
         "star_rating": 3
       },
       {
-        "name": "Platense",
-        "sofifa_id": 112689,
-        "logo_url": "https://cdn.sofifa.net/meta/team/9896/120.png",
-        "overall_rating": 70,
-        "star_rating": 3
-      },
-      {
         "name": "San Lorenzo de Almagro",
         "sofifa_id": 1013,
         "logo_url": "https://cdn.sofifa.net/meta/team/520/120.png",
@@ -4304,16 +4402,16 @@
         "star_rating": 3
       },
       {
-        "name": "Instituto Atlético Central Córdoba",
-        "sofifa_id": 110953,
-        "logo_url": "https://cdn.sofifa.net/meta/team/9941/120.png",
+        "name": "Argentinos Juniors",
+        "sofifa_id": 111019,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3393/120.png",
         "overall_rating": 70,
         "star_rating": 3
       },
       {
-        "name": "Independiente Rivadavia",
-        "sofifa_id": 111020,
-        "logo_url": "https://cdn.sofifa.net/meta/team/812/120.png",
+        "name": "Gimnasia y Esgrima La Plata",
+        "sofifa_id": 101084,
+        "logo_url": "https://cdn.sofifa.net/meta/team/470/120.png",
         "overall_rating": 69,
         "star_rating": 3
       },
@@ -4339,6 +4437,13 @@
         "star_rating": 3
       },
       {
+        "name": "Instituto Atlético Central Córdoba",
+        "sofifa_id": 110953,
+        "logo_url": "https://cdn.sofifa.net/meta/team/9941/120.png",
+        "overall_rating": 69,
+        "star_rating": 3
+      },
+      {
         "name": "Atlético Tucumán",
         "sofifa_id": 111708,
         "logo_url": "https://cdn.sofifa.net/meta/team/10675/120.png",
@@ -4346,16 +4451,23 @@
         "star_rating": 3
       },
       {
-        "name": "CA Banfield",
-        "sofifa_id": 110404,
-        "logo_url": "https://cdn.sofifa.net/meta/team/887/120.png",
+        "name": "CA Aldosivi",
+        "sofifa_id": 111707,
+        "logo_url": "https://cdn.sofifa.net/meta/team/9874/120.png",
+        "overall_rating": 69,
+        "star_rating": 3
+      },
+      {
+        "name": "Gimnasia y Esgrima de Mendoza",
+        "sofifa_id": 113050,
+        "logo_url": "https://cdn.sofifa.net/meta/team/14288/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
       {
-        "name": "Godoy Cruz",
-        "sofifa_id": 111706,
-        "logo_url": "https://cdn.sofifa.net/meta/team/10987/120.png",
+        "name": "Central Cordoba SdE",
+        "sofifa_id": 112965,
+        "logo_url": "https://cdn.sofifa.net/meta/team/14212/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
@@ -4367,13 +4479,6 @@
         "star_rating": 2.5
       },
       {
-        "name": "Gimnasia y Esgrima La Plata",
-        "sofifa_id": 101084,
-        "logo_url": "https://cdn.sofifa.net/meta/team/470/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
         "name": "Newell's Old Boys",
         "sofifa_id": 110396,
         "logo_url": "https://cdn.sofifa.net/meta/team/32/120.png",
@@ -4381,32 +4486,25 @@
         "star_rating": 2.5
       },
       {
-        "name": "CA Aldosivi",
-        "sofifa_id": 111707,
-        "logo_url": "https://cdn.sofifa.net/meta/team/9874/120.png",
+        "name": "CA Banfield",
+        "sofifa_id": 110404,
+        "logo_url": "https://cdn.sofifa.net/meta/team/887/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
       {
-        "name": "Central Cordoba SdE",
-        "sofifa_id": 112965,
-        "logo_url": "https://cdn.sofifa.net/meta/team/14212/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
+        "name": "Estudiantes de Río Cuarto",
+        "sofifa_id": 115470,
+        "logo_url": "https://cdn.sofifa.net/meta/team/12186/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
       },
       {
         "name": "Deportivo Riestra",
         "sofifa_id": 115472,
         "logo_url": "https://cdn.sofifa.net/meta/team/14578/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
-      },
-      {
-        "name": "Club Atlético San Martín",
-        "sofifa_id": 111713,
-        "logo_url": "https://cdn.sofifa.net/meta/team/10041/120.png",
-        "overall_rating": 63,
-        "star_rating": 1.5
+        "overall_rating": 67,
+        "star_rating": 2.5
       }
     ]
   },
@@ -4417,13 +4515,6 @@
     "country_code": "CN",
     "teams": [
       {
-        "name": "Shanghai Port",
-        "sofifa_id": 112540,
-        "logo_url": "https://cdn.sofifa.net/meta/team/5751/120.png",
-        "overall_rating": 67,
-        "star_rating": 2.5
-      },
-      {
         "name": "Shanghai Shenhua",
         "sofifa_id": 110955,
         "logo_url": "https://cdn.sofifa.net/meta/team/9279/120.png",
@@ -4431,16 +4522,16 @@
         "star_rating": 2
       },
       {
-        "name": "Shandong Taishan",
-        "sofifa_id": 111724,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2458/120.png",
+        "name": "Beijing Guoan",
+        "sofifa_id": 111768,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3370/120.png",
         "overall_rating": 66,
         "star_rating": 2
       },
       {
-        "name": "Beijing Guoan",
-        "sofifa_id": 111768,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3370/120.png",
+        "name": "Shandong Taishan",
+        "sofifa_id": 111724,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2458/120.png",
         "overall_rating": 65,
         "star_rating": 2
       },
@@ -4452,6 +4543,48 @@
         "star_rating": 2
       },
       {
+        "name": "Shanghai Port",
+        "sofifa_id": 112540,
+        "logo_url": "https://cdn.sofifa.net/meta/team/5751/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
+      },
+      {
+        "name": "Yunnan Yukun",
+        "sofifa_id": 131531,
+        "logo_url": "https://cdn.sofifa.net/meta/team/268563/120.png",
+        "overall_rating": 64,
+        "star_rating": 1.5
+      },
+      {
+        "name": "Wuhan Three Towns",
+        "sofifa_id": 116361,
+        "logo_url": "https://cdn.sofifa.net/meta/team/235302/120.png",
+        "overall_rating": 64,
+        "star_rating": 1.5
+      },
+      {
+        "name": "Zhejiang FC",
+        "sofifa_id": 112163,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3658/120.png",
+        "overall_rating": 64,
+        "star_rating": 1.5
+      },
+      {
+        "name": "Henan FC",
+        "sofifa_id": 111779,
+        "logo_url": "https://cdn.sofifa.net/meta/team/8428/120.png",
+        "overall_rating": 63,
+        "star_rating": 1.5
+      },
+      {
+        "name": "Shenzhen Peng City",
+        "sofifa_id": 131487,
+        "logo_url": "https://cdn.sofifa.net/meta/team/150427/120.png",
+        "overall_rating": 63,
+        "star_rating": 1.5
+      },
+      {
         "name": "Dalian Yingbo",
         "sofifa_id": 132305,
         "logo_url": "https://cdn.sofifa.net/meta/team/268561/120.png",
@@ -4459,9 +4592,9 @@
         "star_rating": 1.5
       },
       {
-        "name": "Zhejiang FC",
-        "sofifa_id": 112163,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3658/120.png",
+        "name": "Qingdao West Coast FC",
+        "sofifa_id": 131488,
+        "logo_url": "https://cdn.sofifa.net/meta/team/257391/120.png",
         "overall_rating": 62,
         "star_rating": 1
       },
@@ -4473,37 +4606,23 @@
         "star_rating": 1
       },
       {
-        "name": "Henan FC",
-        "sofifa_id": 111779,
-        "logo_url": "https://cdn.sofifa.net/meta/team/8428/120.png",
-        "overall_rating": 61,
+        "name": "Liaoning Tieren FC",
+        "sofifa_id": 132139,
+        "logo_url": "https://cdn.sofifa.net/meta/team/69988/120.png",
+        "overall_rating": 62,
         "star_rating": 1
       },
       {
-        "name": "Changchun Yatai",
-        "sofifa_id": 111769,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3351/120.png",
-        "overall_rating": 61,
-        "star_rating": 1
-      },
-      {
-        "name": "Yunnan Yukun",
-        "sofifa_id": 131531,
-        "logo_url": "https://cdn.sofifa.net/meta/team/268563/120.png",
+        "name": "Qingdao Hainiu FC",
+        "sofifa_id": 131173,
+        "logo_url": "https://cdn.sofifa.net/meta/team/18013/120.png",
         "overall_rating": 60,
         "star_rating": 1
       },
       {
-        "name": "Meizhou Hakka",
-        "sofifa_id": 114628,
-        "logo_url": "https://cdn.sofifa.net/meta/team/11375/120.png",
-        "overall_rating": 60,
-        "star_rating": 1
-      },
-      {
-        "name": "Wuhan Three Towns",
-        "sofifa_id": 116361,
-        "logo_url": "https://cdn.sofifa.net/meta/team/235302/120.png",
+        "name": "Chongqing Tonglianglong FC",
+        "sofifa_id": 132784,
+        "logo_url": "https://cdn.sofifa.net/meta/team/268560/120.png",
         "overall_rating": 60,
         "star_rating": 1
       }
@@ -4513,14 +4632,14 @@
     "league_id": 2013,
     "league_name": "Pro League",
     "country": "V. A. Emirate",
-    "country_code": "",
+    "country_code": "AE",
     "teams": [
       {
         "name": "Al Ain",
         "sofifa_id": 111701,
         "logo_url": "https://cdn.sofifa.net/meta/team/7780/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
+        "overall_rating": 71,
+        "star_rating": 3.5
       }
     ]
   },
@@ -4538,18 +4657,25 @@
         "star_rating": 2.5
       },
       {
-        "name": "Nacional Potosí",
-        "sofifa_id": 112667,
-        "logo_url": "https://cdn.sofifa.net/meta/team/8384/120.png",
+        "name": "Blooming",
+        "sofifa_id": 110967,
+        "logo_url": "https://cdn.sofifa.net/meta/team/7019/120.png",
         "overall_rating": 65,
         "star_rating": 2
       },
       {
-        "name": "Gualberto Villarroel SJ",
-        "sofifa_id": 132375,
-        "logo_url": "https://cdn.sofifa.net/meta/team/270457/120.png",
+        "name": "Always Ready",
+        "sofifa_id": 114577,
+        "logo_url": "https://cdn.sofifa.net/meta/team/234259/120.png",
         "overall_rating": 65,
         "star_rating": 2
+      },
+      {
+        "name": "Independiente Petrolero",
+        "sofifa_id": 115517,
+        "logo_url": "https://cdn.sofifa.net/meta/team/251684/120.png",
+        "overall_rating": 63,
+        "star_rating": 1.5
       }
     ]
   },
@@ -4560,6 +4686,20 @@
     "country_code": "EC",
     "teams": [
       {
+        "name": "LDU Quito",
+        "sofifa_id": 110986,
+        "logo_url": "https://cdn.sofifa.net/meta/team/10779/120.png",
+        "overall_rating": 70,
+        "star_rating": 3
+      },
+      {
+        "name": "Independiente del Valle",
+        "sofifa_id": 112908,
+        "logo_url": "https://cdn.sofifa.net/meta/team/14635/120.png",
+        "overall_rating": 70,
+        "star_rating": 3
+      },
+      {
         "name": "Barcelona de Guayaquil",
         "sofifa_id": 110981,
         "logo_url": "https://cdn.sofifa.net/meta/team/472/120.png",
@@ -4567,31 +4707,17 @@
         "star_rating": 2.5
       },
       {
-        "name": "LDU Quito",
-        "sofifa_id": 110986,
-        "logo_url": "https://cdn.sofifa.net/meta/team/10779/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
+        "name": "Deportivo Cuenca",
+        "sofifa_id": 110982,
+        "logo_url": "https://cdn.sofifa.net/meta/team/9996/120.png",
+        "overall_rating": 66,
+        "star_rating": 2
       },
       {
-        "name": "Independiente del Valle",
-        "sofifa_id": 112908,
-        "logo_url": "https://cdn.sofifa.net/meta/team/14635/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Universidad Católica del Ecuador",
-        "sofifa_id": 114581,
-        "logo_url": "https://cdn.sofifa.net/meta/team/15327/120.png",
-        "overall_rating": 68,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Mushuc Runa",
-        "sofifa_id": 114615,
-        "logo_url": "https://cdn.sofifa.net/meta/team/9868/120.png",
-        "overall_rating": 65,
+        "name": "Macará",
+        "sofifa_id": 114578,
+        "logo_url": "https://cdn.sofifa.net/meta/team/12402/120.png",
+        "overall_rating": 66,
         "star_rating": 2
       }
     ]
@@ -4606,29 +4732,36 @@
         "name": "Carabobo FC",
         "sofifa_id": 110991,
         "logo_url": "https://cdn.sofifa.net/meta/team/7738/120.png",
-        "overall_rating": 67,
-        "star_rating": 2.5
-      },
-      {
-        "name": "Deportivo Táchira",
-        "sofifa_id": 110990,
-        "logo_url": "https://cdn.sofifa.net/meta/team/8390/120.png",
-        "overall_rating": 65,
+        "overall_rating": 66,
         "star_rating": 2
       },
       {
         "name": "Academia Puerto Cabello",
         "sofifa_id": 114611,
         "logo_url": "https://cdn.sofifa.net/meta/team/15995/120.png",
-        "overall_rating": 63,
-        "star_rating": 1.5
+        "overall_rating": 66,
+        "star_rating": 2
+      },
+      {
+        "name": "Universidad Central de Venezuela",
+        "sofifa_id": 115693,
+        "logo_url": "https://cdn.sofifa.net/meta/team/15115/120.png",
+        "overall_rating": 66,
+        "star_rating": 2
       },
       {
         "name": "Caracas FC",
         "sofifa_id": 110989,
         "logo_url": "https://cdn.sofifa.net/meta/team/12294/120.png",
-        "overall_rating": 62,
-        "star_rating": 1
+        "overall_rating": 65,
+        "star_rating": 2
+      },
+      {
+        "name": "Deportivo La Guaira",
+        "sofifa_id": 112853,
+        "logo_url": "https://cdn.sofifa.net/meta/team/8339/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
       }
     ]
   },
@@ -4639,20 +4772,6 @@
     "country_code": "PE",
     "teams": [
       {
-        "name": "Alianza Lima",
-        "sofifa_id": 111010,
-        "logo_url": "https://cdn.sofifa.net/meta/team/10671/120.png",
-        "overall_rating": 70,
-        "star_rating": 3
-      },
-      {
-        "name": "Sporting Cristal",
-        "sofifa_id": 111013,
-        "logo_url": "https://cdn.sofifa.net/meta/team/10661/120.png",
-        "overall_rating": 69,
-        "star_rating": 3
-      },
-      {
         "name": "Universitario de Deportes",
         "sofifa_id": 111014,
         "logo_url": "https://cdn.sofifa.net/meta/team/8175/120.png",
@@ -4660,9 +4779,9 @@
         "star_rating": 3
       },
       {
-        "name": "FBC Melgar",
-        "sofifa_id": 111334,
-        "logo_url": "https://cdn.sofifa.net/meta/team/208/120.png",
+        "name": "Sporting Cristal",
+        "sofifa_id": 111013,
+        "logo_url": "https://cdn.sofifa.net/meta/team/10661/120.png",
         "overall_rating": 68,
         "star_rating": 2.5
       },
@@ -4674,11 +4793,18 @@
         "star_rating": 2.5
       },
       {
-        "name": "Atlético Grau",
-        "sofifa_id": 114598,
-        "logo_url": "https://cdn.sofifa.net/meta/team/150808/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
+        "name": "Cusco FC",
+        "sofifa_id": 112659,
+        "logo_url": "https://cdn.sofifa.net/meta/team/10976/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
+        "name": "Alianza Atlético",
+        "sofifa_id": 111012,
+        "logo_url": "https://cdn.sofifa.net/meta/team/14658/120.png",
+        "overall_rating": 64,
+        "star_rating": 1.5
       }
     ]
   },
@@ -4689,72 +4815,30 @@
     "country_code": "DE",
     "teams": [
       {
-        "name": "FC Hansa Rostock",
+        "name": "Fortuna Düsseldorf",
+        "sofifa_id": 110636,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1092/120.png",
+        "overall_rating": 67,
+        "star_rating": 2.5
+      },
+      {
+        "name": "MSV Duisburg",
+        "sofifa_id": 1825,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3318/120.png",
+        "overall_rating": 66,
+        "star_rating": 2
+      },
+      {
+        "name": "Hansa Rostock",
         "sofifa_id": 27,
         "logo_url": "https://cdn.sofifa.net/meta/team/575/120.png",
         "overall_rating": 66,
         "star_rating": 2
       },
       {
-        "name": "TSV 1860 München",
-        "sofifa_id": 33,
-        "logo_url": "https://cdn.sofifa.net/meta/team/454/120.png",
-        "overall_rating": 66,
-        "star_rating": 2
-      },
-      {
-        "name": "SC Verl",
-        "sofifa_id": 110501,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3891/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
-        "name": "SSV Ulm 1846",
-        "sofifa_id": 110176,
-        "logo_url": "https://cdn.sofifa.net/meta/team/813/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
         "name": "Alemannia Aachen",
         "sofifa_id": 1826,
         "logo_url": "https://cdn.sofifa.net/meta/team/3328/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
-        "name": "MSV Duisburg",
-        "sofifa_id": 1825,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3318/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
-        "name": "Rot-Weiss Essen",
-        "sofifa_id": 526,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2777/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
-        "name": "1. FC Saarbrücken",
-        "sofifa_id": 523,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1331/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
-        "name": "FC Energie Cottbus",
-        "sofifa_id": 162,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3322/120.png",
-        "overall_rating": 65,
-        "star_rating": 2
-      },
-      {
-        "name": "VfL Osnabrück",
-        "sofifa_id": 487,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2872/120.png",
         "overall_rating": 65,
         "star_rating": 2
       },
@@ -4766,30 +4850,23 @@
         "star_rating": 2
       },
       {
-        "name": "FC Erzgebirge Aue",
-        "sofifa_id": 506,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3336/120.png",
-        "overall_rating": 64,
-        "star_rating": 1.5
+        "name": "SC Preußen Münster",
+        "sofifa_id": 531,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3647/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
+      },
+      {
+        "name": "Rot-Weiss Essen",
+        "sofifa_id": 526,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2777/120.png",
+        "overall_rating": 65,
+        "star_rating": 2
       },
       {
         "name": "SSV Jahn Regensburg",
         "sofifa_id": 543,
         "logo_url": "https://cdn.sofifa.net/meta/team/3463/120.png",
-        "overall_rating": 64,
-        "star_rating": 1.5
-      },
-      {
-        "name": "SV Waldhof Mannheim",
-        "sofifa_id": 110532,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3385/120.png",
-        "overall_rating": 64,
-        "star_rating": 1.5
-      },
-      {
-        "name": "Viktoria Köln",
-        "sofifa_id": 110645,
-        "logo_url": "https://cdn.sofifa.net/meta/team/2823/120.png",
         "overall_rating": 64,
         "star_rating": 1.5
       },
@@ -4801,24 +4878,80 @@
         "star_rating": 1.5
       },
       {
-        "name": "1. FC Schweinfurt 05",
-        "sofifa_id": 583,
-        "logo_url": "https://cdn.sofifa.net/meta/team/3632/120.png",
-        "overall_rating": 62,
-        "star_rating": 1
+        "name": "Viktoria Köln",
+        "sofifa_id": 110645,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2823/120.png",
+        "overall_rating": 64,
+        "star_rating": 1.5
+      },
+      {
+        "name": "SV Waldhof Mannheim",
+        "sofifa_id": 110532,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3385/120.png",
+        "overall_rating": 64,
+        "star_rating": 1.5
+      },
+      {
+        "name": "1. FC Saarbrücken",
+        "sofifa_id": 523,
+        "logo_url": "https://cdn.sofifa.net/meta/team/1331/120.png",
+        "overall_rating": 64,
+        "star_rating": 1.5
       },
       {
         "name": "TSV Havelse",
         "sofifa_id": 110678,
         "logo_url": "https://cdn.sofifa.net/meta/team/3535/120.png",
+        "overall_rating": 63,
+        "star_rating": 1.5
+      },
+      {
+        "name": "SV Meppen",
+        "sofifa_id": 110597,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2724/120.png",
+        "overall_rating": 63,
+        "star_rating": 1.5
+      },
+      {
+        "name": "SC Verl",
+        "sofifa_id": 110501,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3891/120.png",
+        "overall_rating": 63,
+        "star_rating": 1.5
+      },
+      {
+        "name": "FC Würzburger Kickers",
+        "sofifa_id": 110197,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3387/120.png",
+        "overall_rating": 63,
+        "star_rating": 1.5
+      },
+      {
+        "name": "SC Fortuna Köln",
+        "sofifa_id": 110169,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2965/120.png",
+        "overall_rating": 63,
+        "star_rating": 1.5
+      },
+      {
+        "name": "SG Sonnenhof Großaspach",
+        "sofifa_id": 111379,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3595/120.png",
         "overall_rating": 62,
         "star_rating": 1
       },
       {
         "name": "VfB Stuttgart II",
         "sofifa_id": 110697,
-        "logo_url": "https://cdn.sofifa.net/meta/team/1445/120.png",
+        "logo_url": "https://cdn.sofifa.net/meta/team/3319/120.png",
         "overall_rating": 61,
+        "star_rating": 1
+      },
+      {
+        "name": "TSG 1899 Hoffenheim II",
+        "sofifa_id": 110685,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2726/120.png",
+        "overall_rating": 60,
         "star_rating": 1
       }
     ]
@@ -4833,8 +4966,92 @@
         "name": "Mohun Bagan Super Giant",
         "sofifa_id": 113146,
         "logo_url": "https://cdn.sofifa.net/meta/team/251504/120.png",
-        "overall_rating": 64,
-        "star_rating": 1.5
+        "overall_rating": 65,
+        "star_rating": 2
+      },
+      {
+        "name": "Jamshedpur FC",
+        "sofifa_id": 114168,
+        "logo_url": "https://cdn.sofifa.net/meta/team/134418/120.png",
+        "overall_rating": 60,
+        "star_rating": 1
+      },
+      {
+        "name": "Bengaluru FC",
+        "sofifa_id": 113302,
+        "logo_url": "https://cdn.sofifa.net/meta/team/492/120.png",
+        "overall_rating": 60,
+        "star_rating": 1
+      },
+      {
+        "name": "NorthEast United",
+        "sofifa_id": 113040,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2768/120.png",
+        "overall_rating": 59,
+        "star_rating": 0.5
+      },
+      {
+        "name": "United Tigers SC",
+        "sofifa_id": 132681,
+        "logo_url": "https://cdn.sofifa.net/meta/team/10000034/120.png",
+        "overall_rating": 59,
+        "star_rating": 0.5
+      },
+      {
+        "name": "FC Goa",
+        "sofifa_id": 113298,
+        "logo_url": "https://cdn.sofifa.net/meta/team/435/120.png",
+        "overall_rating": 59,
+        "star_rating": 0.5
+      },
+      {
+        "name": "Chennaiyin FC",
+        "sofifa_id": 113297,
+        "logo_url": "https://cdn.sofifa.net/meta/team/7271/120.png",
+        "overall_rating": 58,
+        "star_rating": 0.5
+      },
+      {
+        "name": "Mumbai City FC",
+        "sofifa_id": 113300,
+        "logo_url": "https://cdn.sofifa.net/meta/team/3416/120.png",
+        "overall_rating": 58,
+        "star_rating": 0.5
+      },
+      {
+        "name": "Odisha FC",
+        "sofifa_id": 113257,
+        "logo_url": "https://cdn.sofifa.net/meta/team/2358/120.png",
+        "overall_rating": 56,
+        "star_rating": 0.5
+      },
+      {
+        "name": "Punjab FC",
+        "sofifa_id": 115202,
+        "logo_url": "https://cdn.sofifa.net/meta/team/18189/120.png",
+        "overall_rating": 56,
+        "star_rating": 0.5
+      },
+      {
+        "name": "SC Delhi",
+        "sofifa_id": 113301,
+        "logo_url": "https://cdn.sofifa.net/meta/team/238626/120.png",
+        "overall_rating": 55,
+        "star_rating": 0.5
+      },
+      {
+        "name": "Kerala Blasters FC",
+        "sofifa_id": 113299,
+        "logo_url": "https://cdn.sofifa.net/meta/team/780/120.png",
+        "overall_rating": 54,
+        "star_rating": 0.5
+      },
+      {
+        "name": "Inter Kashi",
+        "sofifa_id": 131461,
+        "logo_url": "https://cdn.sofifa.net/meta/team/271086/120.png",
+        "overall_rating": 54,
+        "star_rating": 0.5
       }
     ]
   }

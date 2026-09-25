@@ -5,24 +5,23 @@
  *
  * Runs the three-stage team pipeline in order:
  *   1. parse-sofifa-leagues.js — regenerates scripts/scraped-teams.json
- *      from the SoFIFA RTF files in ligen/
- *   2. import-teams.js — upserts every team into Cloud SQL
- *      (ON CONFLICT (name) DO UPDATE, preserving existing UUIDs). This writes
- *      SoFIFA-CDN logo_urls.
+ *      from the saved SoFIFA league pages in ligen/
+ *   2. import-teams.js — writes every team to Cloud SQL, matched by sofifa_id
+ *      (existing names and UUIDs are kept). This writes SoFIFA-CDN logo_urls.
  *   3. update-logo-urls.js — rewrites logo_url from the SoFIFA CDN back to the
  *      Firebase Storage bucket, so logos stay self-hosted (matches PROD).
  *
- * Bundling step 3 makes the logo re-hosting impossible to forget. Note: a
- * brand-new club added in a run gets a Firebase URL whose image may not be in
- * the bucket yet (404) — fetch/upload it with download-logos.js if so.
+ * Bundling step 3 makes the logo re-hosting impossible to forget. A logo that
+ * is not in the bucket yet (brand-new club, new crest id) keeps its CDN URL
+ * and is listed by step 3 — upload it to team-logos/ and re-run that step.
  *
  * Each step is transactional and a non-zero exit aborts the run before the
  * next step. DATABASE_URL is required and checked up front, so a missing
  * connection string fails fast — before any parsing work is done.
  *
  * Run:
- *   cloud-sql-proxy rasenbuerosport-leipzig-9d54f:europe-west3:rasenbuerosport-db --port=5433 &
- *   DATABASE_URL="postgresql://postgres:PASSWORD@127.0.0.1:5433/rasenbuerosport" npm run teams:update
+ *   npm run db:proxy   # in another terminal
+ *   bash scripts/with-prod-db.sh npm run teams:update
  */
 
 import "dotenv/config";
