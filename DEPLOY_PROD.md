@@ -277,6 +277,10 @@ Das Skript braucht nur einmalig zu laufen. Spätere Releases inkrementieren ELO 
 
 ### B) Talk Show — Bürowoche
 
+`_preview` und `/audio` sind admin-only: Das ID-Token muss zu einem
+Profil mit `profiles.role = 'admin'` gehören, sonst kommt 403
+`Admin access required`.
+
 - [ ] Drehbuch generieren (debug, kein DB-Spam):
   ```bash
   curl -X POST https://<api-url>/api/v1/talkshow/_preview \
