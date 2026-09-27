@@ -1,3 +1,4 @@
+import { AI_LIGHT } from "../../constants/ai.constants.js";
 import {
 	callAnthropicWithRetry,
 	findFabricatedNames,
@@ -287,8 +288,8 @@ export async function generateMatchOfTheWeekReport(
 	});
 
 	const { text } = await callAnthropicWithRetry({
-		model: "claude-sonnet-4-6",
-		max_tokens: 900,
+		...AI_LIGHT,
+		max_tokens: 3072,
 		messages: [
 			{
 				role: "user",

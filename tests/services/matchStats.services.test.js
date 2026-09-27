@@ -1,5 +1,35 @@
-import { describe, expect, it } from "vitest";
-import { __test__ } from "../../src/api/services/matchStats.services.js";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("../../src/config/anthropic.config.js", () => ({
+	getAnthropicClient: vi.fn(),
+}));
+
+import { getAnthropicClient } from "../../src/config/anthropic.config.js";
+import {
+	__test__,
+	extractStatsFromImage,
+} from "../../src/api/services/matchStats.services.js";
+
+describe("extractStatsFromImage", () => {
+	it("parses a fenced JSON answer behind a thinking block", async () => {
+		const create = vi.fn(async () => ({
+			stop_reason: "end_turn",
+			content: [
+				{ type: "thinking", thinking: "" },
+				{ type: "text", text: '```json\n{ "shots": { "home": 5, "away": 7 } }\n```' },
+			],
+		}));
+		getAnthropicClient.mockReturnValue({ messages: { create } });
+
+		const stats = await extractStatsFromImage("https://storage.example/overview.jpg");
+
+		expect(stats).toEqual({ shots: { home: 5, away: 7 } });
+		expect(create.mock.calls[0][0]).toMatchObject({
+			model: "claude-sonnet-5",
+			output_config: { effort: "medium" },
+		});
+	});
+});
 
 const { splitPassesExtraction } = __test__;
 

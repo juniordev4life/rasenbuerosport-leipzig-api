@@ -138,11 +138,11 @@ describe("generateAiSummary", () => {
 
 	function mockModel(response) {
 		const create = vi.fn(async () => response);
-		getAnthropicClient.mockReturnValue({ beta: { messages: { create } } });
+		getAnthropicClient.mockReturnValue({ messages: { create } });
 		return create;
 	}
 
-	it("asks claude-opus-5 with refusal fallbacks and returns the text", async () => {
+	it("asks claude-sonnet-5 at low effort and returns the text", async () => {
 		const create = mockModel({
 			stop_reason: "end_turn",
 			content: [{ type: "thinking", thinking: "" }, { type: "text", text: "Anna schießt 50 Tore. Ben jubelt mit." }],
@@ -153,11 +153,11 @@ describe("generateAiSummary", () => {
 		expect(summary.text).toBe("Anna schießt 50 Tore. Ben jubelt mit.");
 		const [payload] = create.mock.calls[0];
 		expect(payload).toMatchObject({
-			model: "claude-opus-5",
-			betas: ["server-side-fallback-2026-07-01"],
-			fallbacks: "default",
+			model: "claude-sonnet-5",
+			thinking: { type: "adaptive" },
 			output_config: { effort: "low" },
 		});
+		expect(payload).not.toHaveProperty("betas");
 	});
 
 	it("keeps German nouns but drops a summary naming a player outside the facts", async () => {
@@ -168,7 +168,8 @@ describe("generateAiSummary", () => {
 		mockModel({ stop_reason: "end_turn", content: [{ type: "text", text: "Anna schlägt Cleo." }] });
 		expect(await generateAiSummary(recap, SEASON, league)).toBeNull();
 
-		mockModel({ stop_reason: "refusal", content: [] });
+		const create = mockModel({ stop_reason: "refusal", content: [] });
 		expect(await generateAiSummary(recap, SEASON)).toBeNull();
+		expect(create).toHaveBeenCalledTimes(1);
 	});
 });

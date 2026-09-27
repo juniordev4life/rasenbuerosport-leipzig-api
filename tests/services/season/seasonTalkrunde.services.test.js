@@ -51,24 +51,28 @@ describe("generateSeasonTalkrundeScript", () => {
 	it("stores the parsed script of the season special", async () => {
 		requireLeagueSeason.mockResolvedValue(SEASON);
 		const create = vi.fn(async () => ({
-			model: "claude-opus-5",
+			model: "claude-sonnet-5",
 			stop_reason: "end_turn",
 			content: [
 				{ type: "thinking", thinking: "" },
 				{ type: "text", text: "[MARCEL] Hallo und herzlich willkommen zur Sonderfolge der Bürowoche.\n[SOPHIE] 397 Spiele.\n[FRANK] Wahnsinn!" },
 			],
 		}));
-		getAnthropicClient.mockReturnValue({ beta: { messages: { create } } });
+		getAnthropicClient.mockReturnValue({ messages: { create } });
 
 		const result = await generateSeasonTalkrundeScript("fc26");
 
 		expect(result.turns).toBe(3);
 		const [payload] = create.mock.calls[0];
-		expect(payload.model).toBe("claude-opus-5");
+		expect(payload).toMatchObject({
+			model: "claude-sonnet-5",
+			thinking: { type: "adaptive" },
+			output_config: { effort: "medium" },
+		});
 		expect(payload.messages[0].content).toContain("SONDERFOLGE");
 		const [sql, params] = query.mock.calls.at(-1);
 		expect(sql).toContain("SET talkrunde");
-		expect(JSON.parse(params[1])).toMatchObject({ status: "script", audio_url: null });
+		expect(JSON.parse(params[1])).toMatchObject({ status: "script", audio_url: null, model: "claude-sonnet-5" });
 	});
 });
 

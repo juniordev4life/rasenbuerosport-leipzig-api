@@ -32,7 +32,7 @@ This project follows the same architectural patterns as the RB Leipzig engineeri
 - **Node.js**: >= 24.0.0
 - **Database**: Google Cloud SQL (PostgreSQL 16) via the `pg` driver
 - **Authentication**: Firebase Authentication (ID tokens verified by Firebase Admin SDK)
-- **AI**: Anthropic Claude Sonnet 4 (text + Vision)
+- **AI**: Anthropic Claude Sonnet 5 (`claude-sonnet-5`, text + Vision). Spread a preset from `src/constants/ai.constants.js` into every call and read the answer with `firstTextOf()` from `ai.helpers.js`: adaptive thinking can put a thinking block before the text, and Sonnet 5 rejects `temperature`/`top_p`/`top_k` and assistant prefills
 - **Logging**: Pino (structured JSON, Cloud Run compatible)
 - **Validation**: JSON Schema (Fastify built-in)
 - **Testing**: Vitest

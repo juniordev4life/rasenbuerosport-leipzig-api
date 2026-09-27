@@ -7,7 +7,8 @@
  *   2. renderSeasonTalkrundeAudio — ElevenLabs per turn, one mp3 upload.
  */
 
-import { getAnthropicClient } from "../../../config/anthropic.config.js";
+import { AI_THOROUGH } from "../../../constants/ai.constants.js";
+import { callAnthropicWithRetry } from "../../helpers/ai.helpers.js";
 import { query, queryOne } from "../../helpers/database.helpers.js";
 import {
 	parseTalkshowScript,
@@ -23,8 +24,6 @@ import {
 	buildSeasonRating,
 	loadSeasonData,
 } from "./seasonStandings.services.js";
-
-const SCRIPT_MODEL = "claude-opus-5";
 
 const berlinDate = (at) =>
 	new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin" }).format(
@@ -112,11 +111,6 @@ export async function buildSeasonShowContext(season) {
 	};
 }
 
-function scriptTextOf(response) {
-	if (response.stop_reason === "refusal") return null;
-	return response.content?.find((b) => b.type === "text")?.text ?? null;
-}
-
 /**
  * Step 1: writes the season special's script (Claude) and stores it.
  * Needs the season recap to be generated first (awards, league facts).
@@ -134,12 +128,9 @@ export async function generateSeasonTalkrundeScript(seasonId) {
 		throw err;
 	}
 	const context = await buildSeasonShowContext(season);
-	const response = await getAnthropicClient().beta.messages.create({
-		model: SCRIPT_MODEL,
+	const { text } = await callAnthropicWithRetry({
+		...AI_THOROUGH,
 		max_tokens: 16000,
-		betas: ["server-side-fallback-2026-07-01"],
-		fallbacks: "default",
-		output_config: { effort: "medium" },
 		messages: [
 			{
 				role: "user",
@@ -147,7 +138,6 @@ export async function generateSeasonTalkrundeScript(seasonId) {
 			},
 		],
 	});
-	const text = scriptTextOf(response);
 	const turns = text ? parseTalkshowScript(text) : [];
 	if (turns.length === 0) {
 		const err = new Error("The model returned no usable script");
@@ -158,7 +148,7 @@ export async function generateSeasonTalkrundeScript(seasonId) {
 	const talkrunde = {
 		status: "script",
 		generated_at: new Date().toISOString(),
-		model: response.model ?? SCRIPT_MODEL,
+		model: AI_THOROUGH.model,
 		script: { raw_script: text, turns, summary },
 		context_used: context,
 		audio_url: null,

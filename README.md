@@ -51,7 +51,7 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | **Database** | Google Cloud SQL (PostgreSQL 16) via `pg` | 8.x |
 | **Auth** | Firebase Authentication (Admin SDK verifies ID tokens) | 13.x |
 | **Hosting** | Google Cloud Run (API), Firebase Hosting (Frontend) | — |
-| **AI Model** | Claude Sonnet 4 (Anthropic) | — |
+| **AI Model** | Claude Sonnet 5 (`claude-sonnet-5`, Anthropic) | — |
 | **AI Vision** | Claude Vision API | — |
 | **Security** | Helmet, CORS, Rate Limiting | — |
 | **Validation** | JSON Schema (Fastify built-in) | — |
@@ -125,7 +125,7 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 
 ## AI Features
 
-Three AI features powered by **Claude Sonnet 4** make RasenBürosport unique:
+Three AI features powered by **Claude Sonnet 5** make RasenBürosport unique:
 
 ### 1. FC26 Stats Extraction (Vision)
 
@@ -421,7 +421,7 @@ A **league season** is an EA FC edition in `league_seasons` (FC26 until 2026-09-
 
 One definition of win, goal and points for all season views (`src/api/services/season/seasonFacts.services.js`): a shootout decides W/L, shootout kicks and own goals are not goals, league points are 3/1/0 and 2:1 after a shootout, times are Europe/Berlin.
 
-The **recap** of a closed season is generated once and stored per player (`season_recaps`) — stats, ELO journey, the old rating from the switch-over backup next to the new one, 12 awards, and an optional two-sentence AI summary (claude-opus-5, server-side refusal fallbacks, names checked against the facts). Operator steps (scheduler secret, see DEPLOY_PROD §4c):
+The **recap** of a closed season is generated once and stored per player (`season_recaps`) — stats, ELO journey, the old rating from the switch-over backup next to the new one, 12 awards, and an optional two-sentence AI summary (Claude Sonnet 5 at low effort, names checked against the facts). Operator steps (scheduler secret, see DEPLOY_PROD §4c):
 
 1. `POST /api/v1/seasons/fc26/recap/generate`
 2. `POST /api/v1/seasons/fc26/talkrunde/generate`, then `/talkrunde/audio` (season special of the talk show)

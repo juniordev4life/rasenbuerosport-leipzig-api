@@ -2,7 +2,7 @@
 
 # AI Features
 
-Three AI features powered by **Claude Sonnet 4** (Anthropic) set RasenBürosport apart from a simple score tracker.
+Three AI features powered by **Claude Sonnet 5** (Anthropic) set RasenBürosport apart from a simple score tracker.
 
 ---
 
@@ -19,8 +19,13 @@ Client Request
 
 All AI features use a **singleton Anthropic client** (`getAnthropicClient()`) configured via the `ANTHROPIC_API_KEY` environment variable.
 
-**Model:** `claude-sonnet-4-20250514`
-**Max Tokens:** 512 (reports & predictions), 1024 (vision extraction)
+**Model:** `claude-sonnet-5` (`CLAUDE_MODEL` in `src/constants/ai.constants.js`). Every call spreads one of three presets and reads the answer with `firstTextOf()` (`src/api/helpers/ai.helpers.js`), because adaptive thinking can put a thinking block before the text. `max_tokens` covers thinking and text together.
+
+| Preset | Thinking | Used by (`max_tokens`) |
+|--------|----------|------------------------|
+| `AI_FAST` | off | live voice commands (400), profile bio (400) |
+| `AI_LIGHT` | adaptive, effort `low` | prediction (2048), weekly recap (2048), match of the week (3072), season summary (2048) |
+| `AI_THOROUGH` | adaptive, effort `medium` | stats extraction (4096), match report (4096), weekly talk show (8192), season talk show (16000) |
 
 ---
 

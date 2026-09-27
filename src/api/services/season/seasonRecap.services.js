@@ -6,8 +6,9 @@
  * Generation is idempotent — rerunning rewrites every row from the same data.
  */
 
-import { getAnthropicClient } from "../../../config/anthropic.config.js";
 import { logger } from "../../../config/logger.config.js";
+import { AI_LIGHT } from "../../../constants/ai.constants.js";
+import { callAnthropicWithRetry } from "../../helpers/ai.helpers.js";
 import {
 	query,
 	queryOne,
@@ -20,7 +21,6 @@ import { buildSeasonRecaps } from "./seasonRecapBuilder.services.js";
 import { loadSeasonData } from "./seasonStandings.services.js";
 
 const BACKUP_SUFFIX_PATTERN = /^\d{8}_\d{6}$/;
-const SUMMARY_MODEL = "claude-opus-5";
 const PERSONAS = ["klassiker", "analyst", "euphoriker"];
 
 /** German award names, identical to the app's season_awards.*.label. */
@@ -142,11 +142,9 @@ export function namesOutsideFacts(text, recap, leagueNames) {
 	);
 }
 
-function textOf(response) {
-	if (response.stop_reason === "refusal") return null;
-	const block = response.content?.find((b) => b.type === "text");
+function plainText(raw) {
 	// The app renders plain text: drop markdown emphasis and line breaks.
-	const text = block?.text
+	const text = raw
 		?.replace(/\*\*|__|(?<!\w)[*_](?!\s)|(?<!\s)[*_](?!\w)/g, "")
 		.replace(/\s*\n+\s*/g, " ")
 		.trim();
@@ -158,7 +156,7 @@ function textOf(response) {
  * one of the app's reporter personas. Null when the model declines or names
  * league players who are not in the facts.
  *
- * Uses claude-opus-5 at low effort with server-side refusal fallbacks.
+ * Claude Sonnet 5 at low effort (AI_LIGHT).
  *
  * @param {object} recap - One payload from buildSeasonRecaps
  * @param {object} season - league_seasons row
@@ -169,21 +167,27 @@ function textOf(response) {
  */
 export async function generateAiSummary(recap, season, leagueNames = []) {
 	const persona = personaOf(recap.player.player_id);
-	const response = await getAnthropicClient().beta.messages.create({
-		model: SUMMARY_MODEL,
-		max_tokens: 4000,
-		betas: ["server-side-fallback-2026-07-01"],
-		fallbacks: "default",
-		output_config: { effort: "low" },
-		system: `Du schreibst für die Büro-Fußballliga "RasenBürosport" (EA FC an der Konsole) ein Saisonfazit für einen Spieler. Du bist ${PERSONA_STYLE[persona]}. Schreibe genau zwei kurze Sätze auf Deutsch in einem einzigen Absatz, höchstens 50 Wörter, per du, ohne Überschrift, ohne Aufzählung und ohne Markdown. Awards nennst du mit genau den deutschen Namen aus den Fakten. Nutze nur die gelieferten Fakten und nenne keine anderen Personen als die in den Fakten.`,
-		messages: [
-			{
-				role: "user",
-				content: `Fakten zur Saison:\n${JSON.stringify(summaryFacts(recap, season))}`,
-			},
-		],
-	});
-	const text = textOf(response);
+	let raw;
+	try {
+		({ text: raw } = await callAnthropicWithRetry({
+			...AI_LIGHT,
+			max_tokens: 2048,
+			system: `Du schreibst für die Büro-Fußballliga "RasenBürosport" (EA FC an der Konsole) ein Saisonfazit für einen Spieler. Du bist ${PERSONA_STYLE[persona]}. Schreibe genau zwei kurze Sätze auf Deutsch in einem einzigen Absatz, höchstens 50 Wörter, per du, ohne Überschrift, ohne Aufzählung und ohne Markdown. Awards nennst du mit genau den deutschen Namen aus den Fakten. Nutze nur die gelieferten Fakten und nenne keine anderen Personen als die in den Fakten.`,
+			messages: [
+				{
+					role: "user",
+					content: `Fakten zur Saison:\n${JSON.stringify(summaryFacts(recap, season))}`,
+				},
+			],
+		}));
+	} catch (error) {
+		logger.warn(
+			{ playerId: recap.player.player_id, err: error?.message },
+			"season summary failed; recap ships without it",
+		);
+		return null;
+	}
+	const text = plainText(raw);
 	if (!text) return null;
 	const strangers = namesOutsideFacts(text, recap, leagueNames);
 	if (strangers.length > 0) {

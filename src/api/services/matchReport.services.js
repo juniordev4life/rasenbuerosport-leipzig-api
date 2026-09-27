@@ -1,3 +1,4 @@
+import { AI_THOROUGH } from "../../constants/ai.constants.js";
 import { getReporter } from "../../constants/reporters.constants.js";
 import {
 	callAnthropicWithRetry,
@@ -19,9 +20,6 @@ import { getUserStats } from "./stats.services.js";
  * voice rules and the few-shot example are inserted via
  * `buildReporterPrompt` so each of the three reporter characters gets
  * its own variant without duplicating the structural rules.
- *
- * Anthropic model ID: claude-sonnet-4-6 (drop-in upgrade from 4.0 for
- * better German style consistency and tag discipline).
  */
 const REPORTER_PROMPT_SHARED = `Du bist ein deutscher Sport-Reporter, der eine bereits beendete Partie als kurzen Nachbericht für die Sportschau einspricht.
 
@@ -658,8 +656,8 @@ export async function generateMatchReport(gameId) {
 	const gameContext = JSON.stringify(context);
 
 	const { text: report } = await callAnthropicWithRetry({
-		model: "claude-sonnet-4-6",
-		max_tokens: 768,
+		...AI_THOROUGH,
+		max_tokens: 4096,
 		messages: [
 			{
 				role: "user",

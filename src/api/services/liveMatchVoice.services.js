@@ -9,10 +9,10 @@
  * name / nickname back to the real `player_id`.
  */
 
-import { callAnthropicWithRetry } from "../helpers/ai.helpers.js";
+import { AI_FAST } from "../../constants/ai.constants.js";
+import { callAnthropicWithRetry, cleanLlmJson } from "../helpers/ai.helpers.js";
 import { query } from "../helpers/database.helpers.js";
 
-const MODEL = "claude-sonnet-4-6";
 const TIMEOUT_MS = 6000;
 const VALID_EVENT_TYPES = new Set([
 	"goal",
@@ -20,20 +20,6 @@ const VALID_EVENT_TYPES = new Set([
 	"red_card",
 	"penalty_missed",
 ]);
-
-/**
- * Strip Markdown code fences around a JSON payload if present.
- *
- * @param {string} raw
- * @returns {string}
- */
-function cleanLlmJson(raw) {
-	if (typeof raw !== "string") return "";
-	return raw
-		.replace(/^\s*```(?:json)?\s*/i, "")
-		.replace(/\s*```\s*$/i, "")
-		.trim();
-}
 
 /**
  * Build the extraction prompt. Kept as a pure function so unit tests
@@ -124,8 +110,8 @@ export async function parseLiveMatchVoiceEvent({
 	});
 
 	const llmPromise = callAnthropicWithRetry({
-		model: MODEL,
-		max_tokens: 200,
+		...AI_FAST,
+		max_tokens: 400,
 		messages: [{ role: "user", content: prompt }],
 	});
 	const timeoutPromise = new Promise((resolve) =>

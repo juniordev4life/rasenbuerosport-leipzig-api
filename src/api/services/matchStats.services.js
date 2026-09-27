@@ -1,5 +1,7 @@
 import { getAnthropicClient } from "../../config/anthropic.config.js";
 import { getStorageBucket } from "../../config/firebase.config.js";
+import { AI_THOROUGH } from "../../constants/ai.constants.js";
+import { cleanLlmJson, firstTextOf } from "../helpers/ai.helpers.js";
 import { queryOne, withTransaction } from "../helpers/database.helpers.js";
 import { normalisePassNetwork } from "../utils/passNetwork.utils.js";
 import { recomputeLeagueEloSafely } from "./elo/leagueEloV2Persistence.services.js";
@@ -211,8 +213,8 @@ export async function extractStatsFromImage(imageUrl, type = "overview") {
 	const prompt = PROMPTS[type] || PROMPTS.overview;
 
 	const response = await client.messages.create({
-		model: "claude-sonnet-4-6",
-		max_tokens: 1024,
+		...AI_THOROUGH,
+		max_tokens: 4096,
 		messages: [
 			{
 				role: "user",
@@ -230,7 +232,7 @@ export async function extractStatsFromImage(imageUrl, type = "overview") {
 		],
 	});
 
-	const text = response.content[0]?.text;
+	const text = firstTextOf(response);
 	if (!text) {
 		const err = new Error("No response from AI model");
 		err.statusCode = 502;
@@ -238,7 +240,7 @@ export async function extractStatsFromImage(imageUrl, type = "overview") {
 	}
 
 	try {
-		return JSON.parse(text);
+		return JSON.parse(cleanLlmJson(text));
 	} catch {
 		const err = new Error("Failed to parse AI response as JSON");
 		err.statusCode = 502;

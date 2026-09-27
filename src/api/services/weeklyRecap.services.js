@@ -1,3 +1,4 @@
+import { AI_LIGHT } from "../../constants/ai.constants.js";
 import {
 	callAnthropicWithRetry,
 	findFabricatedNames,
@@ -235,8 +236,8 @@ export async function generatePersonalRecap(playerId) {
 	});
 
 	const { text } = await callAnthropicWithRetry({
-		model: "claude-sonnet-4-6",
-		max_tokens: 600,
+		...AI_LIGHT,
+		max_tokens: 2048,
 		messages: [
 			{
 				role: "user",
