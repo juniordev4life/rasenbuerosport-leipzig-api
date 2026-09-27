@@ -75,8 +75,8 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | `GET` | `/api/v1/games/recent` | Bearer | Global activity feed |
 | `GET` | `/api/v1/games/:gameId` | Bearer | Get game details |
 | `DELETE` | `/api/v1/games/:gameId` | Bearer + admin | Delete a game (its `game_players` rows cascade) |
-| `POST` | `/api/v1/games/:gameId/match-stats` | Bearer | Extract stats from FC26 screenshot |
-| `DELETE` | `/api/v1/games/:gameId/match-stats` | Bearer | Remove match stats |
+| `POST` | `/api/v1/games/:gameId/match-stats` | Bearer | Extract stats from an EA FC post-match screenshot |
+| `DELETE` | `/api/v1/games/:gameId/match-stats` | Bearer + admin | Remove match stats (re-rates the game: reported red cards are a League-ELO v2 input) |
 | `POST` | `/api/v1/games/:gameId/match-report` | Bearer | Generate reporter-style AI match report (Buschmann/Reif tone) |
 | `POST` | `/api/v1/games/:gameId/match-report/audio` | Bearer | Render the report as mp3 via ElevenLabs TTS (cached on Firebase Storage) |
 | `POST` | `/api/v1/games/prediction` | Bearer | Generate AI match prediction |
@@ -95,8 +95,16 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | `GET` | `/api/v1/compare/:player1Id/:player2Id` | Bearer | Compare two players |
 | `GET` | `/api/v1/duos` | Bearer | List teammate duos |
 | `GET` | `/api/v1/duos/:player1Id/:player2Id` | Bearer | Detail for a specific duo |
-| `GET` | `/api/v1/seasons` | — | List seasons |
-| `GET` | `/api/v1/seasons/archive` | — | Season archive |
+| `GET` | `/api/v1/seasons` | — | League seasons (EA FC editions, e.g. `fc27` open, `fc26` closed), newest first |
+| `GET` | `/api/v1/seasons/:seasonId/rating` | Bearer | Skill rating of a season (`:seasonId` = `fc26` \| `fc27` \| `current`): League-ELO v2 players and duos (≥ 10 games), start/end rating, week and form deltas; closed seasons rank players with ≥ 30 games first |
+| `GET` | `/api/v1/seasons/:seasonId/table` | Bearer | League table: 3/1/0 points, 2:1 after a shootout |
+| `GET` | `/api/v1/seasons/:seasonId/awards` | Bearer | Season awards (after the recap was generated) |
+| `GET` | `/api/v1/seasons/:seasonId/recap/me` | Bearer | The viewer's season recap ("Rückblick"), `null` when there is none |
+| `POST` | `/api/v1/seasons/:seasonId/recap/generate` | Scheduler | Generate every player's recap + awards (`?skip_ai=true` skips the AI summaries) |
+| `POST` | `/api/v1/seasons/:seasonId/recap/notify` | Scheduler | Push "Dein Rückblick ist fertig" once per season (`?only_user=<uid>` = test send, not counted) |
+| `POST` | `/api/v1/seasons/:seasonId/talkrunde/generate` | Scheduler | Season special of the talk show: write the script |
+| `POST` | `/api/v1/seasons/:seasonId/talkrunde/audio` | Scheduler | Season special: render the stored script with ElevenLabs |
+| `GET` | `/api/v1/seasons/archive` | — | Calendar-quarter archive (legacy stats view) |
 | `GET` | `/api/v1/teams` | Bearer | Get all available teams |
 | `GET` | `/api/v1/wrapped` | Bearer | List user's weekly wrapped entries |
 | `GET` | `/api/v1/wrapped/latest` | Bearer | Latest weekly wrapped (totals, highlights, embedded talkrunde status) |
@@ -348,7 +356,7 @@ npm run game:swap-player -- --game=<uuid> --from=Hendrik --to=Alex --dry-run
 npm run game:swap-player -- --game=<uuid> --from=Hendrik --to=Alex --apply --backup
 ```
 
-`--from` and `--to` accept a profile id or a username (case-insensitive, ambiguity is an error). The script also clears `elo_snapshot`, nulls `profile_cache` for both players, and clears `match_report` plus its audio — the report narrates the old lineup by name, so leaving it would display a stale, wrong text. Keep it with `--keep-report`. Regenerate afterwards with `POST /api/v1/games/<id>/match-report`.
+`--from` and `--to` accept a profile id or a username (case-insensitive, ambiguity is an error). The script also clears `elo_snapshot` (rebuilt by the League-ELO v2 replay it runs after the commit), nulls `profile_cache` for both players, and clears `match_report` plus its audio — the report narrates the old lineup by name, so leaving it would display a stale, wrong text. Keep it with `--keep-report`. Regenerate afterwards with `POST /api/v1/games/<id>/match-report`.
 
 Left alone on purpose: `match_stats` (team-level counts), the pass networks (jersey numbers), `reporter_id` (AI persona), `created_by` (who recorded it), and `game_players.rating` (the slot's performance rating, carried over).
 
@@ -360,71 +368,64 @@ Roll back by running the same command with `--from` and `--to` reversed.
 
 1. `npm run game:swap-player -- --game=… --from=… --to=… --dry-run` — check the change set
 2. Same command with `--apply --backup`
-3. `npm run elo:recompute -- --apply --backup` — see below; a pending game skips this step
+3. Nothing to do for the ratings: the swap script replays League-ELO v2 after its commit (see below)
 4. `POST /api/v1/games/<id>/match-report` — regenerate the report
 5. Fix trophies by hand if the match unlocked any (see below)
 
 ---
 
-## Recomputing ELO
+## League-ELO v2
 
-When a recorded match has to be corrected after the fact — a wrong player in the lineup, a mis-tapped goal — the rating that came out of it is wrong too, and so is every rating computed after it. ELO is path-dependent: each match starts from the rating the previous one left behind. There is no way to patch a single match in place.
+Ratings follow the league's rulebook "EAFC Liga-Elo" (α-weighted duos, a learned handicap H for the duo side in 1v2, goal-difference factor, capped side bonus and contribution shift, shootout damping, strict zero-sum with a +1 minimum win, repetition damping for the same line-up within a Berlin ISO week, a parallel duo rating). The engine lives in `src/api/services/elo/leagueEloV2*.services.js`.
 
-`scripts/recompute-all-elo.js` replays the full history:
+**Ratings are a pure function of the games.** After every write to a game — create, finalize, the agent's video/shootout PATCH, a stats upload, a delete, `scripts/swap-game-player.js` — the API replays all finished games in `played_at, id` order (`recomputeLeagueElo` in `leagueEloV2Persistence.services.js`). Handicap, repetition factor and zero-sum depend on the complete order, so there is no incremental update. The replay:
 
-```bash
-npm run elo:recompute -- --dry-run
-npm run elo:recompute -- --apply --backup
-```
+- runs after the game write is committed and never fails the request — a failed replay is logged and repaired by the next write;
+- is serialized with `pg_advisory_xact_lock` (taken first, READ COMMITTED) and writes only the rows that changed (`games.elo_snapshot`, the rating columns of `profiles`, `season_elo_standings`);
+- checks the invariants on the stored data before commit: every game sums to zero, winners get at least +1, all ratings sum to 1500 × rated players;
+- keeps the snapshot shape the readers know (`teamA` = home, `teamB` = away, `playerId`, `ratingBefore`, `ratingAfter`, `delta`, `contribution`) with `version: "v2.0"` and the v2 details in `breakdown`/`matchMeta`.
 
-`--dry-run` reports what would happen and touches nothing. `--apply` resets every profile to 1500 and then walks all finalized games oldest-first. `--backup` writes a JSON dump of all ratings and snapshots beforehand; restore it with `--restore=scripts/.elo-backup-<ts>.json` if the result looks wrong.
+Not rated: pending games, games with an empty side (CPU) and sides with more than two players. Client-sent `penalty_shootout.shots[].elo_deltas` are ignored. Yellow cards play no role; red cards come from the timeline, surplus reds from the screenshot count for the side bonus.
 
-**Which database?** `.env` holds the LOCAL dev `DATABASE_URL` (Docker Postgres on `:5434`), so running the script bare targets local — even with the Cloud SQL proxy up. To run against production, wrap it:
+### Switching over, verifying, rolling back
 
-```bash
-npm run db:proxy                                                   # terminal 1, keep open
-bash scripts/with-prod-db.sh npm run elo:recompute -- --dry-run    # terminal 2
-bash scripts/with-prod-db.sh npm run elo:recompute -- --apply --backup
-```
-
-The wrapper reads the prod credentials from Secret Manager (never printing them), rewrites the Cloud Run socket host to the proxy, and refuses to start when the proxy is down. Every run — wrapped or not — now prints `target database:` first, so the destination is visible before anything is written.
-
-Each game goes through the same three passes the live save path applies, in the same order — team engine, penalty-shootout overlay, card overlay. That sequence lives in `src/api/services/elo/eloReplay.services.js` and is shared by both paths, so a new pass added to one cannot be forgotten in the other. The overlays are re-applied only where the stored row proves they ran the first time: `penalty_shootout.shots[]` carries its per-shot deltas verbatim, and `match_stats.card_elo_applied` records that a defense screenshot was charged. That flag is read, never written — the live path owns it, so a later re-upload still correctly skips.
-
-Pending games are excluded. Their real result does not exist yet, and `finalizeGame` applies their ELO once the capture pipeline delivers it.
-
-### Shootouts count as wins
-
-The league plays extra time and penalties — there are no draws. A match decided in a shootout is therefore rated as a **win** for the shootout winner, not as a draw on the level regular-time score. Two things have to move together for that, and missing either one silently produces zero: `actualScore` (1 / 0 instead of 0.5) **and** the margin factor, because `computeMarginFactor(0, …)` is 0 and would multiply the whole delta away. A shootout is the narrowest win there is, so it borrows the margin of a one-goal win.
-
-The rule reads `penalty_shootout.winner_side` off the game row, so it works for both shapes: the manual one with `shots[]` and the result-only one the capture pipeline writes. The per-shot overlay is unchanged and still applies on top where shots exist — it rates individual takers, which is a different thing from who won.
-
-Because ELO is path-dependent, games finalized **before** this rule existed still carry their draw ratings. Run `npm run elo:recompute -- --apply --backup` once to apply it to the history.
-
-**`--since` is not a partial recompute.** The reset has no `WHERE` clause, so it clears every profile and every snapshot regardless of the cutoff — replaying only the tail would leave all earlier history blank. The script refuses `--apply --since=…` for that reason. It is allowed together with `--skip-reset`, which is the resume-a-crashed-run case.
-
-Two things the replay does **not** fix, because they are not derived from the games table:
-
-- **Trophies are append-only.** `mergeTrophies` (in `src/api/services/trophy/trophySync.services.js`, shared with `scripts/trophy-backfill.js`) skips entries that already exist and never revokes one. A badge earned through a match that later changed stays awarded, and `duo_trophies` is keyed on the player pair, so a changed lineup means a different row. Both need manual JSONB edits.
-- **Anything already delivered.** Push notifications name the players in their body and are long gone from the server. Generated match-report audio is uploaded `immutable` with a one-year max-age, so CDN and browser copies keep serving the old narration for a while even after a regeneration.
-
-### Simulating League-ELO v2 (offline)
-
-A proposed successor rulebook ("EAFC Liga-Elo": α-weighted duos, handicap H for the duo side in 1v2, capped side bonus and contribution shift, shootout damping, strict zero-sum with a +1 minimum win, repetition damping per week, parallel duo rating) lives next to the live engine in `src/api/services/elo/leagueEloV2*.services.js`. It is not wired into any endpoint. `scripts/simulate-elo-v2.js` replays every finalized game with it and prints the resulting ranking next to the current ratings — read-only, nothing is written:
+Nothing is rated until `app_state` key `elo` says `{engine: "v2"}`. `scripts/recompute-league-elo.js` flips that switch after taking its backup:
 
 ```bash
-DATABASE_URL=postgresql://postgres:localdev@127.0.0.1:5434/<snapshot-db> \
-  npm run elo:simulate-v2 -- --json=elo-v2.json
+npm run elo:recompute-v2 -- --dry-run          # READ ONLY: ranking before → after, changes, invariants, input + plan hash
+npm run elo:recompute-v2 -- --apply --expect-input=<hash> --expect-plan=<hash>
+npm run elo:recompute-v2 -- --restore=<suffix> # only after traffic is back on a pre-v2 revision
 ```
 
-Run it against a local PROD snapshot (see *Local Development with a PROD Snapshot*). How the stored games map onto the rulebook:
+`--apply` works in one transaction: advisory lock, `LOCK TABLE games, game_players IN SHARE ROW EXCLUSIVE MODE`, abort unless both hashes equal the dry run's, copy profiles (incl. `profile_cache`, `trophies`) and all snapshots into `elo_backup_<suffix>_*` tables, write, activate, re-check the invariants and that a new plan would change nothing. A dry run afterwards reports 0 changes. `--restore` puts the backup back exactly and deactivates v2.
 
-- Result and goal difference come from `score_home`/`score_away`; per-player events feed only the side bonus and the contribution shift.
-- Shootout kicks are duplicated into `score_timeline` (period `penalty`) — they are skipped there and read from `penalty_shootout.shots`, a miss counting as a keeper save (the app records no wide/post outcome).
-- Red cards the post-match screenshot reports beyond the attributed ones count for the side bonus only. Yellow cards play no role in v2.
-- The repetition factor counts games of the same line-up (home/away ignored) within one ISO week, Berlin time. Games with an empty side are skipped.
+**Which database?** `.env` holds the LOCAL `DATABASE_URL`. For production run through the wrapper (proxy on 5433 first):
 
----
+```bash
+bash scripts/with-prod-db.sh npm run elo:recompute-v2 -- --dry-run
+```
+
+Not changed by a replay: trophies stay append-only (peak-ELO trophies now unlock at 1600/1700/1800), stored weekly wrapped payloads keep their old ELO movers, and pushes already delivered stay delivered.
+
+### Simulating (offline)
+
+`scripts/simulate-elo-v2.js` replays every finalized game read-only and prints the v2 ranking next to the stored ratings — handy against a local PROD snapshot:
+
+```bash
+DATABASE_URL=postgresql://postgres:localdev@127.0.0.1:5434/<snapshot-db> npm run elo:simulate-v2
+```
+
+## Seasons & Season Recap
+
+A **league season** is an EA FC edition in `league_seasons` (FC26 until 2026-09-22 15:00 Berlin, FC27 open since). ELO runs through; a season is a logical cut: membership is the half-open `played_at` range, the replay stores every season's start and end ratings in `season_elo_standings`. The calendar-quarter "seasons" (`src/utils/season.utils.js`) stay for the stats page.
+
+One definition of win, goal and points for all season views (`src/api/services/season/seasonFacts.services.js`): a shootout decides W/L, shootout kicks and own goals are not goals, league points are 3/1/0 and 2:1 after a shootout, times are Europe/Berlin.
+
+The **recap** of a closed season is generated once and stored per player (`season_recaps`) — stats, ELO journey, the old rating from the switch-over backup next to the new one, 12 awards, and an optional two-sentence AI summary (claude-opus-5, server-side refusal fallbacks, names checked against the facts). Operator steps (scheduler secret, see DEPLOY_PROD §4c):
+
+1. `POST /api/v1/seasons/fc26/recap/generate`
+2. `POST /api/v1/seasons/fc26/talkrunde/generate`, then `/talkrunde/audio` (season special of the talk show)
+3. `POST /api/v1/seasons/fc26/recap/notify?only_user=<uid>` (test), then without the parameter (once)
 
 ## Trophies
 

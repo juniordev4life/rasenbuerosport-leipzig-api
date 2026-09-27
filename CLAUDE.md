@@ -187,11 +187,15 @@ For admin-only routes, add `requireAdmin` after `requireAuth` (`preHandler: [req
 
 ### Public Endpoints
 
-`/health`, `/api/v1/leaderboard`, `/api/v1/seasons*`. The scheduler and office-agent routes use the shared-secret middlewares below. Everything else requires `requireAuth`.
+`/health`, `/api/v1/leaderboard`, `GET /api/v1/seasons` and `/api/v1/seasons/archive`. The per-season routes (`/seasons/:seasonId/rating|table|awards|recap/me`) require `requireAuth`. The scheduler and office-agent routes use the shared-secret middlewares below. Everything else requires `requireAuth`.
 
 ### Scheduler Endpoints
 
-`POST /api/v1/wrapped/generate` is protected by `requireSchedulerSecret` (shared-secret header set as `WRAPPED_TRIGGER_SECRET`). Only Cloud Scheduler is meant to call it.
+`POST /api/v1/wrapped/generate`, `POST /api/v1/talkshow/generate` and the season operator routes (`/seasons/:seasonId/recap/generate|notify`, `/seasons/:seasonId/talkrunde/generate|audio`) are protected by `requireSchedulerSecret` (header `X-Trigger-Secret`, value `WRAPPED_TRIGGER_SECRET`).
+
+### Ratings (League-ELO v2)
+
+Only `recomputeLeagueElo` / `recomputeLeagueEloSafely` (`src/api/services/elo/leagueEloV2Persistence.services.js`) write ratings — never update `profiles.current_rating` or `games.elo_snapshot` anywhere else. Call `recomputeLeagueEloSafely({ reason, gameId })` after every committed change to a game's rating inputs (score, timeline, shootout, lineup, `match_stats.red_cards`, `played_at`, deletion). It replays all games, writes only changed rows and is a no-op until `app_state` 'elo' is activated.
 
 ## Database Integration
 
