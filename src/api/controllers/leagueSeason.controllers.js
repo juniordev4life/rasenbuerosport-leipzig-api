@@ -20,6 +20,10 @@ import {
 	buildSeasonRating,
 	loadSeasonData,
 } from "../services/season/seasonStandings.services.js";
+import {
+	generateSeasonTalkrundeScript,
+	renderSeasonTalkrundeAudio,
+} from "../services/season/seasonTalkrunde.services.js";
 
 /**
  * Wraps a service call in the standard envelope + error handling.
@@ -93,5 +97,19 @@ export const notifySeasonRecapController = {
 		notifySeasonRecap(request.params.seasonId, {
 			onlyUser: request.query.only_user,
 		}),
+	),
+};
+
+export const generateSeasonTalkrundeController = {
+	schema: { params: seasonIdParamsSchema },
+	handler: respond("Season talk show script generated", (request) =>
+		generateSeasonTalkrundeScript(request.params.seasonId),
+	),
+};
+
+export const renderSeasonTalkrundeController = {
+	schema: { params: seasonIdParamsSchema },
+	handler: respond("Season talk show audio rendered", (request) =>
+		renderSeasonTalkrundeAudio(request.params.seasonId),
 	),
 };
