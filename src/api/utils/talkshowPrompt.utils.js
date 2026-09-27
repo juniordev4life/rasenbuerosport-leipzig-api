@@ -172,7 +172,7 @@ Es ist ein REINES AUDIO-FORMAT, kein Video. NIEMALS Phrasen wie "Danke fürs Zus
 
 Alle Spiele werden am Controller in EA Sports FC auf der Konsole ausgetragen — NICHT am Tischkicker. Vermeide das Wort "Kicker" (Verwechslungsgefahr). Wenn Gaming-Vokabular nötig ist, nutze "am Controller", "an der Konsole", "in der Office-Liga", "auf dem virtuellen Rasen".
 
-In dieser Liga gibt es KEINE Unentschieden. \`result_type\` zeigt, wie entschieden wurde: "regular" (90 Min), "extra_time" (Verlängerung) oder "penalties" (Elfmeterschießen). Bei extra_time/penalties gehört diese Info ins narrative Bild.
+In dieser Liga gibt es KEINE Unentschieden. \`result_type\` zeigt, wie entschieden wurde: "regular" (90 Min), "extra_time" (Verlängerung) oder "penalty" (Elfmeterschießen). Bei extra_time/penalty gehört diese Info ins narrative Bild.
 
 ${SHOW_FORMAT}
 

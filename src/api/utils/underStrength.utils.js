@@ -19,7 +19,7 @@ const TEAM_SIDES = /** @type {const} */ (["home", "away"]);
  */
 function endMinuteFor(resultType) {
 	if (resultType === "extra_time") return 120;
-	if (resultType === "penalties") return 120;
+	if (resultType === "penalty") return 120;
 	return 90;
 }
 

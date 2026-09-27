@@ -62,7 +62,7 @@ export async function buildLeagueSummary(weekStart, weekEnd) {
 			COUNT(*)::int AS total_games,
 			COALESCE(SUM(score_home + score_away), 0)::int AS total_goals,
 			COUNT(*) FILTER (WHERE result_type = 'extra_time')::int AS extra_time_games,
-			COUNT(*) FILTER (WHERE result_type = 'penalties')::int AS penalty_shootouts
+			COUNT(*) FILTER (WHERE result_type = 'penalty')::int AS penalty_shootouts
 		FROM games
 		WHERE played_at >= $1::date AND played_at < ($2::date + INTERVAL '1 day')`,
 		[weekStart, weekEnd],
@@ -303,7 +303,7 @@ export function buildKeyEvents(timeline, nameMap, limit = 8) {
 export function buildDramaSignals(game) {
 	const signals = [];
 	if (game?.result_type === "extra_time") signals.push("extra_time_winner");
-	if (game?.result_type === "penalties") signals.push("penalty_shootout");
+	if (game?.result_type === "penalty") signals.push("penalty_shootout");
 
 	const timeline = Array.isArray(game?.score_timeline)
 		? game.score_timeline
