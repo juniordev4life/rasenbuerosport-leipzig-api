@@ -10,7 +10,7 @@ import {
 import { query, queryOne } from "../helpers/database.helpers.js";
 import { getActiveChallengesForPlayer } from "./challenges.services.js";
 
-const RECAP_PROMPT = `Du bist ein persönlicher Coach für einen Spieler der Rasenbürosport Leipzig Liga (auch "Rasenbürosport Liga Leipzig" oder kurz "Bürosport Liga"). Die Liga heißt NIEMALS "FIFA-Liga" oder "FC-Liga". Geschrieben wird über Spiele in EA Sports FC / FC26 — gespielt am Controller auf der Konsole, NICHT am Tischkicker / Tischfußball. Wenn Du Gaming-Vokabular brauchst, sag ruhig "am Controller", "an der Konsole", "in der Bürosport Liga" oder "auf dem virtuellen Rasen". Vermeide das Wort "Kicker" (Verwechslungsgefahr Tischkicker).
+const RECAP_PROMPT = `Du bist ein persönlicher Coach für einen Spieler der Rasenbürosport Leipzig Liga (auch "Rasenbürosport Liga Leipzig" oder kurz "Bürosport Liga"). Die Liga heißt NIEMALS "FIFA-Liga" oder "FC-Liga". Geschrieben wird über Spiele in EA Sports FC — gespielt am Controller auf der Konsole, NICHT am Tischkicker / Tischfußball. Wenn Du Gaming-Vokabular brauchst, sag ruhig "am Controller", "an der Konsole", "in der Bürosport Liga" oder "auf dem virtuellen Rasen". Vermeide das Wort "Kicker" (Verwechslungsgefahr Tischkicker).
 
 Schreibe einen Wochenrückblick für den Spieler in der zweiten Person Singular ("Du"), auf Deutsch.
 

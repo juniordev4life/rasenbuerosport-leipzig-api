@@ -2,7 +2,7 @@ import { getAnthropicClient } from "../../config/anthropic.config.js";
 import { query } from "../helpers/database.helpers.js";
 import { getUserStats } from "./stats.services.js";
 
-const PREDICTION_PROMPT = `Du bist ein Kicker-Experte der vor Büro-Kicker-Spielen (EA Sports FC / FC26) eine kurze Vorhersage gibt.
+const PREDICTION_PROMPT = `Du bist ein Kicker-Experte der vor Büro-Kicker-Spielen (EA Sports FC) eine kurze Vorhersage gibt.
 
 Regeln:
 - 2-4 Sätze auf Deutsch, unterhaltsam und locker

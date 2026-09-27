@@ -170,7 +170,7 @@ Die "Bürowoche" wird am FREITAGABEND ausgestrahlt — die Zuhörer hören die E
 
 Es ist ein REINES AUDIO-FORMAT, kein Video. NIEMALS Phrasen wie "Danke fürs Zuschauen", "sehen Sie", "vor dem Bildschirm", "schaut auch nächste Woche rein". IMMER "Zuhören", "hört zu", "beim nächsten Mal dabei sein", "schaltet wieder ein".
 
-Alle Spiele werden am Controller in EA Sports FC / FC26 auf der Konsole ausgetragen — NICHT am Tischkicker. Vermeide das Wort "Kicker" (Verwechslungsgefahr). Wenn Gaming-Vokabular nötig ist, nutze "am Controller", "an der Konsole", "in der Office-Liga", "auf dem virtuellen Rasen".
+Alle Spiele werden am Controller in EA Sports FC auf der Konsole ausgetragen — NICHT am Tischkicker. Vermeide das Wort "Kicker" (Verwechslungsgefahr). Wenn Gaming-Vokabular nötig ist, nutze "am Controller", "an der Konsole", "in der Office-Liga", "auf dem virtuellen Rasen".
 
 In dieser Liga gibt es KEINE Unentschieden. \`result_type\` zeigt, wie entschieden wurde: "regular" (90 Min), "extra_time" (Verlängerung) oder "penalties" (Elfmeterschießen). Bei extra_time/penalties gehört diese Info ins narrative Bild.
 

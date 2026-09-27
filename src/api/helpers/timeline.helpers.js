@@ -117,7 +117,9 @@ export function isPenaltyMissed(entry) {
 /**
  * Return only the goal entries from a timeline. Use this in any reader that
  * derives score-related stats so red cards / penalty-missed entries do not
- * inflate goal counts.
+ * inflate goal counts. Penalty-shootout kicks are stored as goal entries
+ * with `period: "penalty"` as well; they are not goals of the match and are
+ * left out too (the shootout itself lives in `games.penalty_shootout`).
  *
  * @param {Array<{ event_type?: string }>} timeline
  * @returns {Array<{ event_type?: string }>}
@@ -130,7 +132,7 @@ export function isPenaltyMissed(entry) {
  */
 export function filterGoals(timeline) {
 	if (!Array.isArray(timeline)) return [];
-	return timeline.filter(isGoal);
+	return timeline.filter((e) => isGoal(e) && e?.period !== "penalty");
 }
 
 /**
