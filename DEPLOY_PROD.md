@@ -273,7 +273,7 @@ Rechnet ALLE Spiele mit League-ELO v2 neu und führt die Liga-Saisons ein. Geän
   secret | curl -sS -X POST -H @- "$API/talkrunde/audio"
   secret | curl -sS -X POST -H @- "$API/recap/notify?only_user=<deine-uid>"   # Test-Push
   ```
-- [ ] **App-Release**, Smoke-Test (Rangliste FC27/FC26, Liga, Rückblick).
+- [ ] **App-Release**, Smoke-Test (Rangliste FC27/FC26, Rückblick).
 - [ ] **Montag 08:00** der echte Push (einmalig, ein zweiter Versuch wird mit 409 abgelehnt):
   ```bash
   secret | curl -sS -X POST -H @- "$API/recap/notify"
