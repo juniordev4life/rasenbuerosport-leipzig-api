@@ -6,6 +6,30 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v2.0.0
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.8.7...v2.0.0)
+
+### 🚀 Enhancements
+
+- ⚠️  FC27 season switch — League-ELO v2, league seasons, season recap ([#89](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/89))
+
+### 🩹 Fixes
+
+- **teams:** Parse FC27 SoFIFA pages and import by sofifa_id ([#88](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/88))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v1.8.7 ([fa70df1](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/fa70df1))
+
+#### ⚠️ Breaking Changes
+
+- ⚠️  FC27 season switch — League-ELO v2, league seasons, season recap ([#89](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/89))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v1.8.7 (2026-09-25)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v1.8.6...v1.8.7)
