@@ -59,6 +59,14 @@ function matchOfSeason(data) {
 		ergebnis: `${best.score_home}:${best.score_away}`,
 		entschieden: best.result_type ?? "regular",
 		elfmeterschiessen: best.penalty_shootout?.final_score ?? null,
+		// Older shootouts carry no penalty_shootout record: their stored score
+		// already includes the kicks, so the side with more goals won.
+		hinweis:
+			best.result_type === "penalty" &&
+			!best.penalty_shootout &&
+			best.score_home !== best.score_away
+				? "Das Ergebnis enthält bereits die Tore aus dem Elfmeterschießen – es gibt einen klaren Sieger: die Seite mit mehr Toren."
+				: undefined,
 	};
 }
 

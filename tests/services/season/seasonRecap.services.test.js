@@ -160,9 +160,13 @@ describe("generateAiSummary", () => {
 		});
 	});
 
-	it("drops a summary that invents people and a refusal", async () => {
-		mockModel({ stop_reason: "end_turn", content: [{ type: "text", text: "Anna schlägt Zlatan." }] });
-		expect(await generateAiSummary(recap, SEASON)).toBeNull();
+	it("keeps German nouns but drops a summary naming a player outside the facts", async () => {
+		const league = ["Anna", "Ben", "Cleo"];
+		mockModel({ stop_reason: "end_turn", content: [{ type: "text", text: "Anna, deine Saison war eine Bühne. Ben als Traumpartner!" }] });
+		expect((await generateAiSummary(recap, SEASON, league))?.text).toContain("Bühne");
+
+		mockModel({ stop_reason: "end_turn", content: [{ type: "text", text: "Anna schlägt Cleo." }] });
+		expect(await generateAiSummary(recap, SEASON, league)).toBeNull();
 
 		mockModel({ stop_reason: "refusal", content: [] });
 		expect(await generateAiSummary(recap, SEASON)).toBeNull();

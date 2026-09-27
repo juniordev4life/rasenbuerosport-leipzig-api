@@ -8,7 +8,6 @@
 
 import { getAnthropicClient } from "../../../config/anthropic.config.js";
 import { logger } from "../../../config/logger.config.js";
-import { findFabricatedNames } from "../../helpers/ai.helpers.js";
 import {
 	query,
 	queryOne,
@@ -23,6 +22,22 @@ import { loadSeasonData } from "./seasonStandings.services.js";
 const BACKUP_SUFFIX_PATTERN = /^\d{8}_\d{6}$/;
 const SUMMARY_MODEL = "claude-opus-5";
 const PERSONAS = ["klassiker", "analyst", "euphoriker"];
+
+/** German award names, identical to the app's season_awards.*.label. */
+const AWARD_NAMES_DE = {
+	champion: "Meister",
+	top_scorer: "Torschützenkönig",
+	top_assister: "Vorlagenkönig",
+	dream_duo: "Dream-Duo",
+	penalty_king: "Elfmeterkönig",
+	fair_play: "Fairplay-Preis",
+	wall: "Die Mauer",
+	marathon: "Dauerbrenner",
+	form_of_the_year: "Form der Saison",
+	lunch_king: "Mittagspausen-König",
+	comeback_king: "Comeback-König",
+	unlucky: "Pechvogel",
+};
 
 const PERSONA_STYLE = {
 	klassiker:
@@ -83,45 +98,76 @@ function summaryFacts(recap, season) {
 		elo_start: recap.elo.start,
 		elo_ende: recap.elo.end,
 		elo_peak: recap.elo.peak.value,
-		platz: `${recap.elo.rank} von ${recap.elo.of}`,
-		awards: recap.awards_won,
+		platz_im_elo_endstand: recap.elo.qualified
+			? `${recap.elo.rank} von ${recap.elo.of}`
+			: "nicht gewertet (weniger als 30 Saisonspiele)",
+		awards: recap.awards_won.map((key) => AWARD_NAMES_DE[key] ?? key),
 	};
 }
 
-function validNamesOf(recap) {
+function namesInFacts(recap) {
 	const s = recap.stats;
 	return [
 		recap.player.username,
 		s.best_partner?.username,
 		s.nemesis?.username,
 		s.favorite_victim?.username,
-		s.favorite_club?.name,
-		s.best_club?.name,
-	]
-		.filter(Boolean)
-		.flatMap((name) => name.split(/\s+/));
+	].filter(Boolean);
+}
+
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * League players the text names although they are not part of the facts.
+ * German capitalises every noun, so a generic capitalised-word check would
+ * reject every summary; comparing against the real usernames is exact.
+ *
+ * @param {string} text
+ * @param {object} recap
+ * @param {string[]} leagueNames - Every player's username
+ * @returns {string[]}
+ * @example
+ * namesOutsideFacts("Marco schlägt Jay", recap, ["Marco", "Jay", "Nikinho"]); // []
+ */
+export function namesOutsideFacts(text, recap, leagueNames) {
+	const allowed = new Set(namesInFacts(recap));
+	return leagueNames.filter(
+		(name) =>
+			name &&
+			!allowed.has(name) &&
+			new RegExp(
+				`(^|[^\\p{L}\\p{N}])${escapeRegExp(name)}(?![\\p{L}\\p{N}])`,
+				"u",
+			).test(text),
+	);
 }
 
 function textOf(response) {
 	if (response.stop_reason === "refusal") return null;
 	const block = response.content?.find((b) => b.type === "text");
-	return block?.text?.trim() || null;
+	// The app renders plain text: drop markdown emphasis and line breaks.
+	const text = block?.text
+		?.replace(/\*\*|__|(?<!\w)[*_](?!\s)|(?<!\s)[*_](?!\w)/g, "")
+		.replace(/\s*\n+\s*/g, " ")
+		.trim();
+	return text || null;
 }
 
 /**
  * Two playful German sentences about one player's season, in the voice of
  * one of the app's reporter personas. Null when the model declines or names
- * people who are not in the facts.
+ * league players who are not in the facts.
  *
  * Uses claude-opus-5 at low effort with server-side refusal fallbacks.
  *
  * @param {object} recap - One payload from buildSeasonRecaps
  * @param {object} season - league_seasons row
+ * @param {string[]} [leagueNames] - Every player's username, for the name check
  * @returns {Promise<{persona: string, text: string}|null>}
  * @example
- * await generateAiSummary(recap, season); // { persona: "euphoriker", text: "…" }
+ * await generateAiSummary(recap, season, ["Marco", "Jay"]); // { persona: "euphoriker", text: "…" }
  */
-export async function generateAiSummary(recap, season) {
+export async function generateAiSummary(recap, season, leagueNames = []) {
 	const persona = personaOf(recap.player.player_id);
 	const response = await getAnthropicClient().beta.messages.create({
 		model: SUMMARY_MODEL,
@@ -129,7 +175,7 @@ export async function generateAiSummary(recap, season) {
 		betas: ["server-side-fallback-2026-07-01"],
 		fallbacks: "default",
 		output_config: { effort: "low" },
-		system: `Du schreibst für die Büro-Fußballliga "RasenBürosport" (EA FC an der Konsole) ein Saisonfazit für einen Spieler. Du bist ${PERSONA_STYLE[persona]}. Schreibe genau zwei kurze Sätze auf Deutsch, per du, ohne Überschrift und ohne Aufzählung. Nutze nur die gelieferten Fakten und nenne keine anderen Personen als die in den Fakten.`,
+		system: `Du schreibst für die Büro-Fußballliga "RasenBürosport" (EA FC an der Konsole) ein Saisonfazit für einen Spieler. Du bist ${PERSONA_STYLE[persona]}. Schreibe genau zwei kurze Sätze auf Deutsch in einem einzigen Absatz, höchstens 50 Wörter, per du, ohne Überschrift, ohne Aufzählung und ohne Markdown. Awards nennst du mit genau den deutschen Namen aus den Fakten. Nutze nur die gelieferten Fakten und nenne keine anderen Personen als die in den Fakten.`,
 		messages: [
 			{
 				role: "user",
@@ -139,22 +185,22 @@ export async function generateAiSummary(recap, season) {
 	});
 	const text = textOf(response);
 	if (!text) return null;
-	const fabricated = findFabricatedNames(text, validNamesOf(recap));
-	if (fabricated.length > 0) {
+	const strangers = namesOutsideFacts(text, recap, leagueNames);
+	if (strangers.length > 0) {
 		logger.warn(
-			{ playerId: recap.player.player_id, fabricated },
-			"season summary named unknown people; dropped",
+			{ playerId: recap.player.player_id, strangers },
+			"season summary named players outside its facts; dropped",
 		);
 		return null;
 	}
 	return { persona, text };
 }
 
-async function addAiSummaries(recaps, season) {
+async function addAiSummaries(recaps, season, leagueNames) {
 	let count = 0;
 	for (const recap of recaps.values()) {
 		try {
-			recap.ai_summary = await generateAiSummary(recap, season);
+			recap.ai_summary = await generateAiSummary(recap, season, leagueNames);
 			if (recap.ai_summary) count += 1;
 		} catch (error) {
 			logger.warn(
@@ -215,7 +261,10 @@ export async function generateSeasonRecap(seasonId, { skipAi = false } = {}) {
 		oldRatings,
 		liveRatings,
 	});
-	const aiCount = skipAi ? 0 : await addAiSummaries(recaps, season);
+	const leagueNames = data.profiles.map((p) => p.username).filter(Boolean);
+	const aiCount = skipAi
+		? 0
+		: await addAiSummaries(recaps, season, leagueNames);
 	await persistRecaps(season, recaps, league);
 	return {
 		season: season.id,

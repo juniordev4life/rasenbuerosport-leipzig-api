@@ -35,6 +35,10 @@ export function toSeasonDto(row) {
 		ends_at: row.ends_at ? new Date(row.ends_at).toISOString() : null,
 		is_current: row.ends_at == null,
 		has_recap: row.recap_generated_at != null,
+		// Season special of the talk show, once its audio is rendered.
+		talkrunde: row.talkrunde?.audio_url
+			? { status: "ready", audio_url: row.talkrunde.audio_url }
+			: null,
 	};
 }
 

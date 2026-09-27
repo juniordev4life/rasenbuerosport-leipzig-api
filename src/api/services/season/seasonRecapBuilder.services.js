@@ -412,6 +412,23 @@ function ranksOf(acc, accs) {
 	};
 }
 
+/**
+ * Position in the season's end standing, ordered like the Rangliste of a
+ * closed season: players with RECAP_MIN_GAMES first (by rating), then the rest.
+ *
+ * @param {string} playerId
+ * @param {Array<{id: string, rating: number, qualified: boolean}>} table
+ * @returns {number} 1-based
+ * @example
+ * standingRank("a", [{ id: "a", rating: 1600, qualified: true }]); // 1
+ */
+export function standingRank(playerId, table) {
+	const sorted = [...table].sort(
+		(a, b) => Number(b.qualified) - Number(a.qualified) || b.rating - a.rating,
+	);
+	return sorted.findIndex((row) => row.id === playerId) + 1;
+}
+
 function eloJourney(playerId, acc, standingById, ctx) {
 	const standing = standingById.get(playerId);
 	const start = standing?.rating_start ?? START_RATING;
@@ -424,8 +441,9 @@ function eloJourney(playerId, acc, standingById, ctx) {
 	return {
 		start,
 		end,
-		rank: competitionRank(ctx.seasonRatings, end),
-		of: ctx.seasonRatings.length,
+		rank: standingRank(playerId, ctx.seasonTable),
+		of: ctx.seasonTable.length,
+		qualified: acc.games >= RECAP_MIN_GAMES,
 		peak,
 		history: downsample(
 			[start, ...acc.ratings.map((r) => r.after)],
@@ -658,9 +676,11 @@ export function buildSeasonRecaps(data, season, ctx = {}) {
 	const standingById = new Map(
 		(data.standing?.players ?? []).map((p) => [p.player_id, p]),
 	);
-	const seasonRatings = [...accs.keys()].map(
-		(id) => standingById.get(id)?.rating_end ?? START_RATING,
-	);
+	const seasonTable = [...accs].map(([id, acc]) => ({
+		id,
+		rating: standingById.get(id)?.rating_end ?? START_RATING,
+		qualified: acc.games >= RECAP_MIN_GAMES,
+	}));
 	const awards = buildSeasonAwards(accs, data, season, names);
 	const league = { ...leagueFacts(data, accs), awards };
 	const recaps = new Map();
@@ -668,7 +688,7 @@ export function buildSeasonRecaps(data, season, ctx = {}) {
 		recaps.set(playerId, {
 			player: personRef(playerId, names),
 			stats: playerStats(acc, accs, names),
-			elo: eloJourney(playerId, acc, standingById, { ...ctx, seasonRatings }),
+			elo: eloJourney(playerId, acc, standingById, { ...ctx, seasonTable }),
 			awards_won: awards
 				.filter((a) => a.player_ids.includes(playerId))
 				.map((a) => a.key),
