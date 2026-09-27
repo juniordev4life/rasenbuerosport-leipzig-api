@@ -1,31 +1,7 @@
 import { handleErrorResponse } from "../helpers/error.helpers.js";
 import { setGeneralResponse } from "../helpers/response.helpers.js";
-import {
-	getSeasonArchiveSchema,
-	getSeasonsListSchema,
-} from "../schemas/season.schemas.js";
-import {
-	getSeasonArchive,
-	getSeasonsList,
-} from "../services/season.services.js";
-
-export const getSeasonsListController = {
-	schema: getSeasonsListSchema,
-	handler: async (request, reply) => {
-		try {
-			const data = getSeasonsList();
-			return setGeneralResponse(
-				reply,
-				200,
-				"Success",
-				"Seasons list retrieved",
-				data,
-			);
-		} catch (error) {
-			return handleErrorResponse(reply, error, request);
-		}
-	},
-};
+import { getSeasonArchiveSchema } from "../schemas/season.schemas.js";
+import { getSeasonArchive } from "../services/season.services.js";
 
 export const getSeasonArchiveController = {
 	schema: getSeasonArchiveSchema,

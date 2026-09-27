@@ -1,0 +1,334 @@
+/**
+ * Season recap ("Rückblick") lifecycle: generate once per closed season
+ * (stats, League-ELO v2 journey, awards, optional AI summary), read the
+ * viewer's own recap, list the awards, and push "Dein Rückblick ist fertig".
+ *
+ * Generation is idempotent — rerunning rewrites every row from the same data.
+ */
+
+import { getAnthropicClient } from "../../../config/anthropic.config.js";
+import { logger } from "../../../config/logger.config.js";
+import { findFabricatedNames } from "../../helpers/ai.helpers.js";
+import {
+	query,
+	queryOne,
+	withTransaction,
+} from "../../helpers/database.helpers.js";
+import { requireLeagueSeason, toSeasonDto } from "../leagueSeason.services.js";
+import { sendPushNotification } from "../pushSender.services.js";
+import { getSubscriptionsExcludingUsers } from "../pushSubscriptions.services.js";
+import { buildSeasonRecaps } from "./seasonRecapBuilder.services.js";
+import { loadSeasonData } from "./seasonStandings.services.js";
+
+const BACKUP_SUFFIX_PATTERN = /^\d{8}_\d{6}$/;
+const SUMMARY_MODEL = "claude-opus-5";
+const PERSONAS = ["klassiker", "analyst", "euphoriker"];
+
+const PERSONA_STYLE = {
+	klassiker:
+		"ein erfahrener Sportreporter alter Schule: sachlich, trocken, mit einem Augenzwinkern",
+	analyst:
+		"ein datenverliebter Taktik-Analyst: präzise, nennt eine konkrete Zahl, nüchtern",
+	euphoriker:
+		"ein euphorischer Stadionsprecher: begeistert, laut, mit viel Emotion",
+};
+
+function badRequest(message, statusCode = 409) {
+	const err = new Error(message);
+	err.statusCode = statusCode;
+	return err;
+}
+
+/**
+ * Ratings under the old engine right before the switch, from the backup
+ * tables the League-ELO v2 apply created. Empty map when there is none.
+ *
+ * @returns {Promise<Map<string, number>>}
+ * @example
+ * (await loadPreSwitchRatings()).get(uid); // 1327
+ */
+export async function loadPreSwitchRatings() {
+	const state = await queryOne(
+		"SELECT value FROM app_state WHERE key = 'elo'",
+	).catch(() => null);
+	const suffix = state?.value?.backup;
+	if (!BACKUP_SUFFIX_PATTERN.test(suffix ?? "")) return new Map();
+	const rows = await query(
+		`SELECT id, current_rating FROM elo_backup_${suffix}_profiles`,
+	).catch(() => []);
+	return new Map(rows.map((r) => [r.id, r.current_rating]));
+}
+
+function personaOf(playerId) {
+	let hash = 0;
+	for (const ch of playerId) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+	return PERSONAS[hash % PERSONAS.length];
+}
+
+function summaryFacts(recap, season) {
+	const s = recap.stats;
+	return {
+		saison: season.name,
+		spieler: recap.player.username,
+		spiele: s.games,
+		siege: s.wins,
+		niederlagen: s.losses,
+		siegquote_prozent: Math.round(s.win_rate * 100),
+		tore: s.goals,
+		vorlagen: s.assists,
+		laengste_siegesserie: s.longest_win_streak,
+		hoechster_sieg: s.biggest_win?.score ?? null,
+		traumpartner: s.best_partner?.username ?? null,
+		angstgegner: s.nemesis?.username ?? null,
+		elo_start: recap.elo.start,
+		elo_ende: recap.elo.end,
+		elo_peak: recap.elo.peak.value,
+		platz: `${recap.elo.rank} von ${recap.elo.of}`,
+		awards: recap.awards_won,
+	};
+}
+
+function validNamesOf(recap) {
+	const s = recap.stats;
+	return [
+		recap.player.username,
+		s.best_partner?.username,
+		s.nemesis?.username,
+		s.favorite_victim?.username,
+		s.favorite_club?.name,
+		s.best_club?.name,
+	]
+		.filter(Boolean)
+		.flatMap((name) => name.split(/\s+/));
+}
+
+function textOf(response) {
+	if (response.stop_reason === "refusal") return null;
+	const block = response.content?.find((b) => b.type === "text");
+	return block?.text?.trim() || null;
+}
+
+/**
+ * Two playful German sentences about one player's season, in the voice of
+ * one of the app's reporter personas. Null when the model declines or names
+ * people who are not in the facts.
+ *
+ * Uses claude-opus-5 at low effort with server-side refusal fallbacks.
+ *
+ * @param {object} recap - One payload from buildSeasonRecaps
+ * @param {object} season - league_seasons row
+ * @returns {Promise<{persona: string, text: string}|null>}
+ * @example
+ * await generateAiSummary(recap, season); // { persona: "euphoriker", text: "…" }
+ */
+export async function generateAiSummary(recap, season) {
+	const persona = personaOf(recap.player.player_id);
+	const response = await getAnthropicClient().beta.messages.create({
+		model: SUMMARY_MODEL,
+		max_tokens: 4000,
+		betas: ["server-side-fallback-2026-07-01"],
+		fallbacks: "default",
+		output_config: { effort: "low" },
+		system: `Du schreibst für die Büro-Fußballliga "RasenBürosport" (EA FC an der Konsole) ein Saisonfazit für einen Spieler. Du bist ${PERSONA_STYLE[persona]}. Schreibe genau zwei kurze Sätze auf Deutsch, per du, ohne Überschrift und ohne Aufzählung. Nutze nur die gelieferten Fakten und nenne keine anderen Personen als die in den Fakten.`,
+		messages: [
+			{
+				role: "user",
+				content: `Fakten zur Saison:\n${JSON.stringify(summaryFacts(recap, season))}`,
+			},
+		],
+	});
+	const text = textOf(response);
+	if (!text) return null;
+	const fabricated = findFabricatedNames(text, validNamesOf(recap));
+	if (fabricated.length > 0) {
+		logger.warn(
+			{ playerId: recap.player.player_id, fabricated },
+			"season summary named unknown people; dropped",
+		);
+		return null;
+	}
+	return { persona, text };
+}
+
+async function addAiSummaries(recaps, season) {
+	let count = 0;
+	for (const recap of recaps.values()) {
+		try {
+			recap.ai_summary = await generateAiSummary(recap, season);
+			if (recap.ai_summary) count += 1;
+		} catch (error) {
+			logger.warn(
+				{ playerId: recap.player.player_id, err: error?.message },
+				"season summary failed; recap ships without it",
+			);
+		}
+	}
+	return count;
+}
+
+async function persistRecaps(season, recaps, league) {
+	await withTransaction(async (client) => {
+		await client.query("DELETE FROM season_recaps WHERE season_id = $1", [
+			season.id,
+		]);
+		const rows = [...recaps].map(([playerId, payload]) => ({
+			player_id: playerId,
+			payload: { ...payload, league_facts: league },
+		}));
+		if (rows.length) {
+			await client.query(
+				`INSERT INTO season_recaps (season_id, player_id, payload, generated_at)
+				 SELECT $1, v.player_id, v.payload, now()
+				   FROM jsonb_to_recordset($2::jsonb) AS v(player_id text, payload jsonb)`,
+				[season.id, JSON.stringify(rows)],
+			);
+		}
+		await client.query(
+			`UPDATE league_seasons
+			    SET awards = $2::jsonb, recap_generated_at = now()
+			  WHERE id = $1`,
+			[season.id, JSON.stringify(league.awards)],
+		);
+	});
+}
+
+/**
+ * Generates and stores the recap of every player of a closed season.
+ *
+ * @param {string} seasonId - e.g. "fc26"
+ * @param {object} [options]
+ * @param {boolean} [options.skipAi] - Skip the AI summaries
+ * @returns {Promise<{season: string, players: number, awards: number, ai_summaries: number}>}
+ * @example
+ * await generateSeasonRecap("fc26", { skipAi: false });
+ */
+export async function generateSeasonRecap(seasonId, { skipAi = false } = {}) {
+	const season = await requireLeagueSeason(seasonId);
+	if (!season.ends_at) throw badRequest("The season is still running");
+	const data = await loadSeasonData(season);
+	const [oldRatings, live] = await Promise.all([
+		loadPreSwitchRatings(),
+		query("SELECT id, current_rating FROM profiles"),
+	]);
+	const liveRatings = new Map(live.map((r) => [r.id, r.current_rating]));
+	const { recaps, league } = buildSeasonRecaps(data, season, {
+		oldRatings,
+		liveRatings,
+	});
+	const aiCount = skipAi ? 0 : await addAiSummaries(recaps, season);
+	await persistRecaps(season, recaps, league);
+	return {
+		season: season.id,
+		players: recaps.size,
+		awards: league.awards.length,
+		ai_summaries: aiCount,
+	};
+}
+
+function talkrundeOf(season) {
+	const t = season.talkrunde;
+	if (!t?.audio_url) return null;
+	return { status: "ready", audio_url: t.audio_url };
+}
+
+/**
+ * The viewer's recap of a season, or null when there is none.
+ *
+ * @param {string} seasonId
+ * @param {string} userId
+ * @returns {Promise<object|null>}
+ * @example
+ * await getMyRecap("fc26", request.user.id);
+ */
+export async function getMyRecap(seasonId, userId) {
+	const season = await requireLeagueSeason(seasonId);
+	const row = await queryOne(
+		`SELECT payload, generated_at FROM season_recaps
+		  WHERE season_id = $1 AND player_id = $2`,
+		[season.id, userId],
+	);
+	if (!row) return null;
+	const { league_facts: league, ...payload } = row.payload;
+	return {
+		season: toSeasonDto(season),
+		generated_at: new Date(row.generated_at).toISOString(),
+		...payload,
+		league: { ...league, talkrunde: talkrundeOf(season) },
+	};
+}
+
+/**
+ * Awards of a season ([] until its recap was generated).
+ *
+ * @param {string} seasonId
+ * @returns {Promise<{season: object, awards: object[]}>}
+ * @example
+ * (await getSeasonAwards("fc26")).awards[0].key; // "champion"
+ */
+export async function getSeasonAwards(seasonId) {
+	const season = await requireLeagueSeason(seasonId);
+	return { season: toSeasonDto(season), awards: season.awards ?? [] };
+}
+
+function recapPushPayload(season, league) {
+	return {
+		title: `Dein Rückblick auf ${season.game_version} ist fertig`,
+		body: `${league.games} Spiele, ${league.goals} Tore – schau dir deine Saison an ⚽`,
+		url: `/app/recap/${season.id}`,
+		tag: `season-recap-${season.id}`,
+		type: "seasonRecap",
+	};
+}
+
+/**
+ * Pushes "Dein Rückblick ist fertig" to every player who has a recap. The
+ * sends are awaited (Cloud Run throttles work after the response). A full
+ * send happens once per season; `onlyUser` sends a test to one player and
+ * does not count as the send.
+ *
+ * @param {string} seasonId
+ * @param {object} [options]
+ * @param {string} [options.onlyUser] - Firebase uid of the only recipient
+ * @returns {Promise<{recipients: number, sent: number, failed: number}>}
+ * @example
+ * await notifySeasonRecap("fc26", { onlyUser: adminUid });
+ */
+export async function notifySeasonRecap(seasonId, { onlyUser } = {}) {
+	const season = await requireLeagueSeason(seasonId);
+	if (!season.recap_generated_at)
+		throw badRequest("The recap was not generated yet");
+	if (!onlyUser && season.recap_notified_at)
+		throw badRequest("The recap push was already sent");
+	const rows = await query(
+		"SELECT player_id, payload -> 'league_facts' AS league FROM season_recaps WHERE season_id = $1",
+		[season.id],
+	);
+	const players = new Set(rows.map((r) => r.player_id));
+	if (onlyUser && !players.has(onlyUser))
+		throw badRequest("That player has no recap", 404);
+	const subs = (
+		await getSubscriptionsExcludingUsers({
+			excludeUserIds: [],
+			preferenceKey: "seasonRecap",
+		})
+	).filter((s) => (onlyUser ? s.user_id === onlyUser : players.has(s.user_id)));
+	const payload = recapPushPayload(
+		season,
+		rows[0]?.league ?? { games: 0, goals: 0 },
+	);
+	const results = await Promise.all(
+		subs.map((s) => sendPushNotification(s, payload)),
+	);
+	if (!onlyUser) {
+		await query(
+			"UPDATE league_seasons SET recap_notified_at = now() WHERE id = $1",
+			[season.id],
+		);
+	}
+	const sent = results.filter((r) => r.success).length;
+	return {
+		recipients: new Set(subs.map((s) => s.user_id)).size,
+		sent,
+		failed: results.length - sent,
+	};
+}
