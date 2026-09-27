@@ -49,7 +49,10 @@ describe("generateSeasonTalkrundeScript", () => {
 	});
 
 	it("stores the parsed script of the season special", async () => {
-		requireLeagueSeason.mockResolvedValue(SEASON);
+		requireLeagueSeason.mockResolvedValue({
+			...SEASON,
+			awards: [{ key: "unlucky", unit: "games", value: 100, players: [{ username: "Ben" }] }],
+		});
 		const create = vi.fn(async () => ({
 			model: "claude-sonnet-5",
 			stop_reason: "end_turn",
@@ -70,6 +73,8 @@ describe("generateSeasonTalkrundeScript", () => {
 			output_config: { effort: "medium" },
 		});
 		expect(payload.messages[0].content).toContain("SONDERFOLGE");
+		// Awards reach the model by their German name and what they count.
+		expect(payload.messages[0].content).toContain('"award":"Pechvogel","misst":"Niederlagen mit einem Tor Unterschied"');
 		const [sql, params] = query.mock.calls.at(-1);
 		expect(sql).toContain("SET talkrunde");
 		expect(JSON.parse(params[1])).toMatchObject({ status: "script", audio_url: null, model: "claude-sonnet-5" });

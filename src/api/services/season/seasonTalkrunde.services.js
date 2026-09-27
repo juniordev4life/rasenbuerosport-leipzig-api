@@ -8,6 +8,7 @@
  */
 
 import { AI_THOROUGH } from "../../../constants/ai.constants.js";
+import { SEASON_AWARDS_DE } from "../../../constants/seasonAwards.constants.js";
 import { callAnthropicWithRetry } from "../../helpers/ai.helpers.js";
 import { query, queryOne } from "../../helpers/database.helpers.js";
 import {
@@ -34,7 +35,7 @@ const SEASON_SPECIAL_RULES = `[SONDERFOLGE — SAISONRÜCKBLICK — HAT VORRANG 
 Diese Episode ist KEINE normale Wochenfolge, sondern die Sonderfolge zum Saisonende. Wo die Regeln oben etwas anderes sagen, gilt dieser Block:
 - Zeitraum: die komplette Saison aus den Daten (nicht eine Woche). Sprich von "der Saison", nie von "dieser Woche".
 - Erscheinungstag: Montag zum Start der neuen Saison. KEINE Tageszeit-Begrüßung ("Guten Abend"/"Guten Morgen" sind beide falsch) und kein "Freitag". Marcel eröffnet mit "Hallo und herzlich willkommen zur Sonderfolge der Bürowoche".
-- Länge: 380–450 Sekunden, Zielband 850–1000 Wörter.
+- Länge: 380–450 Sekunden, Zielband 850–1000 Wörter. Die Wortgrenzen oben (Zielband 440–520, harte Obergrenze 540) gelten für diese Folge NICHT; hier liegt die harte Obergrenze bei 1100 Wörtern. Plane rund 140–170 Wörter pro Block.
 - Sechs Blöcke: 1. INTRO mit der Saison in Zahlen. 2. MEISTER & TABELLE (ELO-Endstand der Stammspieler und Liga-Tabelle). 3. SAISON-AWARDS (drei bis fünf Highlights, jeweils mit Gewinner und Zahl). 4. SPIEL DER SAISON. 5. DAS NEUE ELO (kurz und fair: ab jetzt rechnet die Liga mit einem neuen, faireren ELO-System, das rückwirkend auf alle Spiele angewendet wurde — keine Details erfinden, die nicht in den Daten stehen). 6. AUSBLICK auf die neue Saison und OUTRO.
 - Sophie ist weiterhin in jedem Block dabei. Verwende nur Namen und Zahlen aus den Daten.`;
 
@@ -64,7 +65,7 @@ function matchOfSeason(data) {
 			best.result_type === "penalty" &&
 			!best.penalty_shootout &&
 			best.score_home !== best.score_away
-				? "Das Ergebnis enthält bereits die Tore aus dem Elfmeterschießen – es gibt einen klaren Sieger: die Seite mit mehr Toren."
+				? "Achtung: Das Ergebnis zählt die verwandelten Elfmeter aus dem Elfmeterschießen schon mit, es ist kein Spielstand nach 90 oder 120 Minuten. Nenne deshalb keine Torzahl für dieses Spiel. Sieger ist die Seite mit der höheren Zahl."
 				: undefined,
 	};
 }
@@ -102,10 +103,10 @@ export async function buildSeasonShowContext(season) {
 			spiele: r.games,
 		})),
 		awards: (season.awards ?? []).map((a) => ({
-			award: a.key,
+			award: SEASON_AWARDS_DE[a.key]?.name ?? a.key,
+			misst: SEASON_AWARDS_DE[a.key]?.misst ?? a.unit,
 			gewinner: a.players.map((p) => p.username),
 			wert: a.value,
-			einheit: a.unit,
 		})),
 		spiel_der_saison: matchOfSeason(data),
 	};

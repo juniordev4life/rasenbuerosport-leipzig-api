@@ -8,6 +8,7 @@
 
 import { logger } from "../../../config/logger.config.js";
 import { AI_LIGHT } from "../../../constants/ai.constants.js";
+import { SEASON_AWARDS_DE } from "../../../constants/seasonAwards.constants.js";
 import { callAnthropicWithRetry } from "../../helpers/ai.helpers.js";
 import {
 	query,
@@ -22,22 +23,6 @@ import { loadSeasonData } from "./seasonStandings.services.js";
 
 const BACKUP_SUFFIX_PATTERN = /^\d{8}_\d{6}$/;
 const PERSONAS = ["klassiker", "analyst", "euphoriker"];
-
-/** German award names, identical to the app's season_awards.*.label. */
-const AWARD_NAMES_DE = {
-	champion: "Meister",
-	top_scorer: "Torschützenkönig",
-	top_assister: "Vorlagenkönig",
-	dream_duo: "Dream-Duo",
-	penalty_king: "Elfmeterkönig",
-	fair_play: "Fairplay-Preis",
-	wall: "Die Mauer",
-	marathon: "Dauerbrenner",
-	form_of_the_year: "Form der Saison",
-	lunch_king: "Mittagspausen-König",
-	comeback_king: "Comeback-König",
-	unlucky: "Pechvogel",
-};
 
 const PERSONA_STYLE = {
 	klassiker:
@@ -101,7 +86,7 @@ function summaryFacts(recap, season) {
 		platz_im_elo_endstand: recap.elo.qualified
 			? `${recap.elo.rank} von ${recap.elo.of}`
 			: "nicht gewertet (weniger als 30 Saisonspiele)",
-		awards: recap.awards_won.map((key) => AWARD_NAMES_DE[key] ?? key),
+		awards: recap.awards_won.map((key) => SEASON_AWARDS_DE[key]?.name ?? key),
 	};
 }
 
@@ -172,7 +157,7 @@ export async function generateAiSummary(recap, season, leagueNames = []) {
 		({ text: raw } = await callAnthropicWithRetry({
 			...AI_LIGHT,
 			max_tokens: 2048,
-			system: `Du schreibst für die Büro-Fußballliga "RasenBürosport" (EA FC an der Konsole) ein Saisonfazit für einen Spieler. Du bist ${PERSONA_STYLE[persona]}. Schreibe genau zwei kurze Sätze auf Deutsch in einem einzigen Absatz, höchstens 50 Wörter, per du, ohne Überschrift, ohne Aufzählung und ohne Markdown. Awards nennst du mit genau den deutschen Namen aus den Fakten. Nutze nur die gelieferten Fakten und nenne keine anderen Personen als die in den Fakten.`,
+			system: `Du schreibst für die Büro-Fußballliga "RasenBürosport" (EA FC an der Konsole) ein Saisonfazit für einen Spieler. Dein Stil: ${PERSONA_STYLE[persona]}. Du sprichst dabei durchgehend den Spieler selbst mit du an: keine dritte Person, keine Anrede an ein Publikum. Schreibe genau zwei kurze Sätze auf Deutsch in einem einzigen Absatz, zusammen höchstens 50 Wörter, ohne Überschrift, ohne Aufzählung und ohne Markdown. Nimm die zwei, drei stärksten Fakten, statt alle aufzuzählen. Ist der Spieler im Elo-Endstand nicht gewertet, nenne den Grund aus den Fakten. Awards nennst du mit genau den deutschen Namen aus den Fakten. Nutze nur die gelieferten Fakten und nenne keine anderen Personen als die in den Fakten.`,
 			messages: [
 				{
 					role: "user",
