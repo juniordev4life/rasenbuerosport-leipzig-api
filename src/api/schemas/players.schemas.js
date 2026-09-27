@@ -14,6 +14,7 @@ export const getPlayersSchema = {
 							id: { type: "string" },
 							username: { type: "string" },
 							avatar_url: { type: ["string", "null"] },
+							games_played: { type: "integer" },
 						},
 					},
 				},

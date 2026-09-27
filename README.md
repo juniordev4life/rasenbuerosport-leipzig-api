@@ -89,7 +89,7 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | `POST` | `/api/v1/recording/finalize` | Agent | Pipeline delivers the vision-extracted timeline for a PENDING game — writes score (plus `result_type` / `penalty_shootout` when a shootout was detected), runs deferred ELO/push |
 | `POST` | `/api/v1/recording/stats` | Agent | Pipeline submits stats-screen URLs pulled from the recording; reuses the Claude-Vision extraction |
 | `GET` | `/api/v1/leaderboard` | — | Get leaderboard standings |
-| `GET` | `/api/v1/players` | Bearer | Get all player profiles |
+| `GET` | `/api/v1/players` | Bearer | All player profiles, alphabetical, each with `games_played` (the new-game lobby sorts by it) |
 | `GET` | `/api/v1/stats` | Bearer | Get comprehensive user stats |
 | `GET` | `/api/v1/stats/:playerId` | Bearer | Head-to-head vs specific player |
 | `GET` | `/api/v1/compare/:player1Id/:player2Id` | Bearer | Compare two players |
