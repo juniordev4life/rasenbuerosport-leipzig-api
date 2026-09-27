@@ -15,7 +15,6 @@ vi.mock("../../../src/api/services/leagueSeason.services.js", () => ({
 vi.mock("../../../src/api/services/season/seasonStandings.services.js", () => ({
 	loadSeasonData: vi.fn(async () => ({ games: [], gamePlayers: [], profiles: [], standing: null })),
 	buildSeasonRating: vi.fn(() => ({ season: { min_games: 30 }, players: [] })),
-	buildLeagueTable: vi.fn(() => ({ rows: [] })),
 }));
 vi.mock("../../../src/api/services/talkshowAudio.services.js", () => ({
 	renderTurnsToMp3: vi.fn(async (_turns, path) => `https://storage.example/${path}`),

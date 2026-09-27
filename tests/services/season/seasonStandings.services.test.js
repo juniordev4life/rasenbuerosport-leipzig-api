@@ -13,13 +13,9 @@ import {
 	duoIdOf,
 	gameOutcome,
 	playerFacts,
-	tablePoints,
 } from "../../../src/api/services/season/seasonFacts.services.js";
 import { buildSeasonRecaps } from "../../../src/api/services/season/seasonRecapBuilder.services.js";
-import {
-	buildLeagueTable,
-	buildSeasonRating,
-} from "../../../src/api/services/season/seasonStandings.services.js";
+import { buildSeasonRating } from "../../../src/api/services/season/seasonStandings.services.js";
 
 const FC26 = {
 	id: "fc26",
@@ -58,13 +54,10 @@ const PROFILES = [
 ];
 
 describe("seasonFacts", () => {
-	it("decides a level game by the shootout and awards 2:1 points", () => {
+	it("decides a level game by the shootout", () => {
 		const game = { score_home: 2, score_away: 2, penalty_shootout: { winner_side: "away" } };
 		expect(gameOutcome(game)).toEqual({ winner: "away", shootout: true });
-		expect(tablePoints(game, "away")).toEqual({ points: 2, kind: "SW" });
-		expect(tablePoints(game, "home")).toEqual({ points: 1, kind: "SL" });
-		expect(tablePoints({ score_home: 3, score_away: 1 }, "home")).toEqual({ points: 3, kind: "W" });
-		expect(tablePoints({ score_home: 1, score_away: 1 }, "home")).toEqual({ points: 1, kind: "D" });
+		expect(gameOutcome({ score_home: 1, score_away: 1 })).toEqual({ winner: null, shootout: false });
 	});
 
 	it("does not count shootout kicks or own goals as goals", () => {
@@ -119,19 +112,6 @@ function seasonData() {
 	};
 	return { games, gamePlayers, profiles: PROFILES, standing };
 }
-
-describe("buildLeagueTable", () => {
-	it("counts 3/1/0 and 2:1 after a shootout, sorted by points", () => {
-		const { rows } = buildLeagueTable(seasonData(), FC26);
-
-		expect(rows.map((r) => [r.username, r.points])).toEqual([
-			["Anna", 5],
-			["Ben", 1],
-		]);
-		expect(rows[0]).toMatchObject({ wins: 1, shootout_wins: 1, goals_for: 3, goals_against: 1, rank: 1 });
-		expect(rows[1]).toMatchObject({ losses: 1, shootout_losses: 1, points_per_game: 0.5 });
-	});
-});
 
 describe("buildSeasonRating", () => {
 	it("ranks regulars first in a closed season and marks the others", () => {

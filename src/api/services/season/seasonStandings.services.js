@@ -17,7 +17,6 @@ import {
 	playerFacts,
 	sideGoals,
 	sideResult,
-	tablePoints,
 } from "./seasonFacts.services.js";
 import { RECAP_MIN_GAMES } from "./seasonRecapBuilder.services.js";
 
@@ -283,79 +282,4 @@ export function buildSeasonRating(data, season, now = new Date()) {
 		players: rankRows(rows),
 		duos: duoRows(data, profilesById, isCurrent),
 	};
-}
-
-/**
- * Pure: league table (points) of a season. Games against an empty side (CPU)
- * do not count.
- *
- * @param {object} data - From loadSeasonData
- * @param {object} season - league_seasons row
- * @returns {{ season: object, rows: object[] }}
- * @example
- * buildLeagueTable(data, season).rows[0].points; // 25
- */
-export function buildLeagueTable(data, season) {
-	const lineups = lineupsByGame(data.gamePlayers);
-	const table = new Map();
-	const row = (id) => {
-		if (!table.has(id)) {
-			table.set(id, {
-				games: 0,
-				wins: 0,
-				draws: 0,
-				losses: 0,
-				shootout_wins: 0,
-				shootout_losses: 0,
-				goals_for: 0,
-				goals_against: 0,
-				points: 0,
-			});
-		}
-		return table.get(id);
-	};
-	const kindKey = {
-		W: "wins",
-		D: "draws",
-		L: "losses",
-		SW: "shootout_wins",
-		SL: "shootout_losses",
-	};
-	for (const game of data.games) {
-		const lineup = lineups.get(game.id);
-		if (!lineup?.home.length || !lineup?.away.length) continue;
-		for (const side of ["home", "away"]) {
-			const { points, kind } = tablePoints(game, side);
-			const goals = sideGoals(game, side);
-			for (const id of lineup[side]) {
-				const r = row(id);
-				r.games += 1;
-				r[kindKey[kind]] += 1;
-				r.points += points;
-				r.goals_for += goals.for;
-				r.goals_against += goals.against;
-			}
-		}
-	}
-	const profilesById = new Map(data.profiles.map((p) => [p.id, p]));
-	const rows = [...table].map(([id, r]) => ({
-		player_id: id,
-		username: profilesById.get(id)?.username ?? null,
-		avatar_url: profilesById.get(id)?.avatar_url ?? null,
-		...r,
-		goal_diff: r.goals_for - r.goals_against,
-		points_per_game: Math.round((r.points / r.games) * 100) / 100,
-	}));
-	rows.sort(
-		(a, b) =>
-			b.points - a.points ||
-			b.points_per_game - a.points_per_game ||
-			b.goal_diff - a.goal_diff ||
-			b.goals_for - a.goals_for ||
-			String(a.username).localeCompare(String(b.username)),
-	);
-	rows.forEach((r, i) => {
-		r.rank = i + 1;
-	});
-	return { season: toSeasonDto(season), rows };
 }

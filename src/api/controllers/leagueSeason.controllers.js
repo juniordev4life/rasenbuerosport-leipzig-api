@@ -16,7 +16,6 @@ import {
 	notifySeasonRecap,
 } from "../services/season/seasonRecap.services.js";
 import {
-	buildLeagueTable,
 	buildSeasonRating,
 	loadSeasonData,
 } from "../services/season/seasonStandings.services.js";
@@ -54,14 +53,6 @@ export const getSeasonRatingController = {
 	handler: respond("Season rating retrieved", async (request) => {
 		const season = await requireLeagueSeason(request.params.seasonId);
 		return buildSeasonRating(await loadSeasonData(season), season);
-	}),
-};
-
-export const getSeasonTableController = {
-	schema: { params: seasonIdParamsSchema },
-	handler: respond("Season table retrieved", async (request) => {
-		const season = await requireLeagueSeason(request.params.seasonId);
-		return buildLeagueTable(await loadSeasonData(season), season);
 	}),
 };
 

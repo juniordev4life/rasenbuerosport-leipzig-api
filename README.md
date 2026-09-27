@@ -97,7 +97,6 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | `GET` | `/api/v1/duos/:player1Id/:player2Id` | Bearer | Detail for a specific duo |
 | `GET` | `/api/v1/seasons` | — | League seasons (EA FC editions, e.g. `fc27` open, `fc26` closed), newest first |
 | `GET` | `/api/v1/seasons/:seasonId/rating` | Bearer | Skill rating of a season (`:seasonId` = `fc26` \| `fc27` \| `current`): League-ELO v2 players and duos (≥ 10 games), start/end rating, week and form deltas; closed seasons rank players with ≥ 30 games first |
-| `GET` | `/api/v1/seasons/:seasonId/table` | Bearer | League table: 3/1/0 points, 2:1 after a shootout |
 | `GET` | `/api/v1/seasons/:seasonId/awards` | Bearer | Season awards (after the recap was generated) |
 | `GET` | `/api/v1/seasons/:seasonId/recap/me` | Bearer | The viewer's season recap ("Rückblick"), `null` when there is none |
 | `POST` | `/api/v1/seasons/:seasonId/recap/generate` | Scheduler | Generate every player's recap + awards (`?skip_ai=true` skips the AI summaries) |
@@ -419,7 +418,7 @@ DATABASE_URL=postgresql://postgres:localdev@127.0.0.1:5434/<snapshot-db> npm run
 
 A **league season** is an EA FC edition in `league_seasons` (FC26 until 2026-09-22 15:00 Berlin, FC27 open since). ELO runs through; a season is a logical cut: membership is the half-open `played_at` range, the replay stores every season's start and end ratings in `season_elo_standings`. The calendar-quarter "seasons" (`src/utils/season.utils.js`) stay for the stats page.
 
-One definition of win, goal and points for all season views (`src/api/services/season/seasonFacts.services.js`): a shootout decides W/L, shootout kicks and own goals are not goals, league points are 3/1/0 and 2:1 after a shootout, times are Europe/Berlin.
+One definition of win and goal for all season views (`src/api/services/season/seasonFacts.services.js`): a shootout decides W/L, shootout kicks and own goals are not goals, times are Europe/Berlin. There is no points table: players who play more would collect more points, so seasons rank by ELO only.
 
 The **recap** of a closed season is generated once and stored per player (`season_recaps`) — stats, ELO journey, the old rating from the switch-over backup next to the new one, 12 awards, and an optional two-sentence AI summary (Claude Sonnet 5 at low effort, names checked against the facts). Operator steps (scheduler secret, see DEPLOY_PROD §4c):
 

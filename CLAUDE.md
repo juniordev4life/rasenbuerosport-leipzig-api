@@ -187,7 +187,7 @@ For admin-only routes, add `requireAdmin` after `requireAuth` (`preHandler: [req
 
 ### Public Endpoints
 
-`/health`, `/api/v1/leaderboard`, `GET /api/v1/seasons` and `/api/v1/seasons/archive`. The per-season routes (`/seasons/:seasonId/rating|table|awards|recap/me`) require `requireAuth`. The scheduler and office-agent routes use the shared-secret middlewares below. Everything else requires `requireAuth`.
+`/health`, `/api/v1/leaderboard`, `GET /api/v1/seasons` and `/api/v1/seasons/archive`. The per-season routes (`/seasons/:seasonId/rating|awards|recap/me`) require `requireAuth`. The scheduler and office-agent routes use the shared-secret middlewares below. Everything else requires `requireAuth`.
 
 ### Scheduler Endpoints
 

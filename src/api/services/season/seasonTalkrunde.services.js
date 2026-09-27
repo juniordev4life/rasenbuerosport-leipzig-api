@@ -21,7 +21,6 @@ import { dramaScore } from "../matchOfTheWeek.services.js";
 import { renderTurnsToMp3 } from "../talkshowAudio.services.js";
 import { lineupsByGame } from "./seasonFacts.services.js";
 import {
-	buildLeagueTable,
 	buildSeasonRating,
 	loadSeasonData,
 } from "./seasonStandings.services.js";
@@ -36,7 +35,7 @@ Diese Episode ist KEINE normale Wochenfolge, sondern die Sonderfolge zum Saisone
 - Zeitraum: die komplette Saison aus den Daten (nicht eine Woche). Sprich von "der Saison", nie von "dieser Woche".
 - Erscheinungstag: Montag zum Start der neuen Saison. KEINE Tageszeit-Begrüßung ("Guten Abend"/"Guten Morgen" sind beide falsch) und kein "Freitag". Marcel eröffnet mit "Hallo und herzlich willkommen zur Sonderfolge der Bürowoche".
 - Länge: 380–450 Sekunden, Zielband 850–1000 Wörter. Die Wortgrenzen oben (Zielband 440–520, harte Obergrenze 540) gelten für diese Folge NICHT; hier liegt die harte Obergrenze bei 1100 Wörtern. Plane rund 140–170 Wörter pro Block.
-- Sechs Blöcke: 1. INTRO mit der Saison in Zahlen. 2. MEISTER & TABELLE (ELO-Endstand der Stammspieler und Liga-Tabelle). 3. SAISON-AWARDS (drei bis fünf Highlights, jeweils mit Gewinner und Zahl). 4. SPIEL DER SAISON. 5. DAS NEUE ELO (kurz und fair: ab jetzt rechnet die Liga mit einem neuen, faireren ELO-System, das rückwirkend auf alle Spiele angewendet wurde — keine Details erfinden, die nicht in den Daten stehen). 6. AUSBLICK auf die neue Saison und OUTRO.
+- Sechs Blöcke: 1. INTRO mit der Saison in Zahlen. 2. MEISTER & ELO-ENDSTAND (die Stammspieler; eine Punktetabelle gibt es in dieser Liga nicht, erwähne keine). 3. SAISON-AWARDS (drei bis fünf Highlights, jeweils mit Gewinner und Zahl). 4. SPIEL DER SAISON. 5. DAS NEUE ELO (kurz und fair: ab jetzt rechnet die Liga mit einem neuen, faireren ELO-System, das rückwirkend auf alle Spiele angewendet wurde — keine Details erfinden, die nicht in den Daten stehen). 6. AUSBLICK auf die neue Saison und OUTRO.
 - Sophie ist weiterhin in jedem Block dabei. Verwende nur Namen und Zahlen aus den Daten.`;
 
 function playersByRank(rating, count) {
@@ -81,7 +80,6 @@ function matchOfSeason(data) {
 export async function buildSeasonShowContext(season) {
 	const data = await loadSeasonData(season);
 	const rating = buildSeasonRating(data, season);
-	const table = buildLeagueTable(data, season);
 	const facts = await queryOne(
 		"SELECT payload -> 'league_facts' AS league FROM season_recaps WHERE season_id = $1 LIMIT 1",
 		[season.id],
@@ -97,11 +95,6 @@ export async function buildSeasonShowContext(season) {
 		spieler: league.players,
 		elo_endstand_top5: playersByRank(rating, 5),
 		mindestspiele_fuer_wertung: rating.season.min_games,
-		liga_tabelle_top5: table.rows.slice(0, 5).map((r) => ({
-			name: r.username,
-			punkte: r.points,
-			spiele: r.games,
-		})),
 		awards: (season.awards ?? []).map((a) => ({
 			award: SEASON_AWARDS_DE[a.key]?.name ?? a.key,
 			misst: SEASON_AWARDS_DE[a.key]?.misst ?? a.unit,

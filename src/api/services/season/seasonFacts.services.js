@@ -71,25 +71,6 @@ export function sideResult(game, side) {
 }
 
 /**
- * League-table points of one side.
- *
- * @param {object} game
- * @param {"home"|"away"} side
- * @returns {{ points: number, kind: "W"|"D"|"L"|"SW"|"SL" }}
- * @example
- * tablePoints({ score_home: 1, score_away: 1, penalty_shootout: { winner_side: "home" } }, "home");
- * // { points: 2, kind: "SW" }
- */
-export function tablePoints(game, side) {
-	const { winner, shootout } = gameOutcome(game);
-	if (winner === null) return { points: 1, kind: "D" };
-	const won = winner === side;
-	if (shootout)
-		return won ? { points: 2, kind: "SW" } : { points: 1, kind: "SL" };
-	return won ? { points: 3, kind: "W" } : { points: 0, kind: "L" };
-}
-
-/**
  * Goals of a side as stored in the score columns (regular + extra time).
  *
  * @param {object} game
