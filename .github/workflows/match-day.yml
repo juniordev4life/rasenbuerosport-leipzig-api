@@ -32,6 +32,9 @@ jobs:
       - name: Formation Check (Format)
         run: npm run format:check
 
+      - name: Training Session (Tests)
+        run: npm test
+
   deploy:
     name: Deploy to Cloud Run
     needs: checks
