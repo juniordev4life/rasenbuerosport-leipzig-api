@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../../src/api/helpers/ai.helpers.js", () => ({
+vi.mock("../../src/api/helpers/ai.helpers.js", async (importOriginal) => ({
+	...(await importOriginal()),
 	callAnthropicWithRetry: vi.fn(),
 }));
 vi.mock("../../src/api/helpers/database.helpers.js", () => ({

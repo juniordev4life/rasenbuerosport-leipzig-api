@@ -7,24 +7,6 @@ import {
 import { getLeaderboard } from "./leaderboard.services.js";
 
 /**
- * Returns metadata about all available seasons
- * @returns {object}
- */
-export function getSeasonsList() {
-	const allSeasons = listAllSeasons();
-	const currentSeason = getCurrentSeason();
-
-	return {
-		current: currentSeason,
-		seasons: allSeasons.map((key) => ({
-			key,
-			display_name: getSeasonDisplayName(key),
-			is_current: key === currentSeason,
-		})),
-	};
-}
-
-/**
  * Returns the podium (top 3) for each completed season
  * @returns {Promise<object[]>}
  */

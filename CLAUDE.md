@@ -32,7 +32,7 @@ This project follows the same architectural patterns as the RB Leipzig engineeri
 - **Node.js**: >= 24.0.0
 - **Database**: Google Cloud SQL (PostgreSQL 16) via the `pg` driver
 - **Authentication**: Firebase Authentication (ID tokens verified by Firebase Admin SDK)
-- **AI**: Anthropic Claude Sonnet 4 (text + Vision)
+- **AI**: Anthropic Claude Sonnet 5 (`claude-sonnet-5`, text + Vision). Spread a preset from `src/constants/ai.constants.js` into every call and read the answer with `firstTextOf()` from `ai.helpers.js`: adaptive thinking can put a thinking block before the text, and Sonnet 5 rejects `temperature`/`top_p`/`top_k` and assistant prefills
 - **Logging**: Pino (structured JSON, Cloud Run compatible)
 - **Validation**: JSON Schema (Fastify built-in)
 - **Testing**: Vitest
@@ -187,11 +187,15 @@ For admin-only routes, add `requireAdmin` after `requireAuth` (`preHandler: [req
 
 ### Public Endpoints
 
-`/health`, `/api/v1/leaderboard`, `/api/v1/seasons*`. The scheduler and office-agent routes use the shared-secret middlewares below. Everything else requires `requireAuth`.
+`/health`, `/api/v1/leaderboard`, `GET /api/v1/seasons` and `/api/v1/seasons/archive`. The per-season routes (`/seasons/:seasonId/rating|awards|recap/me`) require `requireAuth`. The scheduler and office-agent routes use the shared-secret middlewares below. Everything else requires `requireAuth`.
 
 ### Scheduler Endpoints
 
-`POST /api/v1/wrapped/generate` is protected by `requireSchedulerSecret` (shared-secret header set as `WRAPPED_TRIGGER_SECRET`). Only Cloud Scheduler is meant to call it.
+`POST /api/v1/wrapped/generate`, `POST /api/v1/talkshow/generate` and the season operator routes (`/seasons/:seasonId/recap/generate|notify`, `/seasons/:seasonId/talkrunde/generate|audio`) are protected by `requireSchedulerSecret` (header `X-Trigger-Secret`, value `WRAPPED_TRIGGER_SECRET`).
+
+### Ratings (League-ELO v2)
+
+Only `recomputeLeagueElo` / `recomputeLeagueEloSafely` (`src/api/services/elo/leagueEloV2Persistence.services.js`) write ratings — never update `profiles.current_rating` or `games.elo_snapshot` anywhere else. Call `recomputeLeagueEloSafely({ reason, gameId })` after every committed change to a game's rating inputs (score, timeline, shootout, lineup, `match_stats.red_cards`, `played_at`, deletion). It replays all games, writes only changed rows and is a no-op until `app_state` 'elo' is activated.
 
 ## Database Integration
 

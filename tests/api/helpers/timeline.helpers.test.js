@@ -125,6 +125,15 @@ describe("filterGoals", () => {
 		expect(goals[0].event_type).toBeUndefined();
 	});
 
+	it("drops penalty-shootout kicks (period 'penalty')", () => {
+		const timeline = [
+			{ home: 1, away: 1, period: "regular", scored_by: "user-1" },
+			{ home: 2, away: 1, period: "penalty", scored_by: "user-1" },
+			{ event_type: "goal", home: 2, away: 2, period: "penalty", scored_by: "user-2" },
+		];
+		expect(filterGoals(timeline)).toHaveLength(1);
+	});
+
 	it("preserves explicit event_type='goal' entries", () => {
 		const timeline = [{ event_type: "goal", home: 1, away: 0 }];
 		expect(filterGoals(timeline)).toHaveLength(1);

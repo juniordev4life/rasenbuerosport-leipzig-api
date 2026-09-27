@@ -6,15 +6,15 @@ vi.mock("../../../src/config/database.config.js", () => ({
 vi.mock("../../../src/config/logger.config.js", () => ({
 	logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
-vi.mock("../../../src/api/helpers/database.helpers.js", () => ({
+// Keep the real withTransaction (it runs on the mocked pool below) so the
+// tests cover BEGIN/COMMIT/ROLLBACK; only the pool-level helpers are stubbed.
+vi.mock("../../../src/api/helpers/database.helpers.js", async (importOriginal) => ({
+	...(await importOriginal()),
 	query: vi.fn(async () => []),
 	queryOne: vi.fn(async () => null),
 }));
-vi.mock("../../../src/api/services/elo/eloPersistence.services.js", () => ({
-	applyEloToMatch: vi.fn(async () => {}),
-}));
-vi.mock("../../../src/api/services/elo/penaltyShotElo.services.js", () => ({
-	applyPenaltyShotEloDeltas: vi.fn(async () => {}),
+vi.mock("../../../src/api/services/elo/leagueEloV2Persistence.services.js", () => ({
+	recomputeLeagueEloSafely: vi.fn(async () => ({ status: "ok" })),
 }));
 vi.mock(
 	"../../../src/api/services/playerProfile/playerProfile.services.js",
@@ -24,10 +24,10 @@ vi.mock("../../../src/api/services/pushSender.services.js", () => ({
 	notifyMatchCreated: vi.fn(async () => ({ recipients: 0 })),
 }));
 
-import { getPool } from "../../../src/config/database.config.js";
-import { applyEloToMatch } from "../../../src/api/services/elo/eloPersistence.services.js";
-import { notifyMatchCreated } from "../../../src/api/services/pushSender.services.js";
+import { recomputeLeagueEloSafely } from "../../../src/api/services/elo/leagueEloV2Persistence.services.js";
 import { finalizeGame } from "../../../src/api/services/games.services.js";
+import { notifyMatchCreated } from "../../../src/api/services/pushSender.services.js";
+import { getPool } from "../../../src/config/database.config.js";
 
 const TIMELINE = [
 	{ home: 1, away: 0, team: "home", minute: 12, period: "regular" },
@@ -47,7 +47,7 @@ function buildClient({ gameRow }) {
 			if (sql.includes("FOR UPDATE")) {
 				return { rows: gameRow ? [gameRow] : [] };
 			}
-			if (sql.startsWith("UPDATE games")) {
+			if (sql.trim().startsWith("UPDATE games")) {
 				return {
 					rows: [
 						{
@@ -55,12 +55,6 @@ function buildClient({ gameRow }) {
 							pending: false,
 							score_home: params[0],
 							score_away: params[1],
-							// mirrors the COALESCE in the statement, so a test can
-							// assert what applyEloToMatch actually receives
-							result_type: params[4] ?? gameRow?.result_type ?? null,
-							penalty_shootout: params[5]
-								? JSON.parse(params[5])
-								: (gameRow?.penalty_shootout ?? null),
 						},
 					],
 				};
@@ -80,62 +74,86 @@ function buildClient({ gameRow }) {
 	return { client, executed };
 }
 
+function mockPool(client) {
+	getPool.mockReturnValue({
+		connect: async () => client,
+		query: vi.fn(async () => ({
+			rows: [{ id: "game-1", pending: false, score_home: 2, score_away: 1 }],
+		})),
+	});
+}
+
 describe("finalizeGame", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 	});
 
-	it("finalizes a pending game: score from last entry, ELO + push run", async () => {
+	it("finalizes a pending game, then replays League-ELO v2 and sends the push", async () => {
+		// Arrange
 		const { client, executed } = buildClient({
 			gameRow: { id: "game-1", pending: true, played_at: "2026-06-12" },
 		});
-		getPool.mockReturnValue({
-			connect: async () => client,
-			query: vi.fn(async () => ({
-				rows: [{ id: "game-1", pending: false, score_home: 2, score_away: 1 }],
-			})),
-		});
+		mockPool(client);
 
+		// Act
 		const game = await finalizeGame("game-1", TIMELINE);
 
+		// Assert
 		expect(game).toMatchObject({ id: "game-1", pending: false });
-		const update = executed.find((e) => e.sql.startsWith("UPDATE games"));
-		expect(update.params[0]).toBe(2); // score_home from last entry
-		expect(update.params[1]).toBe(1); // score_away from last entry
-		expect(applyEloToMatch).toHaveBeenCalledTimes(1);
-		expect(notifyMatchCreated).toHaveBeenCalledTimes(1);
+		const update = executed.find((e) => e.sql.trim().startsWith("UPDATE games"));
+		expect(update.params[0]).toBe(2);
+		expect(update.params[1]).toBe(1);
 		expect(executed.some((e) => e.sql === "COMMIT")).toBe(true);
+		expect(recomputeLeagueEloSafely).toHaveBeenCalledWith({
+			reason: "game_finalized",
+			gameId: "game-1",
+		});
+		expect(notifyMatchCreated).toHaveBeenCalledTimes(1);
+		expect(client.release).toHaveBeenCalledTimes(1);
 	});
 
-	it("rejects a non-pending game with 409 and runs no ELO", async () => {
+	it("replays only after the finalize is committed", async () => {
+		const { client, executed } = buildClient({
+			gameRow: { id: "game-1", pending: true, played_at: "2026-06-12" },
+		});
+		mockPool(client);
+		let commitsBeforeReplay = null;
+		recomputeLeagueEloSafely.mockImplementationOnce(async () => {
+			commitsBeforeReplay = executed.filter((e) => e.sql === "COMMIT").length;
+			return { status: "ok" };
+		});
+
+		await finalizeGame("game-1", TIMELINE);
+
+		expect(commitsBeforeReplay).toBe(1);
+	});
+
+	it("rejects a non-pending game with 409, rolls back and replays nothing", async () => {
 		const { client, executed } = buildClient({
 			gameRow: { id: "game-1", pending: false },
 		});
-		getPool.mockReturnValue({ connect: async () => client });
+		mockPool(client);
 
 		await expect(finalizeGame("game-1", TIMELINE)).rejects.toMatchObject({
 			statusCode: 409,
 		});
-		expect(applyEloToMatch).not.toHaveBeenCalled();
 		expect(executed.some((e) => e.sql === "ROLLBACK")).toBe(true);
+		expect(executed.some((e) => e.sql === "COMMIT")).toBe(false);
+		expect(recomputeLeagueEloSafely).not.toHaveBeenCalled();
+		expect(client.release).toHaveBeenCalledTimes(1);
 	});
 
 	it("returns null when the game does not exist", async () => {
 		const { client } = buildClient({ gameRow: null });
-		getPool.mockReturnValue({ connect: async () => client });
+		mockPool(client);
 
 		const game = await finalizeGame("missing", TIMELINE);
 
 		expect(game).toBeNull();
-		expect(applyEloToMatch).not.toHaveBeenCalled();
+		expect(recomputeLeagueEloSafely).not.toHaveBeenCalled();
 	});
 
-	it("persistiert ein erkanntes Elfmeterschießen VOR der ELO-Berechnung", async () => {
-		// Der Kern von #83: die Team-Engine bewertet ein 2:2 als Remis und damit
-		// mit Delta 0. Nur wenn die Spielzeile beim ELO-Aufruf schon weiß, dass
-		// das Spiel im Elfmeterschießen entschieden wurde, wird daraus ein Sieg.
-		// Kam die Information erst mit dem späteren video_status-PATCH, war die
-		// ELO längst gelaufen.
+	it("schreibt ein erkanntes Elfmeterschießen, ohne ein vorhandenes zu überschreiben", async () => {
 		const penalty_shootout = {
 			score_before: { home: 2, away: 2 },
 			final_score: { home: 4, away: 1 },
@@ -145,42 +163,32 @@ describe("finalizeGame", () => {
 		const { client, executed } = buildClient({
 			gameRow: { id: "game-1", pending: true, played_at: "2026-06-12" },
 		});
-		getPool.mockReturnValue({
-			connect: async () => client,
-			query: vi.fn(async () => ({ rows: [{ id: "game-1", pending: false }] })),
-		});
+		mockPool(client);
 
 		await finalizeGame("game-1", TIMELINE, {
 			result_type: "penalty",
 			penalty_shootout,
 		});
 
-		const update = executed.find((e) => e.sql.startsWith("UPDATE games"));
+		const update = executed.find((e) => e.sql.trim().startsWith("UPDATE games"));
 		expect(update.params[4]).toBe("penalty");
 		expect(JSON.parse(update.params[5])).toEqual(penalty_shootout);
-
-		// Entscheidend: die Zeile, die in die ELO geht, trägt das Ergebnis schon.
-		expect(applyEloToMatch).toHaveBeenCalledTimes(1);
-		const { game } = applyEloToMatch.mock.calls[0][0];
-		expect(game.result_type).toBe("penalty");
-		expect(game.penalty_shootout.winner_side).toBe("home");
+		// A shootout the app recorded (with shooters and keepers) must win over
+		// the agent's result-only record.
+		expect(update.sql).toContain("COALESCE(penalty_shootout, $6::jsonb)");
 	});
 
 	it("lässt ein bestehendes Ergebnis unangetastet, wenn nichts gemeldet wird", async () => {
 		const { client, executed } = buildClient({
 			gameRow: { id: "game-1", pending: true, played_at: "2026-06-12" },
 		});
-		getPool.mockReturnValue({
-			connect: async () => client,
-			query: vi.fn(async () => ({ rows: [{ id: "game-1", pending: false }] })),
-		});
+		mockPool(client);
 
 		await finalizeGame("game-1", TIMELINE);
 
-		const update = executed.find((e) => e.sql.startsWith("UPDATE games"));
+		const update = executed.find((e) => e.sql.trim().startsWith("UPDATE games"));
 		expect(update.params[4]).toBeNull();
 		expect(update.params[5]).toBeNull();
-		expect(update.sql).toContain("COALESCE");
 	});
 
 	it("rejects an empty timeline with 400 before touching the database", async () => {

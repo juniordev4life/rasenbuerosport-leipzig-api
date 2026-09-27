@@ -1,5 +1,6 @@
 import { logger } from "../../config/logger.config.js";
 import { query, queryOne } from "../helpers/database.helpers.js";
+import { recomputeLeagueEloSafely } from "./elo/leagueEloV2Persistence.services.js";
 
 /**
  * A leftover "start" older than this is reported as idle. Protects against
@@ -57,9 +58,11 @@ export async function getNextRecordingCommand() {
  * game. `highlight_url` is only overwritten when provided, so a plain
  * status update never clears an existing link.
  *
- * `result_type` / `penalty_shootout` are only written when provided (the
- * pipeline sends them once it detects a penalty shootout from the post-match
- * screen) — COALESCE keeps the existing value otherwise.
+ * `result_type` is only written when provided (the pipeline sends it once it
+ * detects a penalty shootout from the post-match screen). `penalty_shootout`
+ * is only filled when the game has none yet: the app's record carries
+ * shooters and keepers, the agent's is result-only, so it must never replace
+ * the app's. Every call ends with a League-ELO v2 replay.
  *
  * @param {string} gameId - UUID of the games row
  * @param {object} fields
@@ -81,7 +84,7 @@ export async function updateGameVideo(
 		SET video_status = $2,
 		    highlight_url = COALESCE($3, highlight_url),
 		    result_type = COALESCE($4, result_type),
-		    penalty_shootout = COALESCE($5, penalty_shootout)
+		    penalty_shootout = COALESCE(penalty_shootout, $5)
 		WHERE id = $1
 		RETURNING id, recording_id, video_status, highlight_url, pending`,
 		[
@@ -92,6 +95,15 @@ export async function updateGameVideo(
 			penalty_shootout ? JSON.stringify(penalty_shootout) : null,
 		],
 	);
+
+	// The PATCH may carry how the match was decided (shootout). A stored
+	// shootout with shots always wins over the agent's result-only record, so
+	// the app's shooter/keeper data survives (COALESCE above). Ratings are a
+	// pure function of the games: replay after every write, awaited so the
+	// request covers it.
+	if (game) {
+		await recomputeLeagueEloSafely({ reason: "game_video_patch", gameId });
+	}
 
 	// This PATCH is the analysis pipeline's LAST step. Once it lands "ready"
 	// (or "failed" — the game is still finalized; the reporter narrates from

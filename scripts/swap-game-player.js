@@ -30,16 +30,16 @@
  *   - `game_players.rating` (the slot's performance rating, carried
  *     over to the incoming player)
  *
- * This script does NOT recompute ELO. Ratings are path-dependent, so
- * the correction only lands once the full history is replayed:
+ * After the commit it replays League-ELO v2 over the full history (ratings
+ * are path-dependent, so every later game shifts too). The replay is a no-op
+ * while the v2 engine is not activated.
  *
  *   node scripts/swap-game-player.js --game=<uuid> --from=X --to=Y --dry-run
  *   node scripts/swap-game-player.js --game=<uuid> --from=X --to=Y --apply --backup
- *   npm run elo:recompute -- --apply --backup
  *
  * Rolling back: run the same command with --from and --to reversed.
- * The cleared snapshot and report are rebuilt by the recompute and a
- * POST to /api/v1/games/<id>/match-report respectively.
+ * The cleared snapshot is rebuilt by the replay, the report by a POST to
+ * /api/v1/games/<id>/match-report.
  *
  * Flags:
  *   --game=UUID     Required. The game to correct.
@@ -56,6 +56,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import "dotenv/config";
+import { recomputeLeagueElo } from "../src/api/services/elo/leagueEloV2Persistence.services.js";
 import {
 	rewritePlayerInShootout,
 	rewritePlayerInTimeline,
@@ -218,10 +219,8 @@ try {
 
 	console.log("\n✓ Swap committed.");
 	if (!game.pending) {
-		console.log("\nNext, replay the ratings — ELO is path-dependent, so every");
-		console.log("game after this one shifts too:");
-		console.log("  npm run elo:recompute -- --dry-run");
-		console.log("  npm run elo:recompute -- --apply --backup");
+		const result = await recomputeLeagueElo();
+		console.log(`\nLeague-ELO v2 replay: ${JSON.stringify(result)}`);
 	}
 	if (clearReport) {
 		console.log("\nThen regenerate the match report:");

@@ -88,6 +88,32 @@ export async function renderEpisodeAudio(weekStart) {
 		throw err;
 	}
 
+	const publicUrl = await renderTurnsToMp3(
+		turns,
+		`${STORAGE_PREFIX}/${weekStart}.mp3`,
+	);
+
+	await queryOne(
+		`UPDATE talkshow_episodes SET audio_url = $1 WHERE week_start = $2 RETURNING week_start`,
+		[publicUrl, weekStart],
+	);
+
+	return publicUrl;
+}
+
+/**
+ * TTS-renders a parsed talk-show script turn by turn (persona voice per
+ * speaker), concatenates the mp3 chunks and uploads the result as a public
+ * object. Use a fresh object path per render: the upload is cached as
+ * immutable.
+ *
+ * @param {Array<{reporter_id: string, text: string}>} turns
+ * @param {string} objectPath - e.g. "talkshow/season-fc26-20260927.mp3"
+ * @returns {Promise<string>} Public URL of the uploaded mp3
+ * @example
+ * await renderTurnsToMp3(turns, "talkshow/season-fc26-20260927.mp3");
+ */
+export async function renderTurnsToMp3(turns, objectPath) {
 	const keepTags = shouldKeepAudioTags();
 	const buffers = [];
 	for (const turn of turns) {
@@ -107,12 +133,9 @@ export async function renderEpisodeAudio(weekStart) {
 		throw err;
 	}
 
-	const final = Buffer.concat(buffers);
-
 	const bucket = getStorageBucket();
-	const objectPath = `${STORAGE_PREFIX}/${weekStart}.mp3`;
 	const file = bucket.file(objectPath);
-	await file.save(final, {
+	await file.save(Buffer.concat(buffers), {
 		contentType: "audio/mpeg",
 		resumable: false,
 		metadata: {
@@ -120,13 +143,5 @@ export async function renderEpisodeAudio(weekStart) {
 		},
 	});
 	await file.makePublic();
-
-	const publicUrl = `https://storage.googleapis.com/${bucket.name}/${objectPath}`;
-
-	await queryOne(
-		`UPDATE talkshow_episodes SET audio_url = $1 WHERE week_start = $2 RETURNING week_start`,
-		[publicUrl, weekStart],
-	);
-
-	return publicUrl;
+	return `https://storage.googleapis.com/${bucket.name}/${objectPath}`;
 }

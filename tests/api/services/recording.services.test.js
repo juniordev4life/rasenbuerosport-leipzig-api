@@ -4,8 +4,12 @@ vi.mock("../../../src/api/helpers/database.helpers.js", () => ({
 	query: vi.fn(),
 	queryOne: vi.fn(),
 }));
+vi.mock("../../../src/api/services/elo/leagueEloV2Persistence.services.js", () => ({
+	recomputeLeagueEloSafely: vi.fn(async () => ({ status: "ok" })),
+}));
 
 import { query, queryOne } from "../../../src/api/helpers/database.helpers.js";
+import { recomputeLeagueEloSafely } from "../../../src/api/services/elo/leagueEloV2Persistence.services.js";
 import {
 	getNextRecordingCommand,
 	hasFailedCapture,
@@ -152,7 +156,7 @@ describe("updateGameVideo", () => {
 		});
 
 		expect(queryOne).toHaveBeenCalledWith(
-			expect.stringContaining("penalty_shootout = COALESCE"),
+			expect.stringContaining("penalty_shootout = COALESCE(penalty_shootout, $5)"),
 			[
 				"game-uuid",
 				"ready",
@@ -161,6 +165,10 @@ describe("updateGameVideo", () => {
 				JSON.stringify(penaltyShootout),
 			],
 		);
+		expect(recomputeLeagueEloSafely).toHaveBeenCalledWith({
+			reason: "game_video_patch",
+			gameId: "game-uuid",
+		});
 	});
 
 	it("returns null when the game does not exist", async () => {

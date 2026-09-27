@@ -1,10 +1,14 @@
 import { getPool } from "../../config/database.config.js";
 import { logger } from "../../config/logger.config.js";
-import { query, queryOne } from "../helpers/database.helpers.js";
+import {
+	query,
+	queryOne,
+	withTransaction,
+} from "../helpers/database.helpers.js";
 import { validateScoreTimeline } from "../helpers/timeline.helpers.js";
 import { stripAudioTags } from "../utils/audioTags.utils.js";
-import { applyEloToMatch } from "./elo/eloPersistence.services.js";
-import { applyPenaltyShotEloDeltas } from "./elo/penaltyShotElo.services.js";
+import { recomputeLeagueEloSafely } from "./elo/leagueEloV2Persistence.services.js";
+import { assertPlayedAtInOpenSeason } from "./leagueSeason.services.js";
 import { invalidateProfileCache } from "./playerProfile/playerProfile.services.js";
 import { notifyMatchCreated } from "./pushSender.services.js";
 import { hasFailedCapture } from "./recording.services.js";
@@ -56,6 +60,7 @@ export async function createGame({
 	// frontend MinutePicker already clamps drags, but malformed payloads from
 	// other clients would otherwise persist undetected.
 	validateScoreTimeline(score_timeline);
+	await assertPlayedAtInOpenSeason(played_at);
 
 	// A capture that died instantly (full disk, capture device blocked) reported
 	// "failed" on the provisional recording channel BEFORE this row existed, so
@@ -117,35 +122,22 @@ export async function createGame({
 			return game;
 		}
 
-		// ELO runs inside the same transaction: either match + ELO commit
-		// together or both roll back. This guarantees no row gets bumped
-		// in `profiles.current_rating` without a matching `elo_snapshot`
-		// on the game row.
-		await applyEloToMatch({ client, game, gamePlayers });
-
-		// Penalty-shootout overlay: applied AFTER the team-level engine
-		// so a missed penalty at 2:2 doesn't get lost in the zero-sum.
-		// Patches the last history entry instead of pushing a new one,
-		// keeping the rule "one match → one rating point".
-		if (penalty_shootout?.shots?.length) {
-			await applyPenaltyShotEloDeltas({
-				client,
-				shots: penalty_shootout.shots,
-				playedAt: game.played_at,
-			});
-		}
-
 		// Invalidate cached player profiles for everyone who appeared in
 		// this match — their match history just grew by one, so the
 		// cached axes/archetype/bio need to be recomputed on the next
-		// profile request. Runs in the same TX as ELO so cache state
-		// can never diverge from match/ELO state.
+		// profile request.
 		await invalidateProfileCache({
 			client,
 			playerIds: gamePlayers.map((gp) => gp.player_id),
 		});
 
 		await client.query("COMMIT");
+
+		// League-ELO v2: full replay after the game is committed, awaited so
+		// the response (and Cloud Run's request-scoped CPU) covers it. Never
+		// throws — a failed replay is repaired by the next write, and the
+		// game itself is already saved.
+		await recomputeLeagueEloSafely({ reason: "game_created", gameId: game.id });
 
 		// Re-read the game so the returned object includes the
 		// just-written `elo_snapshot` column.
@@ -186,10 +178,10 @@ export async function createGame({
 /**
  * Finalizes a PENDING game with the timeline the capture pipeline extracted
  * from the recording (zero-tracking flow). Writes score + timeline, flips
- * `pending` off, and runs the scoring tail that createGame skipped: ELO and
- * profile-cache invalidation inside the same transaction, match push after
- * commit. Refuses non-pending games so a double finalize can never apply
- * ELO twice.
+ * `pending` off and invalidates the profile caches in one transaction, then
+ * runs the scoring tail that createGame skipped: the League-ELO v2 replay and
+ * the match push. Refuses non-pending games (409) so a double finalize
+ * changes nothing.
  *
  * @param {string} gameId - The game UUID
  * @param {object[]} scoreTimeline - Goal entries in app format; the last
@@ -208,99 +200,114 @@ export async function finalizeGame(gameId, scoreTimeline, decision = {}) {
 	validateScoreTimeline(scoreTimeline);
 
 	const last = scoreTimeline[scoreTimeline.length - 1];
-	const scoreHome = last.home;
-	const scoreAway = last.away;
 
-	const client = await getPool().connect();
+	let finalized;
 	try {
-		await client.query("BEGIN");
-
-		const {
-			rows: [existing],
-		} = await client.query("SELECT * FROM games WHERE id = $1 FOR UPDATE", [
-			gameId,
-		]);
-		if (!existing) {
-			await client.query("ROLLBACK");
-			return null;
-		}
-		if (!existing.pending) {
-			await client.query("ROLLBACK");
-			const err = new Error("Game is not pending — already finalized");
-			err.statusCode = 409;
-			throw err;
-		}
-
-		// How the match was decided is written in the SAME statement, so the row
-		// handed to applyEloToMatch below already carries it. A shootout is rated
-		// as a win, not a draw — arriving later (on the video-status PATCH) it
-		// would miss ELO entirely and the win would score zero. COALESCE keeps a
-		// value the game already had when the caller reports nothing.
-		const {
-			rows: [game],
-		} = await client.query(
-			`UPDATE games
-			    SET score_home = $1, score_away = $2, score_timeline = $3,
-			        pending = false,
-			        result_type = COALESCE($5, result_type),
-			        penalty_shootout = COALESCE($6::jsonb, penalty_shootout)
-			  WHERE id = $4
-			RETURNING *`,
-			[
-				scoreHome,
-				scoreAway,
-				JSON.stringify(scoreTimeline),
-				gameId,
-				decision.result_type ?? null,
-				decision.penalty_shootout
-					? JSON.stringify(decision.penalty_shootout)
-					: null,
-			],
+		finalized = await withTransaction((client) =>
+			finalizePendingRow(client, gameId, {
+				scoreHome: last.home,
+				scoreAway: last.away,
+				scoreTimeline,
+				decision,
+			}),
 		);
-
-		const { rows: gamePlayers } = await client.query(
-			"SELECT player_id, team FROM game_players WHERE game_id = $1",
-			[gameId],
-		);
-
-		await applyEloToMatch({ client, game, gamePlayers });
-		await invalidateProfileCache({
-			client,
-			playerIds: gamePlayers.map((gp) => gp.player_id),
-		});
-
-		await client.query("COMMIT");
-
-		const {
-			rows: [updatedGame],
-		} = await getPool().query("SELECT * FROM games WHERE id = $1", [gameId]);
-
-		notifyMatchCreated({
-			game: updatedGame ?? game,
-			players: gamePlayers,
-			resolveDisplayName: async (id) => {
-				const row = await queryOne(
-					"SELECT username FROM profiles WHERE id = $1",
-					[id],
-				);
-				return row?.username ?? null;
-			},
-		}).catch((err) => {
-			logger.warn({ err: err?.message }, "notifyMatchCreated failed");
-		});
-
-		return updatedGame ?? game;
 	} catch (error) {
-		if (!error.statusCode) {
-			await client.query("ROLLBACK").catch(() => {});
-			const err = new Error(error.message);
-			err.statusCode = 400;
-			throw err;
-		}
-		throw error;
-	} finally {
-		client.release();
+		if (error.statusCode) throw error;
+		const err = new Error(error.message);
+		err.statusCode = 400;
+		throw err;
 	}
+	if (!finalized) return null;
+	const { game, gamePlayers } = finalized;
+
+	// League-ELO v2 replays everything once the finalize is committed.
+	await recomputeLeagueEloSafely({ reason: "game_finalized", gameId });
+
+	const {
+		rows: [updatedGame],
+	} = await getPool().query("SELECT * FROM games WHERE id = $1", [gameId]);
+
+	notifyMatchCreated({
+		game: updatedGame ?? game,
+		players: gamePlayers,
+		resolveDisplayName: async (id) => {
+			const row = await queryOne(
+				"SELECT username FROM profiles WHERE id = $1",
+				[id],
+			);
+			return row?.username ?? null;
+		},
+	}).catch((err) => {
+		logger.warn({ err: err?.message }, "notifyMatchCreated failed");
+	});
+
+	return updatedGame ?? game;
+}
+
+/**
+ * Writes the finalize update for a pending game inside the caller's
+ * transaction. Returns null when the game does not exist; throws a 409 when
+ * it is no longer pending, so a double finalize changes nothing.
+ *
+ * @param {import("pg").PoolClient} client - Client inside a transaction
+ * @param {string} gameId
+ * @param {object} update - { scoreHome, scoreAway, scoreTimeline, decision }
+ * @returns {Promise<{game: object, gamePlayers: object[]}|null>}
+ * @example
+ * await withTransaction((c) => finalizePendingRow(c, id, { scoreHome: 2, scoreAway: 1, scoreTimeline, decision: {} }));
+ */
+async function finalizePendingRow(
+	client,
+	gameId,
+	{ scoreHome, scoreAway, scoreTimeline, decision },
+) {
+	const {
+		rows: [existing],
+	} = await client.query("SELECT * FROM games WHERE id = $1 FOR UPDATE", [
+		gameId,
+	]);
+	if (!existing) return null;
+	if (!existing.pending) {
+		const err = new Error("Game is not pending — already finalized");
+		err.statusCode = 409;
+		throw err;
+	}
+
+	// How the match was decided is written in the SAME statement. COALESCE
+	// keeps a value the game already had when the caller reports nothing.
+	const {
+		rows: [game],
+	} = await client.query(
+		`UPDATE games
+		    SET score_home = $1, score_away = $2, score_timeline = $3,
+		        pending = false,
+		        result_type = COALESCE($5, result_type),
+		        penalty_shootout = COALESCE(penalty_shootout, $6::jsonb)
+		  WHERE id = $4
+		RETURNING *`,
+		[
+			scoreHome,
+			scoreAway,
+			JSON.stringify(scoreTimeline),
+			gameId,
+			decision.result_type ?? null,
+			decision.penalty_shootout
+				? JSON.stringify(decision.penalty_shootout)
+				: null,
+		],
+	);
+
+	const { rows: gamePlayers } = await client.query(
+		"SELECT player_id, team FROM game_players WHERE game_id = $1",
+		[gameId],
+	);
+
+	await invalidateProfileCache({
+		client,
+		playerIds: gamePlayers.map((gp) => gp.player_id),
+	});
+
+	return { game, gamePlayers };
 }
 
 /**
@@ -310,28 +317,18 @@ export async function finalizeGame(gameId, scoreTimeline, decision = {}) {
  * @returns {Promise<void>}
  */
 export async function deleteGame(gameId) {
-	const client = await getPool().connect();
-
-	try {
-		await client.query("BEGIN");
-
+	await withTransaction(async (client) => {
 		const { rowCount } = await client.query("DELETE FROM games WHERE id = $1", [
 			gameId,
 		]);
-
 		if (rowCount === 0) {
 			const error = new Error("Game not found");
 			error.statusCode = 404;
 			throw error;
 		}
-
-		await client.query("COMMIT");
-	} catch (error) {
-		await client.query("ROLLBACK");
-		throw error;
-	} finally {
-		client.release();
-	}
+	});
+	// The deleted game leaves the replay; everyone after it is re-rated.
+	await recomputeLeagueEloSafely({ reason: "game_deleted", gameId });
 }
 
 /**

@@ -1,7 +1,7 @@
 /**
  * Central tuning constants for the player-profile computation layer.
  *
- * Like `ELO_CONSTANTS`, this file is the single source of truth for
+ * This file is the single source of truth for
  * thresholds, windows and cache parameters. Changing a value here
  * changes the behaviour for all axis calculations and archetype
  * decisions. If the change is semantic (different decision-tree
@@ -51,4 +51,5 @@ export const PROFILE_CONSTANTS = Object.freeze({
  * Algorithm version stamped onto every cached profile so we can
  * detect stale caches after constants or decision-tree changes.
  */
-export const PROFILE_ALGORITHM_VERSION = "v1.0";
+// v1.1: League-ELO v2 re-rated every game (ranks, consistency axis).
+export const PROFILE_ALGORITHM_VERSION = "v1.1";

@@ -13,26 +13,15 @@
  * previous cached bio (or `null` if none exists).
  */
 
+import { AI_FAST, CLAUDE_MODEL } from "../../../constants/ai.constants.js";
 import { PROFILE_CONSTANTS } from "../../../constants/profile.constants.js";
 import { ARCHETYPES } from "../../../constants/profileArchetypes.constants.js";
-import { callAnthropicWithRetry } from "../../helpers/ai.helpers.js";
+import {
+	callAnthropicWithRetry,
+	cleanLlmJson,
+} from "../../helpers/ai.helpers.js";
 
-const BIO_MODEL = "claude-sonnet-4-6";
 const BIO_TIMEOUT_MS = 5000;
-
-/**
- * Strip Markdown code fences around a JSON payload, if present.
- *
- * @param {string} raw
- * @returns {string}
- */
-function cleanLlmJson(raw) {
-	if (typeof raw !== "string") return "";
-	return raw
-		.replace(/^\s*```(?:json)?\s*/i, "")
-		.replace(/\s*```\s*$/i, "")
-		.trim();
-}
 
 /**
  * Decide whether the cached bio is stale enough to warrant a new
@@ -135,8 +124,8 @@ ANTWORT-FORMAT (strikt JSON, KEIN Markdown, KEINE Backticks):
 async function callBioLLM(args) {
 	const prompt = buildBioPrompt(args);
 	const llmPromise = callAnthropicWithRetry({
-		model: BIO_MODEL,
-		max_tokens: 200,
+		...AI_FAST,
+		max_tokens: 400,
 		messages: [{ role: "user", content: prompt }],
 	});
 	const timeoutPromise = new Promise((resolve) => {
@@ -195,7 +184,7 @@ export async function generateOrLoadBio(args) {
 		baseArchetype,
 		matchCountAtGeneration: matchCount,
 		generatedAt: new Date().toISOString(),
-		model: BIO_MODEL,
+		model: CLAUDE_MODEL,
 	};
 }
 

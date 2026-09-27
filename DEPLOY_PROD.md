@@ -210,6 +210,7 @@ Wenn der neue Code gegen die alte DB läuft, schlagen Audio-/Talk-Show-/Pass-Net
 | `016_push_subscriptions.sql` | Neue Tabelle `push_subscriptions` (user_id FK, endpoint, p256dh, auth, preferences JSONB, failure_count) |
 | `017_peak_elo.sql` | `profiles.peak_elo_value` + `peak_elo_at` für die Lifetime-Stats-Card |
 | `018_voice_aliases.sql` | `profiles.voice_aliases` JSONB (Sprach-Synonyme pro Spieler für den Live-Voice-Tracker) |
+| `027_league_seasons.sql` | Liga-Saisons (FC26/FC27), `season_elo_standings`, `season_recaps`, `app_state` — siehe §4c |
 
 Alle neun sind **additiv und nicht-destruktiv** — kein Datenverlust möglich.
 
@@ -236,7 +237,48 @@ Migration 014 setzt alle Spieler auf `current_rating = 1500` / `matches_played =
   DATABASE_URL=... node scripts/recompute-all-elo.js --restore=scripts/.elo-backup-<ts>.json
   ```
 
-Das Skript braucht nur einmalig zu laufen. Spätere Releases inkrementieren ELO live über den `applyEloToMatch`-Hook in `createGame`.
+Historisch. Seit League-ELO v2 (§4c) rechnet die API nach jedem Schreibvorgang alle Spiele neu; `scripts/recompute-all-elo.js` gibt es nicht mehr.
+
+---
+
+## 4c. Saisonwechsel FC26 → FC27 — League-ELO v2 + Saison-Modell (einmalig)
+
+Rechnet ALLE Spiele mit League-ELO v2 neu und führt die Liga-Saisons ein. Geändert werden nur abgeleitete Werte (Snapshots, Ratings, Peak, Profil-Cache, Saison-Stände), keine Spiele, Spieler oder Logins. Zeitpunkt: wenn niemand spielt.
+
+- [ ] **Backups** (Proxy auf 5433 läuft, googlemail-Account):
+  ```bash
+  gcloud sql backups create --instance=rasenbuerosport-db --project=rasenbuerosport-leipzig-9d54f --account=marco.slusalek@googlemail.com
+  bash scripts/with-prod-db.sh sh -c 'pg_dump "$DATABASE_URL" --no-owner --no-acl --format=plain --file=$HOME/rbsl-backups/rbsl-prod-$(date +%F)-pre-v2.sql'
+  ```
+- [ ] **Migration 027** (additiv: `league_seasons`, `season_elo_standings`, `season_recaps`, `app_state`):
+  ```bash
+  bash scripts/with-prod-db.sh sh -c 'psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f migrations/027_league_seasons.sql'
+  ```
+- [ ] **API-Release** (`npm run release`). Bis zum Freischalten rechnet die API **kein** ELO; Spiele aus diesem Fenster rechnet der Lauf mit.
+- [ ] **Probelauf** auf Prod, Rangliste und Invarianten prüfen, Hashes notieren:
+  ```bash
+  bash scripts/with-prod-db.sh npm run elo:recompute-v2 -- --dry-run
+  ```
+- [ ] **Anwenden** mit den Hashes aus dem Probelauf (bricht ab, wenn sich Daten geändert haben):
+  ```bash
+  bash scripts/with-prod-db.sh npm run elo:recompute-v2 -- --apply --expect-input=<hash> --expect-plan=<hash>
+  ```
+  Danach muss ein erneuter `--dry-run` „0 Snapshots, 0 Profile, 0 Saison-Stände“ melden.
+- [ ] **Rückblick + Talkrunde** erzeugen (Secret aus dem Secret Manager, nie ausgeben):
+  ```bash
+  API=https://<api-host>/api/v1/seasons/fc26
+  secret() { gcloud secrets versions access latest --secret=WRAPPED_TRIGGER_SECRET --project=rasenbuerosport-leipzig-9d54f --account=marco.slusalek@googlemail.com | sed 's/^/X-Trigger-Secret: /'; }
+  secret | curl -sS -X POST -H @- "$API/recap/generate"
+  secret | curl -sS -X POST -H @- "$API/talkrunde/generate"
+  secret | curl -sS -X POST -H @- "$API/talkrunde/audio"
+  secret | curl -sS -X POST -H @- "$API/recap/notify?only_user=<deine-uid>"   # Test-Push
+  ```
+- [ ] **App-Release**, Smoke-Test (Rangliste FC27/FC26, Rückblick).
+- [ ] **Montag 08:00** der echte Push (einmalig, ein zweiter Versuch wird mit 409 abgelehnt):
+  ```bash
+  secret | curl -sS -X POST -H @- "$API/recap/notify"
+  ```
+- **Rückweg:** zuerst Traffic auf die vorige Revision (`gcloud run services update-traffic …`), dann `bash scripts/with-prod-db.sh npm run elo:recompute-v2 -- --restore=<suffix>` (Suffix gibt `--apply` aus).
 
 ---
 

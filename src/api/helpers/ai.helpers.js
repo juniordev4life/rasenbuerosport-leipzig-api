@@ -2,9 +2,12 @@
  * Shared helpers for the Anthropic-driven narrative endpoints (match
  * reports, Spiel der Woche, personal weekly recaps).
  *
- * Two responsibilities:
+ * Responsibilities:
  *  - `callAnthropicWithRetry` — wraps `messages.create` with exponential
  *    backoff for retriable failures (rate limits, 5xx, network blips).
+ *  - `firstTextOf` — the answer text of a response, skipping thinking blocks.
+ *  - `cleanLlmJson` — strips the Markdown fence Claude Sonnet 5 puts around
+ *    JSON answers, so `JSON.parse` sees the bare object.
  *  - `findFabricatedNames` — best-effort post-validation: scans the
  *    generated narrative for capitalised words that look like personal
  *    names but are not in the supplied roster.
@@ -177,11 +180,48 @@ function sleep(ms) {
 }
 
 /**
+ * Text of the first text block of a Messages API response. Claude Sonnet 5
+ * may put a thinking block first, so `content[0]` is not the answer. Null
+ * when the model declined (stop_reason "refusal") or returned no text.
+ *
+ * @param {{ content?: Array<{type: string, text?: string}>, stop_reason?: string }} response
+ * @returns {string|null}
+ * @example
+ * firstTextOf({ content: [{ type: "thinking", thinking: "" }, { type: "text", text: "Hi" }] }); // "Hi"
+ */
+export function firstTextOf(response) {
+	if (response?.stop_reason === "refusal") return null;
+	const block = response?.content?.find((b) => b.type === "text");
+	return block?.text || null;
+}
+
+/**
+ * Strip Markdown code fences around a JSON payload, if present. Claude
+ * Sonnet 5 answers "reply with JSON only" prompts with a ```json fence, which
+ * `JSON.parse` rejects.
+ *
+ * @param {string} raw - Answer text of the model
+ * @returns {string} The payload without fences, trimmed; "" for non-strings
+ * @example
+ * JSON.parse(cleanLlmJson('```json\n{"a":1}\n```')); // { a: 1 }
+ */
+export function cleanLlmJson(raw) {
+	if (typeof raw !== "string") return "";
+	return raw
+		.replace(/^\s*```(?:json)?\s*/i, "")
+		.replace(/\s*```\s*$/i, "")
+		.trim();
+}
+
+/**
  * Call `client.messages.create` with up to `retries` retries on
  * 429/5xx/network errors using exponential backoff (500ms, 1s, 2s).
  *
+ * A refusal (stop_reason "refusal") is not retried: asking again gives the
+ * same answer and costs tokens.
+ *
  * Throws an Error with `statusCode = 503` and a friendly message if all
- * retries fail — the caller can pass that straight to
+ * retries fail or the model declines — the caller can pass that straight to
  * `handleErrorResponse` and the user sees "KI gerade ausgelastet".
  *
  * @param {object} payload - The full payload for `messages.create`.
@@ -196,7 +236,13 @@ export async function callAnthropicWithRetry(payload, { retries = 2 } = {}) {
 	for (let attempt = 0; attempt <= retries; attempt++) {
 		try {
 			const response = await client.messages.create(payload);
-			const text = response.content?.[0]?.text;
+			if (response.stop_reason === "refusal") {
+				// A decline is an answer, not an outage — do not retry it.
+				const err = new Error("The model declined the request");
+				err.statusCode = 422;
+				throw err;
+			}
+			const text = firstTextOf(response);
 			if (!text) {
 				const err = new Error("AI response had no text content");
 				err.statusCode = 502;

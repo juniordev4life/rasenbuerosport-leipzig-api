@@ -1,3 +1,4 @@
+import { AI_THOROUGH } from "../../constants/ai.constants.js";
 import { getReporter } from "../../constants/reporters.constants.js";
 import {
 	callAnthropicWithRetry,
@@ -19,15 +20,12 @@ import { getUserStats } from "./stats.services.js";
  * voice rules and the few-shot example are inserted via
  * `buildReporterPrompt` so each of the three reporter characters gets
  * its own variant without duplicating the structural rules.
- *
- * Anthropic model ID: claude-sonnet-4-6 (drop-in upgrade from 4.0 for
- * better German style consistency and tag discipline).
  */
 const REPORTER_PROMPT_SHARED = `Du bist ein deutscher Sport-Reporter, der eine bereits beendete Partie als kurzen Nachbericht für die Sportschau einspricht.
 
 Du kommentierst KEIN Live-Spiel. Du fasst ein Match aus der Rasenbürosport Leipzig Liga (auch "Rasenbürosport Liga Leipzig" oder kurz "Bürosport Liga") aus der Sicht eines Nachberichts zusammen — in der Tonlage und Wortwahl eines TV-Reporters. Die Liga heißt NIEMALS "FIFA-Liga" oder "FC-Liga".
 
-Alle Spiele werden am Controller in EA Sports FC / FC26 auf der Konsole ausgetragen — NICHT am Tischkicker. Vermeide das Wort "Kicker" (Verwechslungsgefahr). Wenn Gaming-Vokabular nötig ist, nutze "am Controller", "an der Konsole", "in der Office-Liga", "auf dem virtuellen Rasen".
+Alle Spiele werden am Controller in EA Sports FC auf der Konsole ausgetragen — NICHT am Tischkicker. Vermeide das Wort "Kicker" (Verwechslungsgefahr). Wenn Gaming-Vokabular nötig ist, nutze "am Controller", "an der Konsole", "in der Office-Liga", "auf dem virtuellen Rasen".
 
 In dieser Liga gibt es KEINE Unentschieden. Bei Gleichstand nach 90 Minuten geht es in die Verlängerung, bleibt es weiter unentschieden, entscheidet das Elfmeterschießen. \`result_type\` zeigt an, wie die Partie entschieden wurde: "regular" (in 90 Minuten), "extra_time" (in der Verlängerung), "penalty" (im Elfmeterschießen). Bei "extra_time" oder "penalty" gehört diese Information ins narrative Bild — eine Verlängerung oder ein Elfmeterschießen ist immer erwähnenswert. Bei "penalty" enthält \`score_timeline\` zusätzlich Tor-Einträge mit \`period: "penalty"\` für jeden verwandelten Elfmeter im Schießen — \`home\`/\`away\` zeigen dort den Stand IM ELFMETERSCHIESSEN, nicht den Endstand der regulären Spielzeit.
 
@@ -658,8 +656,8 @@ export async function generateMatchReport(gameId) {
 	const gameContext = JSON.stringify(context);
 
 	const { text: report } = await callAnthropicWithRetry({
-		model: "claude-sonnet-4-6",
-		max_tokens: 768,
+		...AI_THOROUGH,
+		max_tokens: 4096,
 		messages: [
 			{
 				role: "user",

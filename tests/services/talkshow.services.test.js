@@ -218,10 +218,10 @@ describe("buildDramaSignals", () => {
 		).toContain("extra_time_winner");
 	});
 
-	it("flags penalty shootouts", () => {
+	it("flags penalty shootouts (stored as result_type 'penalty')", () => {
 		expect(
 			buildDramaSignals({
-				result_type: "penalties",
+				result_type: "penalty",
 				score_home: 2,
 				score_away: 2,
 				score_timeline: [],

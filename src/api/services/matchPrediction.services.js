@@ -1,8 +1,10 @@
 import { getAnthropicClient } from "../../config/anthropic.config.js";
+import { AI_LIGHT } from "../../constants/ai.constants.js";
+import { firstTextOf } from "../helpers/ai.helpers.js";
 import { query } from "../helpers/database.helpers.js";
 import { getUserStats } from "./stats.services.js";
 
-const PREDICTION_PROMPT = `Du bist ein Kicker-Experte der vor Büro-Kicker-Spielen (EA Sports FC / FC26) eine kurze Vorhersage gibt.
+const PREDICTION_PROMPT = `Du bist ein Kicker-Experte der vor Büro-Kicker-Spielen (EA Sports FC) eine kurze Vorhersage gibt.
 
 Regeln:
 - 2-4 Sätze auf Deutsch, unterhaltsam und locker
@@ -99,8 +101,8 @@ export async function generatePrediction(players, mode) {
 
 	const client = getAnthropicClient();
 	const response = await client.messages.create({
-		model: "claude-sonnet-4-6",
-		max_tokens: 512,
+		...AI_LIGHT,
+		max_tokens: 2048,
 		messages: [
 			{
 				role: "user",
@@ -109,7 +111,7 @@ export async function generatePrediction(players, mode) {
 		],
 	});
 
-	const prediction = response.content[0]?.text;
+	const prediction = firstTextOf(response);
 	if (!prediction) {
 		const err = new Error("No response from AI model");
 		err.statusCode = 502;
