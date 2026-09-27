@@ -10,11 +10,11 @@ vi.mock("../../../src/api/helpers/database.helpers.js", () => ({
 	query: vi.fn(async () => []),
 	queryOne: vi.fn(async () => null),
 }));
-vi.mock("../../../src/api/services/elo/eloPersistence.services.js", () => ({
-	applyEloToMatch: vi.fn(async () => {}),
+vi.mock("../../../src/api/services/elo/leagueEloV2Persistence.services.js", () => ({
+	recomputeLeagueEloSafely: vi.fn(async () => ({ status: "ok" })),
 }));
-vi.mock("../../../src/api/services/elo/penaltyShotElo.services.js", () => ({
-	applyPenaltyShotEloDeltas: vi.fn(async () => {}),
+vi.mock("../../../src/api/services/leagueSeason.services.js", () => ({
+	assertPlayedAtInOpenSeason: vi.fn(async () => {}),
 }));
 vi.mock(
 	"../../../src/api/services/playerProfile/playerProfile.services.js",

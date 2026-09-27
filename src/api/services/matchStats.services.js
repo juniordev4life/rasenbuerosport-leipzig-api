@@ -1,15 +1,10 @@
 import { getAnthropicClient } from "../../config/anthropic.config.js";
-import { getPool } from "../../config/database.config.js";
 import { getStorageBucket } from "../../config/firebase.config.js";
-import { logger } from "../../config/logger.config.js";
-import { query, queryOne } from "../helpers/database.helpers.js";
+import { queryOne, withTransaction } from "../helpers/database.helpers.js";
 import { normalisePassNetwork } from "../utils/passNetwork.utils.js";
-import {
-	applyCardEloDeltas,
-	computeCardEloDeltas,
-} from "./elo/cardElo.services.js";
+import { recomputeLeagueEloSafely } from "./elo/leagueEloV2Persistence.services.js";
 
-const OVERVIEW_EXTRACTION_PROMPT = `You are analyzing a post-match statistics screen from EA Sports FC (FC25/FC26).
+const OVERVIEW_EXTRACTION_PROMPT = `You are analyzing a post-match statistics screen from EA Sports FC (FC25/FC26/FC27).
 
 Extract ALL visible statistics from this image into a structured JSON object. The image shows a two-column layout with home team stats on the left and away team stats on the right.
 
@@ -59,7 +54,7 @@ Return ONLY a valid JSON object with this exact structure. Use null for any stat
 
 Return ONLY the JSON object, no markdown fences, no explanation.`;
 
-const PASSES_EXTRACTION_PROMPT = `You are analyzing the PASSES (Pässe) tab of a post-match statistics screen from EA Sports FC (FC25/FC26).
+const PASSES_EXTRACTION_PROMPT = `You are analyzing the PASSES (Pässe) tab of a post-match statistics screen from EA Sports FC (FC25/FC26/FC27).
 
 Extract ALL visible pass statistics from this image. The image shows a two-column layout with home team stats on the left and away team stats on the right.
 
@@ -139,7 +134,7 @@ Ergänze deine JSON-Antwort um folgende zwei Top-Level-Schlüssel — UNTER den 
 
 Return ONLY the JSON object, no markdown fences, no explanation.`;
 
-const DEFENSE_EXTRACTION_PROMPT = `You are analyzing the DEFENSE (Abwehr) tab of a post-match statistics screen from EA Sports FC (FC25/FC26).
+const DEFENSE_EXTRACTION_PROMPT = `You are analyzing the DEFENSE (Abwehr) tab of a post-match statistics screen from EA Sports FC (FC25/FC26/FC27).
 
 Extract ALL visible defensive statistics from this image. The image shows a two-column layout with home team stats on the left and away team stats on the right.
 
@@ -285,11 +280,17 @@ function splitPassesExtraction(extracted) {
  * indicators to their dedicated columns (validated via
  * `normalisePassNetwork` — invalid → null).
  *
+ * The read-merge-write runs on a locked row (`FOR UPDATE`): the reported red
+ * cards feed League-ELO v2, so two parallel uploads must not lose each
+ * other's fields. The replay runs after the commit.
+ *
  * @param {string} gameId - Game UUID
  * @param {object} newStats - Extracted stats JSON (partial)
  * @param {string} imageUrl - Cloud Storage URL of the screenshot
  * @param {"overview"|"passes"|"defense"} type - Screenshot type
  * @returns {Promise<object>} Updated game record
+ * @example
+ * await saveMatchStats(gameId, { red_cards: { home: 1, away: 0 } }, url, "defense");
  */
 export async function saveMatchStats(
 	gameId,
@@ -297,29 +298,38 @@ export async function saveMatchStats(
 	imageUrl,
 	type = "overview",
 ) {
-	const imageColumn = IMAGE_COLUMNS[type] || IMAGE_COLUMNS.overview;
+	const data = await withTransaction((client) =>
+		mergeMatchStatsRow(client, gameId, newStats, imageUrl, type),
+	);
+	await recomputeLeagueEloSafely({ reason: `match_stats_${type}`, gameId });
+	return data;
+}
 
-	const existing = await queryOne(
-		"SELECT match_stats FROM games WHERE id = $1",
+async function mergeMatchStatsRow(client, gameId, newStats, imageUrl, type) {
+	const imageColumn = IMAGE_COLUMNS[type] || IMAGE_COLUMNS.overview;
+	const {
+		rows: [existing],
+	} = await client.query(
+		"SELECT match_stats FROM games WHERE id = $1 FOR UPDATE",
 		[gameId],
 	);
+	if (!existing) {
+		const err = new Error("Game not found");
+		err.statusCode = 404;
+		throw err;
+	}
 
 	let statsToMerge = newStats;
-	let homePassNetwork = null;
-	let awayPassNetwork = null;
-	let writePassNetwork = false;
+	let passNetwork = null;
 	if (type === "passes") {
 		const split = splitPassesExtraction(newStats);
 		statsToMerge = split.stats;
-		homePassNetwork = split.homePassNetwork;
-		awayPassNetwork = split.awayPassNetwork;
-		writePassNetwork = true;
+		passNetwork = [split.homePassNetwork, split.awayPassNetwork];
 	}
+	const mergedStats = { ...(existing.match_stats || {}), ...statsToMerge };
 
-	const mergedStats = { ...(existing?.match_stats || {}), ...statsToMerge };
-
-	const data = writePassNetwork
-		? await queryOne(
+	const { rows } = passNetwork
+		? await client.query(
 				`UPDATE games
 				    SET match_stats = $1,
 				        ${imageColumn} = $2,
@@ -330,94 +340,16 @@ export async function saveMatchStats(
 				[
 					JSON.stringify(mergedStats),
 					imageUrl,
-					homePassNetwork ? JSON.stringify(homePassNetwork) : null,
-					awayPassNetwork ? JSON.stringify(awayPassNetwork) : null,
+					passNetwork[0] ? JSON.stringify(passNetwork[0]) : null,
+					passNetwork[1] ? JSON.stringify(passNetwork[1]) : null,
 					gameId,
 				],
 			)
-		: await queryOne(
+		: await client.query(
 				`UPDATE games SET match_stats = $1, ${imageColumn} = $2 WHERE id = $3 RETURNING *`,
 				[JSON.stringify(mergedStats), imageUrl, gameId],
 			);
-
-	if (!data) {
-		const err = new Error("Game not found");
-		err.statusCode = 404;
-		throw err;
-	}
-
-	// Defense-stage card-ELO overlay. Runs at most once per game, on
-	// the first defense-screenshot upload — the screenshot is where
-	// yellow + red card counts come from, and the league agreed that
-	// fouling should cost ELO (especially yellows, which never get
-	// live-tracked). Idempotent via the `card_elo_applied` flag on
-	// match_stats; subsequent re-uploads or other-stage uploads skip.
-	if (type === "defense" && !existing?.match_stats?.card_elo_applied) {
-		await applyCardEloOverlay({ gameId, mergedStats, game: data });
-		// Reflect the flag on the returned row so callers don't see
-		// stale "not yet applied" state.
-		data.match_stats = { ...mergedStats, card_elo_applied: true };
-	}
-
-	return data;
-}
-
-/**
- * One-shot card-ELO application after the first defense-screenshot
- * upload. Loads game_players, computes per-player deltas, applies
- * them inside a transaction and flips the `card_elo_applied` flag.
- *
- * Errors are caught + logged rather than thrown — the match_stats
- * UPDATE has already succeeded; a flaky profiles write shouldn't
- * fail the whole stats upload. The flag flip lives inside the same
- * transaction as the rating writes, so a half-applied state isn't
- * possible: either both happen or neither does, and the next defense
- * upload will retry from a clean baseline.
- *
- * @param {object} args
- * @param {string} args.gameId
- * @param {object} args.mergedStats - The fresh match_stats merged with prior uploads.
- * @param {object} args.game - The just-updated game row (has `score_timeline`, `played_at`).
- * @returns {Promise<void>}
- */
-async function applyCardEloOverlay({ gameId, mergedStats, game }) {
-	let client;
-	try {
-		const gamePlayers = await query(
-			"SELECT player_id, team FROM game_players WHERE game_id = $1",
-			[gameId],
-		);
-		const deltas = computeCardEloDeltas({
-			matchStats: mergedStats,
-			timeline: game?.score_timeline ?? [],
-			gamePlayers,
-		});
-
-		client = await getPool().connect();
-		await client.query("BEGIN");
-		await applyCardEloDeltas({
-			client,
-			deltas,
-			playedAt: game?.played_at,
-		});
-		await client.query(
-			`UPDATE games
-			    SET match_stats = jsonb_set(match_stats, '{card_elo_applied}', 'true'::jsonb)
-			  WHERE id = $1`,
-			[gameId],
-		);
-		await client.query("COMMIT");
-	} catch (error) {
-		if (client) {
-			await client.query("ROLLBACK").catch(() => {});
-		}
-		logger.warn(
-			{ err: error?.message, gameId },
-			"card-ELO overlay failed; will retry on next defense upload",
-		);
-	} finally {
-		if (client) client.release();
-	}
+	return rows[0];
 }
 
 /**
@@ -454,9 +386,12 @@ export async function deleteMatchStatsImage(gameId, type) {
 export const __test__ = { splitPassesExtraction };
 
 /**
- * Removes match stats from a game (for re-upload)
+ * Removes match stats from a game (for re-upload). Admin-only at the route:
+ * the reported red cards are a rating input, so a removal re-rates the game.
  * @param {string} gameId - Game UUID
  * @returns {Promise<object>} Updated game record
+ * @example
+ * await deleteMatchStats(gameId);
  */
 export async function deleteMatchStats(gameId) {
 	const data = await queryOne(
@@ -476,5 +411,6 @@ export async function deleteMatchStats(gameId) {
 		throw err;
 	}
 
+	await recomputeLeagueEloSafely({ reason: "match_stats_deleted", gameId });
 	return data;
 }

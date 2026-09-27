@@ -17,7 +17,7 @@
 		"check": "biome check --write .",
 		"release": "node scripts/release.js",
 		"teams:update": "node scripts/update-teams.js",
-		"elo:recompute": "node scripts/recompute-all-elo.js",
+		"elo:recompute-v2": "node scripts/recompute-league-elo.js",
 		"elo:simulate-v2": "node scripts/simulate-elo-v2.js",
 		"game:swap-player": "node scripts/swap-game-player.js",
 		"trophies:backfill": "node scripts/trophy-backfill.js",

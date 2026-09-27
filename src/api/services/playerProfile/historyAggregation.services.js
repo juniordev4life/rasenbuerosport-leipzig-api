@@ -19,7 +19,7 @@
 
 import { PROFILE_CONSTANTS } from "../../../constants/profile.constants.js";
 import { query } from "../../helpers/database.helpers.js";
-import { matchMinutesForResultType } from "../elo/eloMatchInput.services.js";
+import { matchMinutesForResultType } from "../../utils/matchMinutes.utils.js";
 
 /**
  * Reduce a list of game rows + their `game_players` info into a

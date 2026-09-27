@@ -283,6 +283,7 @@ function playerRows(match, ctx, params) {
 				side: s,
 				ratingBefore: p.rating,
 				expected,
+				contribution: contribs[i],
 				eloShare,
 				sideBonus,
 				contributionShift: shift,
