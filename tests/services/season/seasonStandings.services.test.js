@@ -113,30 +113,89 @@ function seasonData() {
 	return { games, gamePlayers, profiles: PROFILES, standing };
 }
 
+/**
+ * Five 2v2 games Anna+Ben beat Cleo+Dora, two 1v1 games Eve vs Cleo.
+ * Hendrik has the best rating but no game in this season, and the duo
+ * Anna+Cleo has 16 games together, none of them this season.
+ */
+function rankingData() {
+	const games = [];
+	const gamePlayers = [];
+	const add = (id, day, score, home, away, homeDelta) => {
+		const rows = (ids, delta) => ids.map((pid) => [pid, 1500, delta]);
+		games.push(g(id, `2026-09-${day}T11:00:00Z`, score, snap(rows(home, homeDelta), rows(away, -homeDelta))));
+		for (const pid of home) gamePlayers.push({ game_id: id, player_id: pid, team: "home" });
+		for (const pid of away) gamePlayers.push({ game_id: id, player_id: pid, team: "away" });
+	};
+	for (let i = 1; i <= 5; i++) add(`d${i}`, `0${i}`, [2, 1], ["a", "b"], ["c", "d"], 5);
+	add("s1", "10", [1, 0], ["e"], ["c"], 8);
+	add("s2", "11", [0, 2], ["e"], ["c"], -8);
+	const player = (id, end) => ({ player_id: id, rating_start: 1500, rating_end: end });
+	const standing = {
+		players: [player("a", 1525), player("b", 1525), player("c", 1475), player("d", 1475), player("e", 1500)],
+		duos: [
+			{ key: "a|b", player_ids: ["a", "b"], rating_start: 1500, rating_end: 1525, games_total: 5 },
+			{ key: "c|d", player_ids: ["c", "d"], rating_start: 1500, rating_end: 1475, games_total: 5 },
+			{ key: "a|c", player_ids: ["a", "c"], rating_start: 1550, rating_end: 1550, games_total: 16 },
+		],
+	};
+	const profile = (id, username, rating, played) => ({
+		id,
+		username,
+		avatar_url: null,
+		current_rating: rating,
+		matches_played: played,
+		rating_updated_at: "2026-09-20T12:00:00Z",
+	});
+	const profiles = [
+		profile("a", "Anna", 1525, 40),
+		profile("b", "Ben", 1525, 40),
+		profile("c", "Cleo", 1475, 30),
+		profile("d", "Dora", 1475, 30),
+		profile("e", "Eve", 1500, 2),
+		profile("h", "Hendrik", 1623, 15),
+	];
+	return { games, gamePlayers, profiles, standing };
+}
+
 describe("buildSeasonRating", () => {
-	it("ranks regulars first in a closed season and marks the others", () => {
-		const data = seasonData();
-		const { season, players } = buildSeasonRating(data, FC26);
+	it("lists only players with at least 5 games in the running season", () => {
+		const { season, players } = buildSeasonRating(rankingData(), FC27, new Date("2026-09-27T12:00:00Z"));
+
+		expect(season.ranking_min_games).toBe(5);
+		// Hendrik (best rating, no game this season) and Eve (2 games) stay out
+		expect(players.map((p) => [p.rank, p.username, p.games])).toEqual([
+			[1, "Anna", 5],
+			[2, "Ben", 5],
+			[3, "Cleo", 7],
+			[4, "Dora", 5],
+		]);
+		expect(players.every((p) => p.qualified)).toBe(true);
+		expect(players[0]).not.toHaveProperty("rookie");
+	});
+
+	it("applies the same minimum to a closed season, below its 30-game qualification", () => {
+		const { season, players } = buildSeasonRating(rankingData(), FC26);
 
 		expect(season.min_games).toBe(30);
-		// both have only 2 games → not qualified; order by rating
 		expect(players.map((p) => [p.username, p.qualified])).toEqual([
 			["Anna", false],
 			["Ben", false],
+			["Cleo", false],
+			["Dora", false],
 		]);
-		expect(players[0]).toMatchObject({ rating: 1530, rating_start: 1500, delta_season: 30, wins: 2, losses: 0, delta_week: 0 });
-		expect(players[0].history).toEqual([1500, 1516, 1530]);
-		expect(players[0].streak).toEqual({ type: "W", count: 2 });
+		expect(players[0]).toMatchObject({ rating: 1525, delta_season: 25, wins: 5, losses: 0, streak: { type: "W", count: 5 } });
 	});
 
-	it("lists every rated player in the current season with live ratings", () => {
-		const data = { ...seasonData(), games: [], gamePlayers: [] };
+	it("lists only duos with at least 5 games together in the season", () => {
+		const { duos } = buildSeasonRating(rankingData(), FC27, new Date("2026-09-27T12:00:00Z"));
 
-		const { players } = buildSeasonRating(data, FC27, new Date("2026-09-27T12:00:00Z"));
-
-		expect(players.map((p) => p.username)).toEqual(["Anna", "Ben"]);
-		expect(players.every((p) => p.qualified && p.games === 0)).toBe(true);
-		expect(players.find((p) => p.username === "Cleo")).toBeUndefined();
+		// Anna+Cleo have 16 games together, but none this season
+		expect(duos.map((d) => [d.rank, d.duo_id, d.games, d.games_total])).toEqual([
+			[1, "a_b", 5, 5],
+			[2, "c_d", 5, 5],
+		]);
+		expect(duos[0]).toMatchObject({ wins: 5, losses: 0, delta_season: 25 });
 	});
 });
 

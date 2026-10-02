@@ -22,8 +22,8 @@ import { RECAP_MIN_GAMES } from "./seasonRecapBuilder.services.js";
 
 const HISTORY_POINTS = 60;
 const FORM_GAMES = 10;
-const ROOKIE_GAMES = 5;
-const DUO_MIN_GAMES = 10;
+/** Fewest games in the viewed season to appear in its ranking, players and duos alike. */
+const RANKING_MIN_GAMES = 5;
 const START_RATING = 1500;
 
 /**
@@ -154,7 +154,6 @@ function playerRow(profile, standing, season, isCurrent) {
 		losses: season.losses,
 		goals: season.goals,
 		streak: currentStreak(season.results),
-		rookie: profile.matches_played < ROOKIE_GAMES,
 		last_played_at: profile.rating_updated_at
 			? new Date(profile.rating_updated_at).toISOString()
 			: null,
@@ -204,20 +203,12 @@ function collectDuoSeasons(data) {
 	return duos;
 }
 
-function duoRows(data, profilesById, isCurrent) {
+function duoRows(data, profilesById) {
 	const seasonDuos = collectDuoSeasons(data);
 	const rows = [];
 	for (const duo of data.standing?.duos ?? []) {
-		if (duo.games_total < DUO_MIN_GAMES) continue;
-		if (!isCurrent && duo.games === 0) continue;
-		const stats = seasonDuos.get(duo.key) ?? {
-			games: 0,
-			wins: 0,
-			draws: 0,
-			losses: 0,
-			goalsFor: 0,
-			goalsAgainst: 0,
-		};
+		const stats = seasonDuos.get(duo.key);
+		if (!stats || stats.games < RANKING_MIN_GAMES) continue;
 		const players = duo.player_ids.map((id) => ({
 			player_id: id,
 			username: profilesById.get(id)?.username ?? null,
@@ -246,7 +237,9 @@ function duoRows(data, profilesById, isCurrent) {
 }
 
 /**
- * Pure: skill-rating view of a season.
+ * Pure: skill-rating view of a season. Players and duos appear once they
+ * have RANKING_MIN_GAMES games in this season; a carried-over rating alone
+ * does not list anyone.
  *
  * @param {object} data - From loadSeasonData
  * @param {object} season - league_seasons row
@@ -269,8 +262,7 @@ export function buildSeasonRating(data, season, now = new Date()) {
 	for (const profile of data.profiles) {
 		const season_ = seasons.get(profile.id) ?? emptyPlayerSeason();
 		const standing = standingById.get(profile.id);
-		const eligible = isCurrent ? profile.matches_played > 0 : season_.games > 0;
-		if (!eligible) continue;
+		if (season_.games < RANKING_MIN_GAMES) continue;
 		const row = playerRow(profile, standing, season_, isCurrent);
 		// A closed season's end standing only ranks regulars at the top, like
 		// the champion award (a 15-game run must not outrank a 270-game season).
@@ -278,8 +270,12 @@ export function buildSeasonRating(data, season, now = new Date()) {
 		rows.push(row);
 	}
 	return {
-		season: { ...toSeasonDto(season), min_games: RECAP_MIN_GAMES },
+		season: {
+			...toSeasonDto(season),
+			min_games: RECAP_MIN_GAMES,
+			ranking_min_games: RANKING_MIN_GAMES,
+		},
 		players: rankRows(rows),
-		duos: duoRows(data, profilesById, isCurrent),
+		duos: duoRows(data, profilesById),
 	};
 }
