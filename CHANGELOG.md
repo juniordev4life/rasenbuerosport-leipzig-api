@@ -6,6 +6,22 @@ Releases are cut with `npm run release`, which bumps the version, writes this fi
 
 <!-- changelogen entries appear below -->
 
+## v2.2.0
+
+[compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v2.1.0...v2.2.0)
+
+### 🚀 Enhancements
+
+- **season:** Rank only players and duos with 5+ games in the season ([#91](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/pull/91))
+
+### 🏡 Chore
+
+- Update version badge and changelog date for v2.1.0 ([e804c8a](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/commit/e804c8a))
+
+### ❤️ Contributors
+
+- Marco Slusalek ([@juniordev4life](http://github.com/juniordev4life))
+
 ## v2.1.0 (2026-09-28)
 
 [compare changes](https://github.com/juniordev4life/rasenbuerosport-leipzig-api/compare/v2.0.0...v2.1.0)
