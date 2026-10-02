@@ -96,7 +96,7 @@ The API follows a strict **layered architecture** — Routes define endpoints, C
 | `GET` | `/api/v1/duos` | Bearer | List teammate duos |
 | `GET` | `/api/v1/duos/:player1Id/:player2Id` | Bearer | Detail for a specific duo |
 | `GET` | `/api/v1/seasons` | — | League seasons (EA FC editions, e.g. `fc27` open, `fc26` closed), newest first |
-| `GET` | `/api/v1/seasons/:seasonId/rating` | Bearer | Skill rating of a season (`:seasonId` = `fc26` \| `fc27` \| `current`): League-ELO v2 players and duos (≥ 10 games), start/end rating, week and form deltas; closed seasons rank players with ≥ 30 games first |
+| `GET` | `/api/v1/seasons/:seasonId/rating` | Bearer | Skill rating of a season (`:seasonId` = `fc26` \| `fc27` \| `current`): League-ELO v2 players and duos with ≥ 5 games in that season (`season.ranking_min_games`), start/end rating, week and form deltas; closed seasons rank players with ≥ 30 games first |
 | `GET` | `/api/v1/seasons/:seasonId/awards` | Bearer | Season awards (after the recap was generated) |
 | `GET` | `/api/v1/seasons/:seasonId/recap/me` | Bearer | The viewer's season recap ("Rückblick"), `null` when there is none |
 | `POST` | `/api/v1/seasons/:seasonId/recap/generate` | Scheduler | Generate every player's recap + awards (`?skip_ai=true` skips the AI summaries) |
